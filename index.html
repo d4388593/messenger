@@ -194,10 +194,24 @@
         .user-option:hover { background: #3d3d3d; }
         .user-option.selected { background: var(--msg-sent); }
 
-        /* CALL UI */
+        /* CALL MODAL STATES */
         #call-modal {
             width: 80vw; height: 80vh; background: #000; border-radius: 20px;
             position: relative; overflow: hidden; display: flex; flex-direction: column;
+        }
+        .call-view {
+            flex-grow: 1; display: flex; flex-direction: column;
+            align-items: center; justify-content: center;
+        }
+        .ringing-anim {
+            width: 100px; height: 100px; background: var(--accent-blue);
+            border-radius: 50%; margin-bottom: 20px;
+            animation: pulse 1.5s infinite;
+        }
+        @keyframes pulse {
+            0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(42, 186, 238, 0.7); }
+            70% { transform: scale(1); box-shadow: 0 0 0 20px rgba(42, 186, 238, 0); }
+            100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(42, 186, 238, 0); }
         }
         .call-grid {
             flex-grow: 1; display: grid;
@@ -301,7 +315,9 @@
     </main>
 </div>
 
+<!-- MODALS -->
 <div id="modal-container" class="modal-overlay hidden">
+    <!-- Group Modal -->
     <div id="group-modal" class="modal hidden">
         <div class="modal-title" id="modal-title">Создать группу</div>
         <input type="text" id="group-name" placeholder="Название группы" style="width:100%; padding:10px; margin-bottom:15px; background:#3d3d3d; border:1px solid #4d4d4d; color:white; border-radius:8px;">
@@ -313,6 +329,7 @@
         </div>
     </div>
 
+    <!-- Incoming Call Modal -->
     <div id="incoming-call-modal" class="modal hidden" style="text-align: center;">
         <div class="modal-title">Входящий звонок...</div>
         <div id="caller-name" style="margin-bottom: 20px; font-size: 1.5rem;">Пользователь</div>
@@ -322,14 +339,27 @@
         </div>
     </div>
 
+    <!-- Call Modal -->
     <div id="call-modal" class="modal hidden" style="width: 80vw; height: 80vh; background: #000; border-radius: 20px; overflow: hidden; display: flex; flex-direction: column;">
         <div class="call-timer" id="call-timer">00:00</div>
-        <div class="call-grid" id="call-grid"></div>
-        <div class="call-controls">
-            <button id="btn-enable-cam" class="ctrl-btn mute" style="background: var(--accent-blue);">📹 Включить камеру</button>
-            <button id="mute-btn" class="ctrl-btn mute">🎤</button>
-            <button id="share-btn" class="ctrl-btn share">🖥️</button>
-            <button id="end-call-btn" class="ctrl-btn end">✖</button>
+
+                <!-- State 1: Calling... (Caller side) -->
+        <div id="call-view-ringing" class="call-view">
+            <div class="ringing-anim"></div>
+            <h2 id="ringing-name">Пользователь</h2>
+            <p style="color: var(--text-muted); margin-bottom: 30px;">Вызов...</p>
+            <button id="btn-cancel-call" class="btn-primary" style="width: auto; background: var(--danger); padding: 10px 30px;">Отмена</button>
+        </div>
+
+        <!-- State 2: Active Call -->
+        <div id="call-view-active" class="call-view hidden" style="display: flex; flex-direction: column;">
+            <div class="call-grid" id="call-grid"></div>
+            <div class="call-controls">
+                <button id="btn-enable-cam" class="ctrl-btn mute" style="background: var(--accent-blue);">📹 Камера</button>
+                <button id="mute-btn" class="ctrl-btn mute">🎤</button>
+                <button id="share-btn" class="ctrl-btn share">🖥️</button>
+                <button id="end-call-btn" class="ctrl-btn end">✖</button>
+            </div>
         </div>
     </div>
 </div>
@@ -371,7 +401,7 @@
     const EMOJIS = ['👍', '❤️', '😂', '😮', '😢', '😡'];
     let pc = null, localStream = null, screenStream = null, callInterval = null, isMuted = false, currentCallId = null;
 
-    /** AUTH **/
+    /** AUTH & SESSION **/
     async function handleAuth() {
         const u = document.getElementById('auth-user').value.trim();
         const p = document.getElementById('auth-pass').value.trim();
@@ -394,7 +424,7 @@
                 }
             }
         }
-        console.log('User saved to localStorage: ', state.currentUser.username);
+        console.log('Session saved for:', state.currentUser.username);
         localStorage.setItem('currentUser', JSON.stringify(state.currentUser));
         initApp();
     }
@@ -415,10 +445,10 @@
 
     /** CORE APP **/
     async function initApp() {
-        const savedUser = localStorage.getItem('currentUser');
-        if (savedUser) {
-            console.log('Auto-login with saved user');
-            state.currentUser = JSON.parse(savedUser);
+        const saved = localStorage.getItem('currentUser');
+        if (saved) {
+            state.currentUser = JSON.parse(saved);
+            console.log('Auto-login: ', state.currentUser.username);
         }
 
         if (!state.currentUser) {
@@ -631,15 +661,12 @@
         input.value = '';
     }
 
-    /** BUG 3 FIX: File Upload **/
     async function handleFileUpload(file) {
-        console.log('File input triggered: ' + file.name);
         const progressContainer = document.getElementById('upload-progress-container');
         const progressFill = document.getElementById('progress-fill');
         const progressPercent = document.getElementById('progress-percent');
         progressContainer.classList.remove('hidden');
         try {
-            console.log('Upload started...');
             const storageRef = storage.ref(`uploads/${Date.now()}_${file.name}`);
             const uploadTask = storageRef.put(file);
             uploadTask.on('state_changed',
@@ -647,15 +674,9 @@
                     const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
                     progressFill.style.width = progress + '%';
                     progressPercent.innerText = Math.round(progress) + '%';
-                    console.log(`Upload progress: ${Math.round(progress)}%`);
                 },
-                (error) => {
-                    console.error("Firebase Storage Error: ", error);
-                    alert("Ошибка загрузки: " + error.message);
-                    progressContainer.classList.add('hidden');
-                },
+                (error) => { alert("Ошибка загрузки: " + error.message); progressContainer.classList.add('hidden'); },
                 async () => {
-                    console.log('Upload complete. Retrieving URL...');
                     const downloadURL = await uploadTask.snapshot.ref.getDownloadURL();
                     const msg = {
                         sender: state.currentUser.username, type: 'file', fileUrl: downloadURL,
@@ -665,18 +686,12 @@
                     await db.collection('chats').doc(state.activeChatId).update({
                         messages: firebase.firestore.FieldValue.arrayUnion(msg)
                     });
-                    console.log('Message saved to Firestore');
                     progressContainer.classList.add('hidden');
                 }
             );
-        } catch (e) {
-            console.error("Critical Upload Error: ", e);
-            alert("Критическая ошибка загрузки файла");
-            progressContainer.classList.add('hidden');
-        }
+        } catch (e) { alert("Ошибка загрузки файла"); progressContainer.classList.add('hidden'); }
     }
 
-    /** GROUP MGMT **/
     function showGroupModal(isAdding = false) {
         document.getElementById('modal-container').classList.remove('hidden');
         document.getElementById('group-modal').classList.remove('hidden');
@@ -695,7 +710,7 @@
             if (user.username === state.currentUser.username) return;
             const div = document.createElement('div');
             div.className = 'user-option';
-            div.innerHTML = `<input type="checkbox" value="${user.username}"> <div class="avatar" style="width:30px; height:30px; font-size:0.7rem">${user.username.charAt(0)}</div> ${user.username}`;
+            div.innerHTML = `<input type="checkbox" value="${user.username}"> <div class="avatar" style="width:30px; height:30px; font-size:0.7rem">${user.username.charAt(0)}S</div> ${user.username}`;
             div.onclick = (e) => {
                 if (e.target.type !== 'checkbox') {
                     const cb = div.querySelector('input');
@@ -735,7 +750,7 @@
         document.querySelectorAll('.modal').forEach(m => m.classList.add('hidden'));
     }
 
-    /** BUG 1 FIX: WebRTC Logic **/
+    /** BUG FIX: Proper Call Flow & WebRTC **/
     async function setupCallSignalListener() {
         db.collection('calls').onSnapshot(snapshot => {
             snapshot.docChanges().forEach(change => {
@@ -753,96 +768,107 @@
     }
 
     async function startCall() {
-        console.log('Call button clicked. Opening modal UI...');
+        console.log('Start Call triggered');
         const chat = state.chats.find(c => c.id === state.activeChatId);
         const participants = chat.participants;
         const callee = participants.find(p => p !== state.currentUser.username);
         if (!callee) return alert("Некому звонить");
 
-        // BUG 1 FIX: Open Modal and Timer FIRST, no media yet
-        document.getElementById('call-modal').classList.remove('hidden');
-        document.getElementById('modal-container').classList.remove('hidden');
-        startTimer();
-
         currentCallId = 'call_' + Date.now();
 
-        // Setup signaling on Firestore
-        const offer = { type: 'offer', sdp: 'signaling_initiated' };
+        // Open Modal in "Calling" state
+        document.getElementById('call-modal').classList.remove('hidden');
+        document.getElementById('modal-container').classList.remove('hidden');
+        document.getElementById('call-view-ringing').classList.remove('hidden');
+        document.getElementById('call-view-active').classList.add('hidden');
+        document.getElementById('ringing-name').innerText = callee;
+
+        // Create Call Document
         await db.collection('calls').doc(currentCallId).set({
-            offer: offer,
             caller: state.currentUser.username,
             callee: callee,
             status: 'ringing',
-            participants: participants
+            participants: participants,
+            timestamp: Date.now()
         });
 
-        db.collection('calls').doc(currentCallId).onSnapshot(doc => {
+        // Listen for acceptance
+        const callUnsub = db.collection('calls').doc(currentCallId).onSnapshot(doc => {
             const data = doc.data();
-            if (data.status === 'declined') endCall();
+            if (!data) return;
+            if (data.status === 'accepted') {
+                console.log('Call accepted by receiver');
+                enableMediaAndConnect();
+            } else if (data.status === 'ended') {
+                endCall();
+            }
         });
+
+        // Cleanup when call ends
+        pc = new RTCPeerConnection({ iceServers: [{ urls: 'stun:stun.l.google.com:19302' }] });
     }
 
-    async function enableCamera() {
-        console.log('Attempting to enable camera/mic...');
+    async function enableMediaAndConnect() {
         try {
             localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+            document.getElementById('call-view-ringing').classList.add('hidden');
+            document.getElementById('call-view-active').classList.remove('hidden');
+
             const grid = document.getElementById('call-grid');
             grid.innerHTML = '';
             grid.appendChild(createVideoTile('Вы', localStream));
+            startTimer();
 
-            // Now initialize PeerConnection if this is a call
-            if (currentCallId) {
-                pc = new RTCPeerConnection({ iceServers: [{ urls: 'stun:stun.l.google.com:19302' }] });
+            if (pc) {
                 localStream.getTracks().forEach(track => pc.addTrack(track, localStream));
-
-                // Re-negotiate offer with real media
                 const offer = await pc.createOffer();
                 await pc.setLocalDescription(offer);
-                await db.collection('calls').doc(currentCallId).update({
-                    offer: { type: offer.type, sdp: offer.sdp }
-                });
-
-                pc.onicecandidate = (e) => {
-                    if (e.candidate) db.collection('calls').doc(currentCallId).collection('candidates').add(e.candidate.toJSON());
-                };
-                pc.ontrack = (e) => {
-                    const remoteStream = e.streams[0];
-                    const grid = document.getElementById('call-grid');
-                    grid.appendChild(createVideoTile('Собеседник', remoteStream));
-                };
+                await db.collection('calls').doc(currentCallId).update({ offer });
             }
-            document.getElementById('btn-enable-cam').classList.add('hidden');
         } catch (err) {
-            console.error('Camera Error: ', err);
+            console.error('Media Error:', err);
             alert("Разрешите доступ к камере и микрофону в настройках браузера");
         }
     }
 
     async function acceptCall() {
+        console.log('Accepting call...');
         document.getElementById('incoming-call-modal').classList.add('hidden');
-        document.getElementById('call-modal').classList.remove('hidden');
-        document.getElementById('modal-container').classList.remove('hidden');
-        startTimer();
 
-        // Start with camera enablement logic
-        await enableCamera();
+        // Update status to accepted first
+        await db.collection('calls').doc(currentCallId).update({ status: 'accepted' });
 
-        if (!pc) pc = new RTCPeerConnection({ iceServers: [{ urls: 'stun:stun.l.google.com:19302' }] });
+        // Request media
+        try {
+            localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+            document.getElementById('call-modal').classList.remove('hidden');
+            document.getElementById('modal-container').classList.remove('hidden');
+            document.getElementById('call-view-ringing').classList.add('hidden');
+            document.getElementById('call-view-active').classList.remove('hidden');
 
-        const callDoc = await db.collection('calls').doc(currentCallId).get();
-        const offer = callDoc.data().offer;
-        await pc.setRemoteDescription(new RTCSessionDescription(offer));
+            const grid = document.getElementById('call-grid');
+            grid.innerHTML = '';
+            grid.appendChild(createVideoTile('Вы', localStream));
+            startTimer();
 
-        const answer = await pc.createAnswer();
-        await pc.setLocalDescription(answer);
-        await db.collection('calls').doc(currentCallId).update({
-            answer: { type: answer.type, sdp: answer.sdp },
-            status: 'accepted'
-        });
+            pc = new RTCPeerConnection({ iceServers: [{ urls: 'stun:stun.l.google.com:19302' }] });
+            localStream.getTracks().forEach(track => pc.addTrack(track, localStream));
+
+            const callDoc = await db.collection('calls').doc(currentCallId).get();
+            const offer = callDoc.data().offer;
+            await pc.setRemoteDescription(new RTCSessionDescription(offer));
+            const answer = await pc.createAnswer();
+            await pc.setLocalDescription(answer);
+            await db.collection('calls').doc(currentCallId).update({ answer });
+
+        } catch (err) {
+            console.error('Accept error:', err);
+            alert("Разрешите доступ к камере и микрофону");
+        }
     }
 
     function declineCall() {
-        if (currentCallId) db.collection('calls').doc(currentCallId).update({ status: 'declined' });
+        if (currentCallId) db.collection('calls').doc(currentCallId).update({ status: 'ended' });
         document.getElementById('incoming-call-modal').classList.add('hidden');
     }
 
@@ -858,7 +884,9 @@
 
     function toggleMute() {
         isMuted = !isMuted;
-        if (localStream) localStream.getAudioTracks()[0].enabled = !isMuted;
+        if (localStream) {
+            localStream.getAudioTracks()[0].enabled = !isMuted;
+        }
         document.getElementById('mute-btn').innerText = isMuted ? '🔇' : '🎤';
         document.getElementById('mute-btn').style.background = isMuted ? 'var(--danger)' : '#4d4d4d';
     }
@@ -868,7 +896,7 @@
         if (!screenStream) {
             try {
                 screenStream = await navigator.mediaDevices.getDisplayMedia({ video: true });
-                const videoTrack = screenStream.getTracks()[0];
+                const videoTrack = screenStream.getVideoTracks()[0];
                 const sender = pc ? pc.getSenders().find(s => s.track.kind === 'video') : null;
                 if (sender) sender.replaceTrack(videoTrack);
                 btn.innerText = '⏹️'; btn.style.background = 'var(--danger)';
@@ -903,8 +931,6 @@
     }
 
     document.addEventListener('DOMContentLoaded', () => {
-        console.log('DOM Loaded. Binding event listeners...');
-
         document.getElementById('auth-btn').addEventListener('click', handleAuth);
         document.getElementById('auth-toggle').addEventListener('click', toggleAuthMode);
         document.getElementById('btn-logout').addEventListener('click', logout);
@@ -917,25 +943,22 @@
         document.getElementById('msg-input').addEventListener('keypress', (e) => { if (e.key === 'Enter') sendMessage(); });
         document.getElementById('back-btn').addEventListener('click', () => { document.getElementById('chat-window').classList.remove('active'); });
 
-        // BUG 1: Call Button Fix
         document.getElementById('btn-call').addEventListener('click', () => {
-            console.log('Call button clicked');
+            console.log('Call sequence started');
             startCall();
         });
-        document.getElementById('btn-enable-cam').addEventListener('click', enableCamera);
-
+        document.getElementById('btn-enable-cam').addEventListener('click', enableMediaAndConnect);
         document.getElementById('btn-add-member').addEventListener('click', () => showGroupModal(true));
         document.getElementById('btn-modal-cancel').addEventListener('click', closeModal);
         document.getElementById('btn-modal-confirm').addEventListener('click', confirmGroupAction);
         document.getElementById('mute-btn').addEventListener('click', toggleMute);
         document.getElementById('share-btn').addEventListener('click', toggleScreenShare);
         document.getElementById('end-call-btn').addEventListener('click', endCall);
+        document.getElementById('btn-cancel-call').addEventListener('click', endCall);
         document.getElementById('btn-accept-call').addEventListener('click', acceptCall);
         document.getElementById('btn-decline-call').addEventListener('click', declineCall);
-
-        // BUG 3: Attachment Button Fix
         document.getElementById('btn-attach').addEventListener('click', () => {
-            console.log('File input triggered via attachment button');
+            console.log('Attachment button clicked');
             document.getElementById('file-input').click();
         });
         document.getElementById('file-input').addEventListener('change', (e) => {
