@@ -1,10 +1,10 @@
 
 <!DOCTYPE html>
-<html lang="ru">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-    <title>WebGram Pro – Исправленный</title>
+    <title>WebGram Pro – Secure Messenger</title>
     <style>
         :root {
           --bg: #0d1117; --panel: #161b22; --border: #30363d; --text: #c9d1d9;
@@ -20,10 +20,10 @@
           --msg-sent: #e3f2fd; --shadow: 0 2px 8px rgba(0,0,0,0.1);
         }
         * { margin:0; padding:0; box-sizing:border-box; font-family: 'Inter', system-ui, sans-serif; }
-        body { background: var(--bg); color: var(--text); height: 100vh; overflow: hidden; }
+        body { background: var(--bg); color: var(--text); height: 100vh; overflow: hidden; transition: background 0.3s; }
         #app { width: 100%; height: 100vh; display: flex; background: var(--panel); border-radius: 0; overflow: hidden; }
 
-        /* Аутентификация */
+        /* Auth Screen */
         .auth-overlay { position: fixed; top:0; left:0; width:100%; height:100%; background: radial-gradient(circle at top, #161b22, #0d1117); display:flex; align-items:center; justify-content:center; z-index:100; }
         .light .auth-overlay { background: radial-gradient(circle at top, #e0e0e0, #f0f2f5); }
         .auth-card { background: var(--panel); padding: 32px; border-radius: var(--radius); box-shadow: var(--shadow); width: 360px; text-align: center; border: 1px solid var(--border); }
@@ -36,7 +36,7 @@
         .auth-error { color: var(--danger); font-size: 13px; margin-top: 12px; min-height: 18px; opacity: 0; transition: opacity 0.3s; }
         .auth-error.visible { opacity: 1; }
 
-        /* Сайдбар */
+        /* Sidebar */
         #main-ui { display: flex; width: 100%; height: 100%; }
         .sidebar { width: 320px; min-width: 320px; background: var(--panel); display: flex; flex-direction: column; border-right: 1px solid var(--border); transition: transform 0.3s; }
         @media (max-width: 768px) {
@@ -62,7 +62,7 @@
         .admin-toggle { background: none; border: 1px solid var(--accent); color: var(--accent); border-radius: 8px; padding: 8px 12px; font-size: 13px; cursor: pointer; display: none; }
         .admin-toggle.active { background: var(--accent); color: white; }
 
-        /* Чат */
+        /* Chat */
         .chat-main { flex:1; display:flex; flex-direction: column; position:relative; background: var(--bg); min-width: 0; }
         .chat-header { padding: 16px 24px; border-bottom: 1px solid var(--border); background: var(--panel); display: flex; align-items: center; justify-content: space-between; }
         .chat-header .user-info { display: flex; align-items: center; gap: 12px; }
@@ -126,7 +126,7 @@
         .toast { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); padding: 12px 28px; border-radius: 30px; background: var(--panel); border: 1px solid var(--accent); color: var(--text); box-shadow: var(--shadow); z-index: 9999; font-weight: 500; animation: slideUp 0.3s ease; }
         @keyframes slideUp { from { opacity: 0; transform: translateX(-50%) translateY(20px); } to { opacity: 1; transform: translateX(-50%) translateY(0); } }
 
-        /* Опросы */
+        /* Polls */
         .poll-container { margin-top: 8px; background: rgba(88,166,255,0.05); padding: 10px; border-radius: 12px; }
         .poll-question { font-weight: 600; margin-bottom: 4px; }
         .poll-desc { font-size: 13px; color: var(--text-secondary); margin-bottom: 10px; }
@@ -139,74 +139,80 @@
         .poll-results-text { font-size: 13px; color: var(--text-secondary); margin-top: 6px; }
         .poll-result-item { margin-bottom: 8px; }
         .poll-result-header { display: flex; justify-content: space-between; font-size: 13px; }
+
+        /* Backgrounds */
+        .bg-default { background: var(--bg); }
+        .bg-gradient1 { background: linear-gradient(135deg, #1a0533 0%, #0d1117 50%, #1a0533 100%) !important; }
+        .bg-pattern { background-image: radial-gradient(circle, #30363d 1px, transparent 1px); background-size: 20px 20px; }
+        .bg-galaxy { background: radial-gradient(ellipse at bottom, #1b2735 0%, #090a0f 100%); }
     </style>
 </head>
 <body id="body-root">
 <div id="app">
-    <!-- Аутентификация -->
+    <!-- Authentication -->
     <div id="auth-screen" class="auth-overlay">
         <div class="auth-card">
             <h2 id="auth-title">🚀 WebGram Pro</h2>
             <input type="email" id="login-email" placeholder="Email">
-            <input type="password" id="login-pass" placeholder="Пароль">
-            <input type="password" id="reg-confirm-pass" class="hidden" placeholder="Подтвердите пароль">
+            <input type="password" id="login-pass" placeholder="Password">
+            <input type="password" id="reg-confirm-pass" class="hidden" placeholder="Confirm Password">
             <div id="auth-error" class="auth-error"></div>
-            <button type="button" id="auth-btn">Войти</button>
-            <button type="button" id="auth-reg-btn" class="secondary" style="display:none;">Зарегистрироваться</button>
-            <div id="auth-toggle" class="toggle-text">Нет аккаунта? <span style="color:var(--accent); cursor:pointer;">Регистрация</span></div>
+            <button type="button" id="auth-btn">Login</button>
+            <button type="button" id="auth-reg-btn" class="secondary" style="display:none;">Register</button>
+            <div id="auth-toggle" class="toggle-text">No account? <span style="color:var(--accent); cursor:pointer;">Register</span></div>
         </div>
     </div>
 
-    <!-- Основной интерфейс -->
+    <!-- Main UI -->
     <div id="main-ui" class="hidden" style="display:flex; width:100%;">
         <div class="sidebar" id="sidebar">
             <div class="sidebar-header">
                 <div class="logo">
                     <span style="background: var(--accent-gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">WebGram</span>
                     <div style="display:flex; gap:8px;">
-                        <button id="theme-toggle" class="icon-btn" style="width:36px;height:36px;font-size:16px;" title="Тема">🌓</button>
-                        <button id="profile-btn" class="icon-btn" style="width:36px;height:36px;font-size:16px;" title="Профиль">👤</button>
-                        <button id="logout-btn" class="icon-btn" style="width:36px;height:36px;font-size:14px;" title="Выйти">↪</button>
+                        <button id="theme-toggle" class="icon-btn" style="width:36px;height:36px;font-size:16px;" title="Theme">🌙</button>
+                        <button id="profile-btn" class="icon-btn" style="width:36px;height:36px;font-size:16px;" title="Profile">👤</button>
+                        <button id="logout-btn" class="icon-btn" style="width:36px;height:36px;font-size:14px;" title="Logout">↪</button>
                     </div>
                 </div>
                 <div class="search-box">
                     <span>🔍</span>
-                    <input type="text" id="search-input" placeholder="Поиск чатов...">
+                    <input type="text" id="search-input" placeholder="Search chats...">
                 </div>
                 <select id="sort-select" class="sort-select">
-                    <option value="time">По времени</option>
-                    <option value="name">По имени</option>
-                    <option value="type">По типу</option>
+                    <option value="time">By time</option>
+                    <option value="name">By name</option>
+                    <option value="type">By type</option>
                 </select>
             </div>
             <div class="chat-list" id="chat-list"></div>
             <div class="sidebar-footer">
-                <button id="new-private-chat-btn">+ Новый чат</button>
-                <button id="new-group-btn">+ Создать группу</button>
-                <button id="new-channel-btn">+ Создать канал</button>
-                <button id="admin-mode-btn" class="admin-toggle">👑 Админ</button>
+                <button id="new-private-chat-btn">+ New Chat</button>
+                <button id="new-group-btn">+ Create Group</button>
+                <button id="new-channel-btn">+ Create Channel</button>
+                <button id="admin-mode-btn" class="admin-toggle">👑 Admin</button>
             </div>
         </div>
 
         <div class="chat-main">
             <div id="empty-chat" style="flex:1; display:flex; align-items:center; justify-content:center; color:var(--text-secondary);">
-                Выберите чат, чтобы начать общение
+                Select a chat to start messaging
             </div>
             <div id="chat-view" class="hidden" style="flex:1; display:flex; flex-direction:column;">
                 <div class="chat-header">
                     <div class="user-info">
                         <span class="back-btn" id="back-btn">←</span>
-                        <div class="avatar" id="chat-avatar" style="cursor:pointer;">?</div>
+                        <div class="avatar" id="chat-avatar" style="cursor:pointer;">S</div>
                         <div style="display:flex; flex-direction:column;">
                             <div id="chat-name" style="font-weight:600; cursor:pointer;">...</div>
-                            <div id="chat-status" style="font-size:12px; color:var(--text-secondary);">В сети</div>
+                            <div id="chat-status" style="font-size:12px; color:var(--text-secondary);">Online</div>
                         </div>
                     </div>
                     <div class="actions">
-                        <button id="owner-nick-btn" class="icon-btn" title="Мой ник" style="display:none;">👤</button>
-                        <button id="edit-group-btn" class="icon-btn" title="Редактировать" style="display:none;">✏️</button>
-                        <button id="add-member-btn" class="icon-btn" title="Добавить участников">👥</button>
-                        <button id="delete-chat-btn" class="icon-btn danger" title="Удалить чат" style="display:none;">🗑</button>
+                        <button id="owner-nick-btn" class="icon-btn" title="My Nick" style="display:none;">👤</button>
+                        <button id="edit-group-btn" class="icon-btn" title="Edit" style="display:none;">✏️</button>
+                        <button id="add-member-btn" class="icon-btn" title="Add Members">👥</button>
+                        <button id="delete-chat-btn" class="icon-btn danger" title="Delete Chat" style="display:none;">🗑</button>
                         <button id="call-btn" class="icon-btn">📞</button>
                     </div>
                 </div>
@@ -216,61 +222,60 @@
                     <input type="file" id="file-input" class="hidden">
                     <button id="voice-btn" class="record-btn">🎤</button>
                     <button id="video-circle-btn" class="record-btn">📹</button>
-                    <button id="poll-create-btn" class="record-btn" title="Создать опрос">📊</button>
-                    <input type="text" id="msg-input" placeholder="Введите сообщение...">
+                    <button id="poll-create-btn" class="record-btn" title="Create Poll">📊</button>
+                    <input type="text" id="msg-input" placeholder="Type a message...">
                     <button id="send-btn" class="record-btn" style="background: var(--accent-gradient); color: white; border: none;">➤</button>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Модальные окна -->
+    <!-- Modals -->
     <div id="modal-overlay" class="modal-overlay hidden">
-        <!-- Группа -->
         <div id="group-modal" class="modal hidden">
-            <h3 id="modal-title">Создать группу</h3>
-            <input type="text" id="group-name" placeholder="Название группы">
-            <textarea id="group-desc" placeholder="Описание группы (необязательно)" rows="2"></textarea>
-            <div style="margin-bottom: 10px; font-size: 14px; color: var(--text-secondary);">Участники: <span id="selected-count">0</span></div>
+            <h3 id="modal-title">Create Group</h3>
+            <input type="text" id="group-name" placeholder="Group Name">
+            <textarea id="group-desc" placeholder="Group description (optional)" rows="2"></textarea>
+            <div style="margin-bottom: 10px; font-size: 14px; color: var(--text-secondary);">Members: <span id="selected-count">0</span></div>
             <div class="search-box" style="margin-bottom: 10px;">
                 <span>🔍</span>
-                <input type="text" id="group-user-search" placeholder="Поиск пользователя...">
+                <input type="text" id="group-user-search" placeholder="Search users...">
             </div>
             <div class="user-list" id="user-selector"></div>
             <div style="display:flex; gap:10px; justify-content:flex-end;">
-                <button id="modal-cancel" class="secondary" style="padding:10px 20px; background: #21262d; border:none; border-radius:8px; color:var(--text); cursor:pointer;">Отмена</button>
-                <button id="modal-confirm" style="padding:10px 20px; background: var(--accent-gradient); border:none; border-radius:8px; color:white; font-weight:600; cursor:pointer;">Создать</button>
+                <button id="modal-cancel" class="secondary" style="padding:10px 20px; background: #21262d; border:none; border-radius:8px; color:var(--text); cursor:pointer;">Cancel</button>
+                <button id="modal-confirm" style="padding:10px 20px; background: var(--accent-gradient); border:none; border-radius:8px; color:white; font-weight:600; cursor:pointer;">Create</button>
             </div>
         </div>
 
         <div id="channel-modal" class="modal hidden">
-            <h3>Создать канал</h3>
-            <input type="text" id="channel-name" placeholder="Название канала">
-            <textarea id="channel-desc" placeholder="Описание канала (необязательно)" rows="2"></textarea>
+            <h3>Create Channel</h3>
+            <input type="text" id="channel-name" placeholder="Channel Name">
+            <textarea id="channel-desc" placeholder="Description (optional)" rows="2"></textarea>
             <div style="display:flex; gap:10px; justify-content:flex-end;">
-                <button id="channel-cancel" class="secondary" style="padding:10px 20px; background: #21262d; border:none; border-radius:8px; color:var(--text); cursor:pointer;">Отмена</button>
-                <button id="channel-confirm" style="padding:10px 20px; background: var(--accent-gradient); border:none; border-radius:8px; color:white; font-weight:600; cursor:pointer;">Создать</button>
+                <button id="channel-cancel" class="secondary" style="padding:10px 20px; background: #21262d; border:none; border-radius:8px; color:var(--text); cursor:pointer;">Cancel</button>
+                <button id="channel-confirm" style="padding:10px 20px; background: var(--accent-gradient); border:none; border-radius:8px; color:white; font-weight:600; cursor:pointer;">Create</button>
             </div>
         </div>
 
         <div id="edit-group-modal" class="modal hidden">
-            <h3>Редактировать</h3>
+            <h3>Edit Group</h3>
             <div style="text-align:center; margin-bottom:12px;">
                 <img id="edit-group-avatar-preview" src="" style="width:80px; height:80px; border-radius:50%; object-fit:cover; background: #21262d; border: 2px solid var(--accent); display:none;">
                 <div id="edit-group-avatar-placeholder" class="avatar" style="width:80px; height:80px; font-size:32px; display:inline-flex; margin:0;">?</div>
             </div>
             <input type="file" id="edit-group-avatar-input" accept="image/*" style="margin-bottom:12px;">
-            <input type="text" id="edit-group-name" placeholder="Название">
-            <textarea id="edit-group-desc" placeholder="Описание" rows="2"></textarea>
-            <button id="save-edit-group" style="width:100%; padding:10px; background: var(--accent-gradient); border:none; border-radius:8px; color:white; font-weight:600; cursor:pointer;">Сохранить</button>
-            <button id="close-edit-group-modal" style="width:100%; margin-top:8px; padding:10px; background: #21262d; border:1px solid var(--border); border-radius:8px; color:var(--text); cursor:pointer;">Отмена</button>
+            <input type="text" id="edit-group-name" placeholder="Name">
+            <textarea id="edit-group-desc" placeholder="Description" rows="2"></textarea>
+            <button id="save-edit-group" style="width:100%; padding:10px; background: var(--accent-gradient); border:none; border-radius:8px; color:white; font-weight:600; cursor:pointer;">Save</button>
+            <button id="close-edit-group-modal" style="width:100%; margin-top:8px; padding:10px; background: #21262d; border:1px solid var(--border); border-radius:8px; color:var(--text); cursor:pointer;">Cancel</button>
         </div>
 
         <div id="private-chat-modal" class="modal hidden">
-            <h3>Новый приватный чат</h3>
+            <h3>New Private Chat</h3>
             <div class="user-list" id="private-user-selector"></div>
             <div style="display:flex; gap:10px; justify-content:flex-end;">
-                <button id="private-modal-cancel" class="secondary" style="padding:10px 20px; background: #21262d; border:none; border-radius:8px; color:var(--text); cursor:pointer;">Отмена</button>
+                <button id="private-modal-cancel" class="secondary" style="padding:10px 20px; background: #21262d; border:none; border-radius:8px; color:var(--text); cursor:pointer;">Cancel</button>
             </div>
         </div>
 
@@ -282,54 +287,54 @@
             <p id="profile-bio-display" style="margin-bottom:8px; font-size:14px;"></p>
             <p id="profile-phone-display" style="font-size:14px; color:var(--accent);"></p>
             <p id="profile-lastseen-display" style="font-size:12px; color:var(--text-secondary); margin-top:8px;"></p>
-            <button id="close-profile-modal" style="margin-top:16px; padding:10px 24px; background: var(--accent-gradient); border:none; border-radius:8px; color:white; font-weight:600; cursor:pointer;">Закрыть</button>
+            <button id="close-profile-modal" style="margin-top:16px; padding:10px 24px; background: var(--accent-gradient); border:none; border-radius:8px; color:white; font-weight:600; cursor:pointer;">Close</button>
         </div>
 
         <div id="profile-modal" class="modal hidden">
-            <h3>👤 Профиль</h3>
+            <h3>👤 Profile</h3>
             <div style="text-align:center; margin-bottom:16px;">
                 <img id="my-profile-avatar-preview" src="" style="width:80px; height:80px; border-radius:50%; object-fit:cover; background: #21262d; border: 2px solid var(--accent); display:none;" onerror="this.style.display='none'">
                 <div id="my-profile-avatar-placeholder" class="avatar" style="width:80px; height:80px; font-size:32px; display:inline-flex; margin:0;">?</div>
             </div>
             <input type="file" id="profile-avatar-input" accept="image/*" style="margin-bottom:12px;">
-            <label>Имя</label>
-            <input type="text" id="profile-name" placeholder="Ваше отображаемое имя">
-            <label>Username (логин)</label>
-            <input type="text" id="profile-username" placeholder="Уникальное имя" disabled>
-            <label>Описание</label>
-            <textarea id="profile-bio" placeholder="Расскажите о себе" rows="2"></textarea>
-            <label>Номер телефона</label>
-            <input type="tel" id="profile-phone" placeholder="+7 (999) 123-45-67">
-            <label>Фон чата</label>
+            <label>Display Name</label>
+            <input type="text" id="profile-name" placeholder="Your display name">
+            <label>Username (login)</label>
+            <input type="text" id="profile-username" placeholder="Unique name" disabled>
+            <label>Bio</label>
+            <textarea id="profile-bio" placeholder="Tell about yourself" rows="2"></textarea>
+            <label>Phone Number</label>
+            <input type="tel" id="profile-phone" placeholder="+1 (___) ___-____">
+            <label>Chat Background</label>
             <select id="profile-background">
-                <option value="default">Тёмный</option>
-                <option value="gradient1">Фиолетовый градиент</option>
-                <option value="pattern">Точки</option>
-                <option value="galaxy">Галактика</option>
+                <option value="default">Default Dark</option>
+                <option value="gradient1">Purple Gradient</option>
+                <option value="pattern">Dots Pattern</option>
+                <option value="galaxy">Galaxy</option>
             </select>
-            <button id="profile-save" style="width:100%; padding:10px; background: var(--accent-gradient); border:none; border-radius:8px; color:white; font-weight:600; cursor:pointer;">Сохранить</button>
-            <button id="profile-change-password" style="width:100%; padding:10px; background: #21262d; border:1px solid var(--border); border-radius:8px; color:var(--text); cursor:pointer;">🔑 Сменить пароль</button>
-            <button id="profile-close" style="width:100%; padding:10px; background: #21262d; border:1px solid var(--border); border-radius:8px; color:var(--text); margin-top:8px; cursor:pointer;">Закрыть</button>
+            <button id="profile-save" style="width:100%; padding:10px; background: var(--accent-gradient); border:none; border-radius:8px; color:white; font-weight:600; cursor:pointer;">Save</button>
+            <button id="profile-change-password" style="width:100%; padding:10px; background: #21262d; border:1px solid var(--border); border-radius:8px; color:var(--text); cursor:pointer;">🔑 Change Password</button>
+            <button id="profile-close" style="width:100%; padding:10px; background: #21262d; border:1px solid var(--border); border-radius:8px; color:var(--text); margin-top:8px; cursor:pointer;">Close</button>
         </div>
 
         <div id="poll-create-modal" class="modal hidden">
-            <h3>📊 Новый опрос</h3>
-            <input type="text" id="poll-question-input" placeholder="Вопрос">
-            <textarea id="poll-desc-input" placeholder="Описание (необязательно)" rows="2"></textarea>
+            <h3>📊 New Poll</h3>
+            <input type="text" id="poll-question-input" placeholder="Question">
+            <textarea id="poll-desc-input" placeholder="Description (optional)" rows="2"></textarea>
             <div id="poll-options-create-container" style="margin-bottom:12px;">
-                <input type="text" class="poll-option-input" placeholder="Вариант 1">
-                <input type="text" class="poll-option-input" placeholder="Вариант 2">
+                <input type="text" class="poll-option-input" placeholder="Option 1">
+                <input type="text" class="poll-option-input" placeholder="Option 2">
             </div>
-            <button id="add-poll-option-create" style="background:none; border:1px solid var(--border); color:var(--text); padding:5px 10px; border-radius:8px; cursor:pointer; margin-bottom:12px;">+ Добавить вариант</button>
-            <button id="send-poll-btn" style="width:100%; padding:12px; background: var(--accent-gradient); border:none; border-radius:8px; color:white; font-weight:600; cursor:pointer;">Отправить опрос</button>
-            <button id="close-poll-create-modal" style="width:100%; margin-top:8px; padding:12px; background: #21262d; border:1px solid var(--border); border-radius:8px; color:var(--text); cursor:pointer;">Отмена</button>
+            <button id="add-poll-option-create" style="background:none; border:1px solid var(--border); color:var(--text); padding:5px 10px; border-radius:8px; cursor:pointer; margin-bottom:12px;">+ Add Option</button>
+            <button id="send-poll-btn" style="width:100%; padding:12px; background: var(--accent-gradient); border:none; border-radius:8px; color:white; font-weight:600; cursor:pointer;">Send Poll</button>
+            <button id="close-poll-create-modal" style="width:100%; margin-top:8px; padding:12px; background: #21262d; border:1px solid var(--border); border-radius:8px; color:var(--text); cursor:pointer;">Cancel</button>
         </div>
 
         <div id="owner-nick-modal" class="modal hidden">
-            <h3>Ваш ник</h3>
-            <input type="text" id="owner-nick-input" placeholder="Введите ник">
-            <button id="save-owner-nick" style="width:100%; padding:12px; background: var(--accent-gradient); border:none; border-radius:8px; color:white; font-weight:600; cursor:pointer;">Сохранить</button>
-            <button id="close-owner-nick-modal" style="width:100%; margin-top:8px; padding:12px; background: #21262d; border:1px solid var(--border); border-radius:8px; color:var(--text); cursor:pointer;">Отмена</button>
+            <h3>Your Nickname</h3>
+            <input type="text" id="owner-nick-input" placeholder="Enter nickname">
+            <button id="save-owner-nick" style="width:100%; padding:12px; background: var(--accent-gradient); border:none; border-radius:8px; color:white; font-weight:600; cursor:pointer;">Save</button>
+            <button id="close-owner-nick-modal" style="width:100%; margin-top:8px; padding:12px; background: #21262d; border:1px solid var(--border); border-radius:8px; color:var(--text); cursor:pointer;">Cancel</button>
         </div>
     </div>
 
@@ -346,17 +351,17 @@
 
     <!-- Incoming Call -->
     <div id="incoming-call-modal" class="modal hidden" style="text-align:center;">
-        <h3>Входящий звонок</h3>
+        <h3 id="call-incoming-title">Incoming Call</h3>
         <p id="caller-name" style="font-size:20px; margin:16px 0;"></p>
         <div style="display:flex; gap:12px; justify-content:center;">
-            <button id="accept-call" style="background: var(--success); padding:12px 24px; border:none; border-radius:12px; color:white; cursor:pointer;">Принять</button>
-            <button id="decline-call" style="background: var(--danger); padding:12px 24px; border:none; border-radius:12px; color:white; cursor:pointer;">Отклонить</button>
+            <button id="accept-call" style="background: var(--success); padding:12px 24px; border:none; border-radius:12px; color:white; cursor:pointer;">Accept</button>
+            <button id="decline-call" style="background: var(--danger); padding:12px 24px; border:none; border-radius:12px; color:white; cursor:pointer;">Decline</button>
         </div>
     </div>
 
     <!-- Progress -->
     <div id="upload-progress" class="file-upload-progress hidden">
-        <div style="font-size:13px; margin-bottom:4px;">Загрузка... <span id="progress-text">0%</span></div>
+        <div style="font-size:13px; margin-bottom:4px;">Uploading... <span id="progress-text">0%</span></div>
         <div class="progress-bar"><div class="progress-bar-fill" id="progress-fill"></div></div>
     </div>
 </div>
@@ -367,7 +372,7 @@
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-storage-compat.js"></script>
 
 <script>
-    // --- Конфигурация Firebase ---
+    // --- Firebase Configuration ---
     firebase.initializeApp({
       apiKey: "AIzaSyCtPt1M2ej6B91yBx5VepU8SnrfO9MQAlk",
       authDomain: "my-messenger-d1622.firebaseapp.com",
@@ -380,7 +385,7 @@
     const db = firebase.firestore();
     const storage = firebase.storage();
 
-    // --- DOM Кэширование и Состояние ---
+    // --- DOM Caching & State ---
     const cache = {};
     const state = {
       currentUser: null,
@@ -417,7 +422,7 @@
       };
     }
 
-    // --- Ошибки Аутентификации ---
+    // --- Auth Errors ---
     function showAuthError(msg) {
       const errEl = $('auth-error');
       errEl.textContent = msg;
@@ -433,12 +438,12 @@
       const confirmPass = $('reg-confirm-pass');
 
       if (state.isRegistering) {
-        title.innerText = 'Регистрация';
+        title.innerText = 'Register';
         authBtn.style.display = 'none';
         regBtn.style.display = 'block';
         confirmPass.classList.remove('hidden');
       } else {
-        title.innerText = 'Войти';
+        title.innerText = 'Login';
         authBtn.style.display = 'block';
         regBtn.style.display = 'none';
         confirmPass.classList.add('hidden');
@@ -450,7 +455,7 @@
       $('auth-error').classList.remove('visible');
     }
 
-    // --- Шифрование ---
+    // --- Encryption ---
     async function loadEncryptionKey() {
       if (state.cryptoKey) return;
       try {
@@ -471,7 +476,7 @@
 
     async function encryptText(plainText) {
       if (!state.cryptoKey) await loadEncryptionKey();
-      const iv = crypto.getRandomValues(new Uint8Array(12));
+      const iv = crypto.getRandom umaArray(12);
       const encoded = new TextEncoder().encode(plainText);
       const cipher = await crypto.subtle.encrypt({ name: 'AES-GCM', iv }, state.cryptoKey, encoded);
       return { iv: btoa(String.fromCharCode(...iv)), data: btoa(String.fromCharCode(...new Uint8Array(cipher))) };
@@ -491,18 +496,18 @@
         const text = await decryptText(msg.encrypted.data, msg.encrypted.iv);
         state.decryptedCache.set(msg.id, text);
         return text;
-      } catch (e) { return '[ошибка расшифровки]'; }
+      } catch (e) { return '[decryption error]'; }
     }
 
-    // --- Аутентификация ---
+    // --- Auth Logic ---
     async function handleAuth() {
       const email = val('login-email'), password = val('login-pass');
-      if (!email || !password) return showAuthError('Введите email и пароль');
+      if (!email || !password) return showAuthError('Please enter email and password');
 
       if (state.isRegistering) {
         const confirmPass = val('reg-confirm-pass');
-        if (password !== confirmPass) return showAuthError('Пароли не совпадают');
-        if (password.length < 6) return showAuthError('Пароль слишком короткий (мин. 6)');
+        if (password !== confirmPass) return showAuthError('Passwords do not match');
+        if (password.length < 6) return showAuthError('Password too short (min. 6)');
 
         try {
           const userCredential = await auth.createUserWithEmailAndPassword(email, password);
@@ -514,8 +519,8 @@
           await loadEncryptionKey();
           enterApp();
         } catch (error) {
-          if (error.code === 'auth/email-already-in-use') showAuthError('⚠️ Аккаунт с таким email уже существует');
-          else showAuthError('Ошибка регистрации: ' + error.message);
+          if (error.code === 'auth/email-already-in-use') showAuthError('⚠️ Account with this email already exists');
+          else showAuthError('Registration error: ' + error.message);
         }
       } else {
         try {
@@ -525,10 +530,10 @@
           await loadEncryptionKey();
           enterApp();
         } catch (error) {
-          if (error.code === 'auth/user-not-found') showAuthError('⚠️ Аккаунт с таким email не найден. Зарегистрируйтесь.');
-          else if (error.code === 'auth/wrong-password') showAuthError('❌ Неверный пароль');
-          else if (error.code === 'auth/invalid-credential') showAuthError('❌ Неверный email или пароль');
-          else showAuthError('Ошибка входа: ' + error.message);
+          if (error.code === 'auth/user-not-found') showAuthError('⚠️ Account not found. Please register.');
+          else if (error.code === 'auth/wrong-password') showAuthError('❌ Incorrect password');
+          else if (error.code === 'auth/invalid-credential') showAuthError('❌ Invalid email or password');
+          else showAuthError('Login error: ' + error.message);
         }
       }
     }
@@ -547,16 +552,29 @@
       });
     }
 
-    // --- Основной функционал ---
+    // --- App Init ---
     async function initApp() {
-      if (!state.currentUser) return;
+      const saved = localStorage.getItem('currentUser');
+      if (saved) {
+        const user = JSON.parse(saved);
+        state.currentUser = { email: user.email, uid: user.uid };
+      }
+
+      if (!state.currentUser) {
+        $('auth-screen').classList.remove('hidden');
+        $('main-ui').classList.add('hidden');
+        return;
+      }
+
+      $('auth-screen').classList.add('hidden');
+      $('main-ui').classList.remove('hidden');
 
       try {
         const usersSnap = await db.collection('users').get();
         state.users = usersSnap.docs.map(doc => doc.data());
         setupGlobalChatListener();
       } catch (e) {
-        showToast('Ошибка загрузки данных');
+        showToast('Error loading data');
       }
 
       loadProfile();
@@ -606,7 +624,7 @@
           <div class="avatar">${(chat.name || other).charAt(0).toUpperCase()}</div>
           <div class="chat-info">
             <div class="name">${chat.name || other}</div>
-            <div class="last-msg">${last ? (last.type === 'poll' ? '📊 Опрос' : last.text || '[файл]') : 'Нет сообщений'}</div>
+            <div class="last-msg">${last ? (last.type === 'poll' ? '📊 Poll' : last.text || '[file]') : 'No messages'}</div>
           </div>
           <div class="chat-time">${last ? new Date(last.timestamp).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}) : ''}</div>
         `;
@@ -633,7 +651,7 @@
       chatUnsub = ref.onSnapshot(async docSnap => {
         const data = docSnap.data();
         const other = data.participants?.find(p => p !== state.currentUser.email);
-        $('chat-name').textContent = data.name || other || 'Чат';
+        $('chat-name').textContent = data.name || other || 'Chat';
         $('chat-avatar').textContent = (data.name || other || 'C').charAt(0).toUpperCase();
         renderMessages(data.messages || []);
       });
@@ -670,7 +688,7 @@
 
         const timeEl = document.createElement('div');
         timeEl.className = 'msg-time';
-        timeEl.textContent = (msg.timestamp ? new Date(msg.timestamp).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}) : '') + (msg.isEdited ? ' (изменено)' : '');
+        timeEl.textContent = (msg.timestamp ? new Date(msg.timestamp).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}) : '') + (msg.isEdited ? ' (edited)' : '');
         bubble.appendChild(timeEl);
 
         if (isOwn && msg.type === 'text') {
@@ -706,7 +724,7 @@
         pollDiv.appendChild(row);
       });
       if (userVoted) {
-        const total = Object.values(votes).reduce((s, a) => s + a.length, 0);
+        const total = Object.values(votes).reduce((set, arr) => set + arr.length, 0);
         msg.options.forEach((opt, idx) => {
           const count = (votes[idx] || []).length;
           const pct = total ? Math.round(count/total*100) : 0;
@@ -743,14 +761,14 @@
             id: genId(), sender: state.currentUser.email, type: 'text', encrypted, timestamp: Date.now(), reactions: {}
           })
         });
-      } catch (e) { showToast('Ошибка отправки'); }
+      } catch (e) { showToast('Error sending message'); }
     }
 
     async function sendPoll() {
       const q = $('poll-question-input').value.trim();
       const d = $('poll-desc-input').value.trim();
       const opts = [...document.querySelectorAll('.poll-option-input')].map(i => i.value.trim()).filter(Boolean);
-      if (!q || opts.length < 2) return showToast('Нужен вопрос и 2+ варианта');
+      if (!q || opts.length < 2) return showToast('Need a question and 2+ options');
       await db.collection('chats').doc(state.activeChatId).update({
         messages: firebase.firestore.FieldValue.arrayUnion({
           id: genId(), sender: state.currentUser.email, type: 'poll', question: q, description: d, options: opts, votes: {}, timestamp: Date.now()
@@ -784,7 +802,7 @@
     function showGroupModal(isAdding) {
       $('modal-overlay').classList.remove('hidden');
       $('group-modal').classList.remove('hidden');
-      $('modal-title').textContent = isAdding ? 'Добавить участников' : 'Создать группу';
+      $('modal-title').textContent = isAdding ? 'Add Members' : 'Create Group';
       $('group-name').style.display = isAdding ? 'none' : 'block';
       renderUserSelector();
     }
@@ -803,17 +821,17 @@
 
     async function confirmGroupAction() {
       const selected = [...document.querySelectorAll('#user-selector input:checked')].map(i => i.value);
-      if (!selected.length) return showToast('Выберите участников');
-      if ($('modal-title').textContent === 'Создать группу') {
+      if (!selected.length) return showToast('Please select members');
+      if ($('modal-title').textContent === 'Create Group') {
         const name = $('group-name').value.trim();
-        if (!name) return showToast('Введите название');
+        if (!name) return showToast('Please enter a group name');
         const id = 'group_' + genId();
         await db.collection('chats').doc(id).set({ type: 'group', name, participants: [...selected, state.currentUser.email], messages: [] });
         openChat(id);
       } else {
         const ref = db.collection('chats').doc(state.activeChatId);
         const doc = await ref.get();
-        await ref.update({ participants: [...new Set([..._docs.data().participants || [], ...selected])] });
+        await ref.update({ participants: [...new Set([...(doc.data().participants || []), ...selected])] });
       }
       closeModal();
     }
@@ -843,7 +861,10 @@
 
     function applyChatBackground() {
       const c = $('messages-container');
-      if (c) c.className = 'messages no-scrollbar bg-' + state.chatBackground;
+      if (c) {
+        c.className = 'messages no-scrollbar';
+        c.classList.add('bg-' + state.chatBackground);
+      }
     }
 
     function showToast(msg) {
@@ -854,12 +875,26 @@
       setTimeout(() => t.remove(), 3000);
     }
 
-    // --- События ---
+    // --- Theme Toggle ---
+    function toggleTheme() {
+      const isLight = document.body.classList.toggle('light');
+      localStorage.setItem('theme', isLight ? 'light' : 'dark');
+      $('theme-toggle').innerText = isLight ? '☀️' : '🌙';
+    }
+
+    // --- Event Handlers ---
     document.addEventListener('DOMContentLoaded', () => {
+      // Load Theme
+      if (localStorage.getItem('theme') === 'light') {
+        document.body.classList.add('light');
+        $('theme-toggle').innerText = '☀️';
+      }
+
       $('auth-btn').addEventListener('click', handleAuth);
       $('auth-reg-btn').addEventListener('click', handleAuth);
       $('auth-toggle').addEventListener('click', toggleAuthMode);
       $('logout-btn').addEventListener('click', logout);
+      $('theme-toggle').addEventListener('click', toggleTheme);
       $('search-input').addEventListener('input', debounce(() => { state.searchQuery = $('search-input').value; renderChatList(); }, 300));
       $('new-private-chat-btn').addEventListener('click', () => {
         $('modal-overlay').classList.remove('hidden');
@@ -886,7 +921,7 @@
       });
       $('channel-confirm').addEventListener('click', async () => {
         const name = $('channel-name').value.trim();
-        if (!name) return showToast('Введите название');
+        if (!name) return showToast('Please enter a name');
         const id = 'channel_' + genId();
         await db.collection('chats').doc(id).set({ type: 'channel', name, owner: state.currentUser.email, participants: [state.currentUser.email], messages: [] });
         closeModal();
@@ -911,7 +946,7 @@
         const input = document.createElement('input');
         input.type = 'text';
         input.className = 'poll-option-input';
-        input.placeholder = `Вариант ${container.children.length + 1}`;
+        input.placeholder = `Option ${container.children.length + 1}`;
         container.appendChild(input);
       });
       $('modal-confirm').addEventListener('click', confirmGroupAction);
@@ -937,7 +972,7 @@
         state.chatBackground = updates.chatBackground;
         applyChatBackground();
         closeModal();
-        showToast('Профиль сохранен');
+        showToast('Profile saved');
       });
       $('profile-close').addEventListener('click', closeModal);
 
@@ -948,7 +983,6 @@
       initApp();
     });
 
-    // Сессия: Автоматический вход
     auth.onAuthStateChanged(user => {
       if (user) {
         state.currentUser = user;
@@ -957,8 +991,8 @@
       } else {
         state.currentUser = null;
         localStorage.removeItem('currentUser');
-        document.getElementById('auth-screen').classList.remove('hidden');
-        document.getElementById('main-ui').classList.add('hidden');
+        $('auth-screen').classList.remove('hidden');
+        $('main-ui').classList.add('hidden');
       }
     });
 </script>
