@@ -125,7 +125,7 @@
         @keyframes slideUp { from { opacity: 0; transform: translateX(-50%) translateY(20px); } to { opacity: 1; transform: translateX(-50%) translateY(0); } }
 
         /* Опросы */
-        .poll-container { margin-top: 8px; background: rgba(88,166,255,0.05); padding: 10px; border-radius: 12px; border: 1px solid var(--border); }
+        .poll-container { margin-top: 8px; background: rgba(88,166,255,0.05); padding: 10px; border-radius: 12px; }
         .poll-question { font-weight: 600; margin-bottom: 4px; }
         .poll-desc { font-size: 13px; color: var(--text-secondary); margin-bottom: 10px; }
         .poll-option-row { display: flex; align-items: center; gap: 8px; margin: 8px 0; cursor: pointer; padding: 6px; border-radius: 8px; transition: background 0.2s; }
@@ -137,10 +137,9 @@
         .poll-results-text { font-size: 13px; color: var(--text-secondary); margin-top: 6px; }
         .poll-result-item { margin-bottom: 8px; }
         .poll-result-header { display: flex; justify-content: space-between; font-size: 13px; }
-        .poll-total { font-size: 12px; color: var(--text-secondary); margin-top: 8px; text-align: right; }
     </style>
 </head>
-<body>
+<body id="body-root">
 <div id="app">
     <!-- Аутентификация -->
     <div id="auth-screen" class="auth-overlay">
@@ -221,157 +220,141 @@
             </div>
         </div>
     </div>
-</div>
 
-<!-- Модальные окна -->
-<div id="modal-overlay" class="modal-overlay hidden">
-    <!-- Группа -->
-    <div id="group-modal" class="modal hidden">
-        <h3 id="modal-title">Создать группу</h3>
-        <input type="text" id="group-name" placeholder="Название группы">
-        <textarea id="group-desc" placeholder="Описание группы (необязательно)" rows="2"></textarea>
-        <div style="margin-bottom: 10px; font-size: 14px; color: var(--text-secondary);">Участники:</div>
-        <div class="search-box" style="margin-bottom: 10px;">
-            <spanC>🔍</spanC>
-            <input type="text" id="group-user-search" placeholder="Поиск пользователя...">
+    <!-- Модальные окна -->
+    <div id="modal-overlay" class="modal-overlay hidden">
+        <div id="group-modal" class="modal hidden">
+            <h3 id="modal-title">Создать группу</h3>
+            <input type="text" id="group-name" placeholder="Название группы">
+            <textarea id="group-desc" placeholder="Описание группы (необязательно)" rows="2"></textarea>
+            <div style="margin-bottom: 10px; font-size: 14px; color: var(--text-secondary);">Участники:</div>
+            <div class="search-box" style="margin-bottom: 10px;">
+                <span>🔍</span>
+                <input type="text" id="group-user-search" placeholder="Поиск пользователя...">
+            </div>
+            <div class="user-list" id="user-selector"></div>
+            <div style="display:flex; gap:10px; justify-content:flex-end;">
+                <button id="modal-cancel" class="secondary" style="padding:10px 20px; background: #21262d; border:none; border-radius:8px; color:var(--text); cursor:pointer;">Отмена</button>
+                <button id="modal-confirm" style="padding:10px 20px; background: var(--accent-gradient); border:none; border-radius:8px; color:white; font-weight:600; cursor:pointer;">Создать</button>
+            </div>
         </div>
-        <div class="user-list" id="user-selector"></div>
-        <div style="display:flex; gap:10px; justify-content:flex-end;">
-            <button id="modal-cancel" class="secondary" style="padding:10px 20px; background: #21262d; border:none; border-radius:8px; color:var(--text); cursor:pointer;">Отмена</button>
-            <button id="modal-confirm" style="padding:10px 20px; background: var(--accent-gradient); border:none; border-radius:8px; color:white; font-weight:600; cursor:pointer;">Создать</button>
+
+        <div id="channel-modal" class="modal hidden">
+            <h3>Создать канал</h3>
+            <input type="text" id="channel-name" placeholder="Название канала">
+            <textarea id="channel-desc" placeholder="Описание канала (необязательно)" rows="2"></textarea>
+            <div style="display:flex; gap:10px; justify-content:flex-end;">
+                <button id="channel-cancel" class="secondary" style="padding:10px 20px; background: #21262d; border:none; border-radius:8px; color:var(--text); cursor:pointer;">Отмена</button>
+                <button id="channel-confirm" style="padding:10px 20px; background: var(--accent-gradient); border:none; border-radius:8px; color:white; font-weight:600; cursor:pointer;">Создать</button>
+            </div>
+        </div>
+
+        <div id="edit-group-modal" class="modal hidden">
+            <h3>Редактировать</h3>
+            <div style="text-align:center; margin-bottom:12px;">
+                <img id="edit-group-avatar-preview" src="" style="width:80px; height:80px; border-radius:50%; object-fit:cover; background: #21262d; border: 2px solid var(--accent); display:none;">
+                <div id="edit-group-avatar-placeholder" class="avatar" style="width:80px; height:80px; font-size:32px; display:inline-flex; margin:0;">?</div>
+            </div>
+            <input type="file" id="edit-group-avatar-input" accept="image/*" style="margin-bottom:12px;">
+            <input type="text" id="edit-group-name" placeholder="Название">
+            <textarea id="edit-group-desc" placeholder="Описание" rows="2"></textarea>
+            <button id="save-edit-group" style="width:100%; padding:10px; background: var(--accent-gradient); border:none; border-radius:8px; color:white; font-weight:600; cursor:pointer;">Сохранить</button>
+            <button id="close-edit-group-modal" style="width:100%; margin-top:8px; padding:10px; background: #21262d; border:1px solid var(--border); border-radius:8px; color:var(--text); cursor:pointer;">Отмена</button>
+        </div>
+
+        <div id="private-chat-modal" class="modal hidden">
+            <h3>Новый приватный чат</h3>
+            <div class="user-list" id="private-user-selector"></div>
+            <div style="display:flex; gap:10px; justify-content:flex-end;">
+                <button id="private-modal-cancel" class="secondary" style="padding:10px 20px; background: #21262d; border:none; border-radius:8px; color:var(--text); cursor:pointer;">Отмена</button>
+            </div>
+        </div>
+
+        <div id="user-profile-modal" class="modal hidden" style="text-align:center;">
+            <img id="profile-avatar" src="" style="width:80px; height:80px; border-radius:50%; object-fit:cover; background:#21262d; margin-bottom:16px; display:none;">
+            <div id="profile-avatar-placeholder" class="avatar" style="width:80px; height:80px; font-size:32px; display:inline-flex; margin:0 auto 16px;">?</div>
+            <h3 id="profile-username-display"></h3>
+            <p id="profile-display-name" style="color:var(--text-secondary); margin-bottom:8px;"></p>
+            <p id="profile-bio-display" style="margin-bottom:8px; font-size:14px;"></p>
+            <p id="profile-phone-display" style="font-size:14px; color:var(--accent);"></p>
+            <p id="profile-lastseen-display" style="font-size:12px; color:var(--text-secondary); margin-top:8px;"></p>
+            <button id="close-profile-modal" style="margin-top:16px; padding:10px 24px; background: var(--accent-gradient); border:none; border-radius:8px; color:white; font-weight:600; cursor:pointer;">Закрыть</button>
+        </div>
+
+        <div id="profile-modal" class="modal hidden">
+            <h3>👤 Профиль</h3>
+            <div style="text-align:center; margin-bottom:16px;">
+                <img id="profile-avatar-preview" src="" style="width:80px; height:80px; border-radius:50%; object-fit:cover; background: #21262d; border: 2px solid var(--accent); display:none;" onerror="this.style.display='none'">
+                <div id="profile-avatar-placeholder" class="avatar" style="width:80px; height:80px; font-size:32px; display:inline-flex; margin:0;">?</div>
+            </div>
+            <input type="file" id="profile-avatar-input" accept="image/*" style="margin-bottom:12px;">
+            <label>Имя</label>
+            <input type="text" id="profile-name" placeholder="Ваше отображаемое имя">
+            <label>Username (логин)</label>
+            <input type="text" id="profile-username" placeholder="Уникальное имя" disabled>
+            <label>Описание</label>
+            <textarea id="profile-bio" placeholder="Расскажите о себе" rows="2"></textarea>
+            <label>Номер телефона</label>
+            <input type="tel" id="profile-phone" placeholder="+7 (999) 123-45-67">
+            <label>Фон чата</label>
+            <select id="profile-background">
+                <option value="default">Тёмный</option>
+                <option value="gradient1">Фиолетовый градиент</option>
+                <option value="pattern">Точки</option>
+                <option value="galaxy">Галактика</option>
+            </select>
+            <button id="profile-save" style="width:100%; padding:10px; background: var(--accent-gradient); border:none; border-radius:8px; color:white; font-weight:600; cursor:pointer;">Сохранить</button>
+            <button id="profile-change-password" style="width:100%; padding:10px; background: #21262d; border:1px solid var(--border); border-radius:8px; color:var(--text); cursor:pointer;">🔑 Сменить пароль</button>
+            <button id="profile-close" style="width:100%; padding:10px; background: #21262d; border:1px solid var(--border); border-radius:8px; color:var(--text); margin-top:8px; cursor:pointer;">Закрыть</button>
+        </div>
+
+        <div id="poll-create-modal" class="modal hidden">
+            <h3>📊 Новый опрос</h3>
+            <input type="text" id="poll-question-input" placeholder="Вопрос">
+            <textarea id="poll-desc-input" placeholder="Описание (необязательно)" rows="2"></textarea>
+            <div id="poll-options-create-container" style="margin-bottom:12px;">
+                <input type="text" class="poll-option-input" placeholder="Вариант 1">
+                <input type="text" class="poll-option-input" placeholder="Вариант 2">
+            </div>
+            <button id="add-poll-option-create" style="background:none; border:1px solid var(--border); color:var(--text); padding:5px 10px; border-radius:8px; cursor:pointer; margin-bottom:12px;">+ Добавить вариант</button>
+            <button id="send-poll-btn" style="width:100%; padding:12px; background: var(--accent-gradient); border:none; border-radius:8px; color:white; font-weight:600; cursor:pointer;">Отправить опрос</button>
+            <button id="close-poll-create-modal" style="width:100%; margin-top:8px; padding:12px; background: #21262d; border:1px solid var(--border); border-radius:8px; color:var(--text); cursor:pointer;">Отмена</button>
+        </div>
+
+        <div id="owner-nick-modal" class="modal hidden">
+            <h3>Ваш ник</h3>
+            <input type="text" id="owner-nick-input" placeholder="Введите ник">
+            <button id="save-owner-nick" style="width:100%; padding:12px; background: var(--accent-gradient); border:none; border-radius:8px; color:white; font-weight:600; cursor:pointer;">Сохранить</button>
+            <button id="close-owner-nick-modal" style="width:100%; margin-top:8px; padding:12px; background: #21262d; border:1px solid var(--border); border-radius:8px; color:var(--text); cursor:pointer;">Отмена</button>
         </div>
     </div>
 
-    <!-- Канал -->
-    <div id="channel-modal" class="modal hidden">
-        <h3>Создать канал</h3>
-        <input type="text" id="channel-name" placeholder="Название канала">
-        <textarea id="channel-desc" placeholder="Описание канала (необязательно)" rows="2"></textarea>
-        <div style="display:flex; gap:10px; justify-content:flex-end;">
-            <button id="channel-cancel" class="secondary" style="padding:10px 20px; background: #21262d; border:none; border-radius:8px; color:var(--text); cursor:pointer;">Отмена</button>
-            <button id="channel-confirm" style="padding:10px 20px; background: var(--accent-gradient); border:none; border-radius:8px; color:white; font-weight:600; cursor:pointer;">Создать</button>
+    <!-- Call Overlay -->
+    <div id="call-overlay" class="call-overlay hidden">
+        <div class="call-videos" id="call-videos"></div>
+        <div class="call-controls">
+            <button id="toggle-mic" class="ctrl-btn">🎤</button>
+            <button id="toggle-camera" class="ctrl-btn">📹</button>
+            <button id="share-screen" class="ctrl-btn">🖥️</button>
+            <button id="hangup" class="ctrl-btn end">✖</button>
         </div>
     </div>
 
-    <!-- Редактирование группы/канала -->
-    <div id="edit-group-modal" class="modal hidden">
-        <h3>Редактировать</h3>
-        <div style="text-align:center; margin-bottom:12px;">
-            <img id="edit-group-avatar-preview" src="" style="width:80px; height:80px; border-radius:50%; object-fit:cover; background: #21262d; border: 2px solid var(--accent); display:none;">
-            <div id="edit-group-avatar-placeholder" class="avatar" style="width:80px; height:80px; font-size:32px; display:inline-flex; margin:0;">?</div>
-        </div>
-        <input type="file" id="edit-group-avatar-input" accept="image/*" style="margin-bottom:12px;">
-        <input type="text" id="edit-group-name" placeholder="Название">
-        <textarea id="edit-group-desc" placeholder="Описание" rows="2"></textarea>
-        <button id="save-edit-group" style="width:100%; padding:10px; background: var(--accent-gradient); border:none; border-radius:8px; color:white; font-weight:600; cursor:pointer;">Сохранить</button>
-        <button id="close-edit-group-modal" style="width:100%; margin-top:8px; padding:10px; background: #21262d; border:1px solid var(--border); border-radius:8px; color:var(--text); cursor:pointer;">Отмена</button>
-    </div>
-
-    <!-- Приватный чат -->
-    <div id="private-chat-modal" class="modal hidden">
-        <h3>Новый приватный чат</h3>
-        <div class="user-list" id="private-user-selector"></div>
-        <div style="display:flex; gap:10px; justify-content:flex-end;">
-            <button id="private-modal-cancel" class="secondary" style="padding:10px 20px; background: #21262d; border:none; border-radius:8px; color:var(--text); cursor:pointer;">Отмена</button>
+    <!-- Incoming Call -->
+    <div id="incoming-call-modal" class="modal hidden" style="text-align:center;">
+        <h3>Входящий звонок</h3>
+        <p id="caller-name" style="font-size:20px; margin:16px 0;"></p>
+        <div style="display:flex; gap:12px; justify-content:center;">
+            <button id="accept-call" style="background: var(--success); padding:12px 24px; border:none; border-radius:12px; color:white; cursor:pointer;">Принять</button>
+            <button id="decline-call" style="background: var(--danger); padding:12px 24px; border:none; border-radius:12px; color:white; cursor:pointer;">Отклонить</button>
         </div>
     </div>
 
-    <!-- Чужой профиль -->
-    <div id="user-profile-modal" class="modal hidden" style="text-align:center;">
-        <img id="user-profile-avatar" src="" style="width:80px; height:80px; border-radius:50%; object-fit:cover; background:#21262d; margin-bottom:16px; display:none;" onerror="this.style.display='none'; document.getElementById('user-profile-avatar-placeholder').style.display='inline-flex';">
-        <div id="user-profile-avatar-placeholder" class="avatar" style="width:80px; height:80px; font-size:32px; display:inline-flex; align-items:center; justify-content:center; margin:0 auto 16px;">?</div>
-        <h3 id="profile-username-display"></h3>
-        <p id="profile-display-name" style="color:var(--text-secondary); margin-bottom:8px;"></p>
-        <p id="profile-bio-display" style="margin-bottom:8px; font-size:14px;"></p>
-        <p id="profile-phone-display" style="font-size:14px; color:var(--accent);"></p>
-        <p id="profile-lastseen-display" style="font-size:12px; color:var(--text-secondary); margin-top:8px;"></p>
-        <button id="close-profile-modal" style="margin-top:16px; padding:10px 24px; background: var(--accent-gradient); border:none; border-radius:8px; color:white; font-weight:600; cursor:pointer;">Close</button>
+    <!-- Progress -->
+    <div id="upload-progress" class="file-upload-progress hidden">
+        <div style="font-size:13px; margin-bottom:4px;">Загрузка... <span id="progress-text">0%</span></div>
+        <div class="progress-bar"><div class="progress-bar-fill" id="progress-fill"></div></div>
     </div>
-
-    <!-- Свой профиль -->
-    <div id="profile-modal" class="modal hidden">
-        <h3>👤 Profile</h3>
-        <div style="text-align:center; margin-bottom:16px;">
-            <img id="my-profile-avatar-preview" src="" style="width:80px; height:80px; border-radius:50%; object-fit:cover; background: #21262d; border: 2px solid var(--accent); display:none;" onerror="this.style.display='none'; document.getElementById('my-profile-avatar-placeholder').style.display='inline-flex';">
-            <div id="my-profile-avatar-placeholder" class="avatar" style="width:80px; height:80px; font-size:32px; display:inline-flex; align-items:center; justify-content:center; margin:0;">?</div>
-        </div>
-        <input type="file" id="profile-avatar-input" accept="image/*" style="margin-bottom:12px;">
-        <label>Name</label>
-        <input type="text" id="profile-name" placeholder="Your display name">
-        <label>Username (login)</label>
-        <input type="text" id="profile-username" placeholder="Unique name" disabled>
-        <label>Bio</label>
-        <textarea id="profile-bio" placeholder="Tell about yourself" rows="2"></textarea>
-        <label>Phone number</label>
-        <input type="tel" id="profile-phone" placeholder="+7 (999) 123-45-67">
-        <label>Chat background</label>
-        <select id="profile-background">
-            <option value="default">Dark</option>
-            <option value="gradient1">Purple gradient</option>
-            <option value="pattern">Dots</option>
-            <option value="galaxy">Galaxy</option>
-        </select>
-        <button id="profile-save" style="width:100%; padding:10px; background: var(--accent-gradient); border:none; border-radius:8px; color:white; font-weight:600; margin-bottom:8px; cursor:pointer;">Save</button>
-        <button id="profile-change-password" style="width:100%; padding:10px; background: #21262d; border:1px solid var(--border); border-radius:8px; color:var(--text); cursor:pointer;">🔑 Change Password</button>
-        <button id="profile-close" style="width:100%; padding:10px; background: #21262d; border:1px solid var(--border); border-radius:8px; color:var(--text); margin-top:8px; cursor:pointer;">Close</button>
-    </div>
-
-    <!-- Создание опроса -->
-    <div id="poll-create-modal" class="modal hidden">
-        <h3>📊 Новый опрос</h3>
-        <input type="text" id="poll-question-input" placeholder="Вопрос">
-        <textarea id="poll-desc-input" placeholder="Описание (необязательно)" rows="2"></textarea>
-        <div id="poll-options-create-container" style="margin-bottom:12px;">
-            <input type="text" class="poll-option-input" placeholder="Вариант 1">
-            <input type="text" class="poll-option-input" placeholder="Вариант 2">
-        </div>
-        <button id="add-poll-option-create" style="background:none; border:1px solid var(--border); color:var(--text); padding:5px 10px; border-radius:8px; cursor:pointer; margin-bottom:12px;">+ Добавить вариант</button>
-        <button id="send-poll-btn" style="width:100%; padding:12px; background: var(--accent-gradient); border:none; border-radius:8px; color:white; font-weight:600; cursor:pointer;">Отправить опрос</button>
-        <button id="close-poll-create-modal" style="width:100%; margin-top:8px; padding:12px; background: #21262d; border:1px solid var(--border); border-radius:8px; color:var(--text); cursor:pointer;">Отмена</button>
-    </div>
-
-    <!-- Ник владельца -->
-    <div id="owner-nick-modal" class="modal hidden">
-        <h3>Ваш ник в этом чате</h3>
-        <input type="text" id="owner-nick-input" placeholder="Введите ник">
-        <button id="save-owner-nick" style="width:100%; padding:12px; background: var(--accent-gradient); border:none; border-radius:8px; color:white; font-weight:600; cursor:pointer;">Сохранить</button>
-        <button id="close-owner-nick-modal" style="width:100%; margin-top:8px; padding:12px; background: #21262d; border:1px solid var(--border); border-radius:8px; color:var(--text); cursor:pointer;">Отмена</button>
-    </div>
-
-    <!-- Админ-панель -->
-    <div id="admin-panel-modal" class="modal hidden" style="width:600px;">
-        <h3>👑 Панель администратора</h3>
-        <div class="tab-bar">
-            <button class="tab-btn active" data-tab="users">Пользователи</button>
-            <button class="tab-btn" data-tab="chats">Чаты</button>
-            <button class="tab-btn" data-tab="stats">Статистика</button>
-            <button class="tab-btn" data-tab="logs">Логи</button>
-        </div>
-        <div id="user-search-container" style="position:relative; display:block;">
-            <input type="text" id="user-search" placeholder="Поиск пользователя по email...">
-            <div id="user-autocomplete" class="autocomplete-items hidden"></div>
-        </div>
-        <div id="tab-users" class="tab-content"></div>
-        <div id="tab-chats" class="tab-content hidden"></div>
-        <div id="tab-stats" class="tab-content hidden"></div>
-        <div id="tab-logs" class="tab-content hidden"></div>
-        <button id="close-admin-panel" style="width:100%; margin-top:16px; padding:10px; background: #21262d; border:1px solid var(--border); border-radius:8px; color:var(--text); cursor:pointer;">Закрыть</button>
-    </div>
-</div>
-
-<div id="call-overlay" class="call-overlay hidden">
-    <div class="call-videos" id="call-videos"></div>
-    <div class="call-controls">
-        <button id="toggle-mic" class="ctrl-btn">🎤</button>
-        <button id="toggle-camera" class="ctrl-btn">📹</button>
-        <button id="share-screen" class="ctrl-btn">🖥️</button>
-        <button id="hangup" class="ctrl-btn end">✖</button>
-    </div>
-</div>
-
-<div id="upload-progress" class="file-upload-progress hidden">
-    <div style="font-size:13px; margin-bottom:4px;">Загрузка... <span id="progress-text">0%</span></div>
-    <div class="progress-bar"><div class="progress-bar-fill" id="progress-fill"></div>S</div>
 </div>
 
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
@@ -380,7 +363,7 @@
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-storage-compat.js"></script>
 
 <script>
-    // --- Конфигурация Firebase ---
+    // --- Firebase Configuration ---
     firebase.initializeApp({
       apiKey: "AIzaSyCtPt1M2ej6B91yBx5VepU8SnrfO9MQAlk",
       authDomain: "my-messenger-d1622.firebaseapp.com",
@@ -393,7 +376,7 @@
     const db = firebase.firestore();
     const storage = firebase.storage();
 
-    // --- Кэширование DOM и Состояние ---
+    // --- DOM Caching & State ---
     const cache = {};
     const state = {
       currentUser: null,
@@ -413,8 +396,6 @@
     };
     const EMOJIS = ['👍','❤️','😂','😮','😢','😡'];
     let pc = null, localStream = null, screenStream = null, callInterval = null, currentCallId = null;
-    let voiceRecorder = null, videoRecorder = null;
-    let chatUnsub = null, lastSeenInterval = null;
     let ownerNicknames = JSON.parse(localStorage.getItem('ownerNicknames') || '{}');
 
     function genId() { return Date.now().toString(36) + Math.random().toString(36).substr(2); }
@@ -424,7 +405,6 @@
     function $ (id) { if (!cache[id]) cache[id] = document.getElementById(id); return cache[id]; }
     function val(id) { return $(id).value.trim(); }
 
-    // --- Оптимизация: Дебаунсинг ---
     function debounce(fn, delay) {
       let timer;
       return function(...args) {
@@ -433,7 +413,7 @@
       };
     }
 
-    // --- Шифрование ---
+    // --- Encryption ---
     async function loadEncryptionKey() {
       if (state.cryptoKey) return;
       try {
@@ -477,7 +457,7 @@
       } catch (e) { return '[ошибка расшифровки]'; }
     }
 
-    // --- Аутентификация и Сессии ---
+    // --- Auth & Sessions ---
     async function handleAuth() {
       const email = val('login-email'), password = val('login-pass');
       if (!email || !password) return showToast('Введите email и пароль');
@@ -526,7 +506,7 @@
       });
     }
 
-    // --- Инициализация ---
+    // --- Initialization ---
     async function initApp() {
       const saved = localStorage.getItem('currentUser');
       if (saved) {
@@ -562,7 +542,6 @@
       });
     }
 
-    // --- Оптимизированный рендер списка чатов ---
     function renderChatList() {
       const container = $('chat-list');
       const fragment = document.createDocumentFragment();
@@ -633,7 +612,6 @@
       renderChatList();
     }
 
-    // --- Оптимизированный рендер сообщений ---
     async function renderMessages(msgs) {
       const container = $('messages-container');
       const fragment = document.createDocumentFragment();
@@ -644,7 +622,7 @@
         }
       }
 
-      msgs.forEach((msg, index) => {
+      msgs.forEach((msg) => {
         const isOwn = msg.sender === state.currentUser.email;
         const wrapper = document.createElement('div');
         wrapper.className = `msg-wrapper ${isOwn ? 'sent' : 'received'}`;
@@ -700,7 +678,7 @@
         pollDiv.appendChild(row);
       });
       if (userVoted) {
-        const total = Object.values(votes).reduce((s, a) => s + a.length, 0);
+        const total = Object.values(votes).reduce((set, arr) => set + arr.length, 0);
         msg.options.forEach((opt, idx) => {
           const count = (votes[idx] || []).length;
           const pct = total ? Math.round(count/total*100) : 0;
@@ -817,14 +795,6 @@
       document.querySelectorAll('.modal').forEach(m => m.classList.add('hidden'));
     }
 
-    function showToast(msg) {
-      const t = document.createElement('div');
-      t.className = 'toast';
-      t.textContent = msg;
-      document.body.appendChild(t);
-      setTimeout(() => t.remove(), 3000);
-    }
-
     function startLastSeenUpdates() {
       setInterval(async () => {
         if (!state.currentUser?.uid) return;
@@ -848,7 +818,14 @@
       if (c) c.className = 'messages no-scrollbar bg-' + state.chatBackground;
     }
 
-    // --- События ---
+    function showToast(msg) {
+      const t = document.createElement('div');
+      t.className = 'toast';
+      t.textContent = msg;
+      document.body.appendChild(t);
+      setTimeout(() => t.remove(), 3000);
+    }
+
     document.addEventListener('DOMContentLoaded', () => {
       $('auth-btn').addEventListener('click', handleAuth);
       $('auth-reg-btn').addEventListener('click', () => { state.isRegistering = true; handleAuth(); });
@@ -892,7 +869,7 @@
       $('file-input').addEventListener('change', e => { if (e.target.files[0]) handleFileUpload(e.target.files[0]); });
       $('back-btn').addEventListener('click', () => {
          document.getElementById('sidebar').classList.remove('open');
-         documentC.getElementById('chat-view').classList.add('hidden');
+         $('chat-view').classList.add('hidden');
          $('empty-chat').classList.remove('hidden');
       });
       $('poll-create-btn').addEventListener('click', () => {
@@ -935,7 +912,6 @@
       });
       $('profile-close').addEventListener('click', closeModal);
 
-      // Поиск в группе
       $('group-user-search').addEventListener('input', (e) => {
         renderUserSelector(e.target.value);
       });
