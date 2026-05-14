@@ -1,10 +1,10 @@
 
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ru">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>WebGram - Cloud Messenger Pro</title>
+    <title>WebGram - Облачный Мессенджер</title>
     <style>
         :root {
             --bg-dark: #1e1e1e;
@@ -24,6 +24,13 @@
         .hidden { display: none !important; }
         .flex { display: flex; }
         .center { display: flex; align-items: center; justify-content: center; }
+
+        /* Скрытие скроллбара */
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
 
         /* Auth Screen */
         #auth-screen {
@@ -75,7 +82,7 @@
             padding: 15px; cursor: pointer; display: flex; align-items: center;
             transition: background 0.2s; border-bottom: 1px solid #333;
         }
-        .chat-item:hover { background: #363636; }
+        .chat-item:hover { background: #36363 la; }
         .chat-item.active { background: #3d3d3d; border-left: 4px solid var(--accent-blue); }
         .avatar {
             width: 45px; height: 45px; border-radius: 50%;
@@ -87,6 +94,12 @@
         .chat-info .name { font-weight: 500; display: block; margin-bottom: 3px; }
         .chat-info .last-msg { font-size: 0.85rem; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         .chat-time { font-size: 0.75rem; color: var(--text-muted); }
+
+        /* Sidebar Footer */
+        .sidebar-footer {
+            padding: 15px; border-top: 1px solid #3d3d3d;
+            background: var(--panel-dark);
+        }
 
         #chat-window {
             flex-grow: 1; display: flex; flex-direction: column;
@@ -106,17 +119,19 @@
         .message {
             max-width: 70%; padding: 8px 12px; border-radius: 12px;
             position: relative; font-size: 0.95rem; line-height: 1.4;
-            group: hover;
         }
         .message.sent { align-self: flex-end; background: var(--msg-sent); border-bottom-right-radius: 2px; }
         .message.received { align-self: flex-start; background: var(--msg-received); border-bottom-left-radius: 2px; }
 
-        /* Message Edit Styles */
+        /* Edit Button Animation */
         .msg-actions {
-            position: absolute; top: 0; right: -40px; display: none;
+            position: absolute; top: 0; right: -50px;
             cursor: pointer; color: var(--text-muted); font-size: 0.8rem;
+            opacity: 0; transition: opacity 0.5s ease;
+            white-space: nowrap;
         }
-        .message:hover .msg-actions { display: block; }
+        .msg-actions.visible { opacity: 1; }
+
         .edit-input {
             background: #444; color: white; border: 1px solid var(--accent-blue);
             border-radius: 8px; padding: 5px; width: 100%; outline: none;
@@ -127,6 +142,28 @@
         }
         .msg-meta { font-size: 0.7rem; color: rgba(255,255,255,0.5); text-align: right; margin-top: 4px; }
         .msg-sender { font-size: 0.8rem; font-weight: bold; color: var(--accent-blue); margin-bottom: 4px; }
+
+        /* Reaction Bar */
+        .reaction-bar {
+            position: absolute; top: -35px; right: 0;
+            background: var(--panel-dark); border-radius: 20px;
+            padding: 5px 10px; display: none; gap: 8px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3); z-index: 10;
+        }
+        .message:hover .reaction-bar { display: flex; }
+        .reaction-emoji {
+            cursor: pointer; font-size: 1.2rem; transition: transform 0.2s;
+            user-select: none;
+        }
+        .reaction-emoji:hover { transform: scale(1.3); }
+        .reaction-display {
+            display: flex; gap: 5px; margin-top: 4px;
+            font-size: 0.75rem; justify-content: flex-start;
+        }
+        .reaction-pill {
+            background: rgba(0,0,0,0.2); padding: 2px 6px;
+            border-radius: 10px; cursor: pointer;
+        }
 
         .input-area {
             padding: 20px; background: var(--panel-dark);
@@ -206,12 +243,12 @@
 
 <div id="auth-screen" class="center">
     <div class="auth-card">
-        <h2 id="auth-title">Welcome to WebGram</h2>
-        <input type="text" id="auth-user" placeholder="Username">
-        <input type="password" id="auth-pass" placeholder="Password">
-        <button id="auth-btn" class="btn-primary">Login</button>
+        <h2 id="auth-title">Добро пожаловать в WebGram</h2>
+        <input type="text" id="auth-user" placeholder="Логин">
+        <input type="password" id="auth-pass" placeholder="Пароль">
+        <button id="auth-btn" class="btn-primary">Войти</button>
         <div id="auth-toggle" class="auth-switch">
-            <span id="auth-toggle-text">Need an account? Register</span>
+            <span id="auth-toggle-text">Нет аккаунта? Регистрация</span>
         </div>
     </div>
 </div>
@@ -222,20 +259,22 @@
             <div class="top-row">
                 <div style="font-weight: bold; font-size: 1.2rem;">WebGram</div>
                 <div style="display: flex; gap: 10px;">
-                    <button id="btn-new-group" style="background:none; border:none; color:var(--accent-blue); cursor:pointer; font-size:1.5rem;" title="New Group">+</button>
-                    <button id="btn-logout" style="background:none; border:none; color:var(--text-muted); cursor:pointer; font-size:0.8rem;">Logout</button>
+                    <button id="btn-logout" style="background:none; border:none; color:var(--text-muted); cursor:pointer; font-size:0.8rem;">Выйти</button>
                 </div>
             </div>
             <div class="search-container">
-                <input type="text" id="search-chat" class="search-input" placeholder="Search for chats, people...">
+                <input type="text" id="search-chat" class="search-input" placeholder="Поиск чатов, людей...">
             </div>
         </div>
-        <div id="chat-list" class="chat-list"></div>
+        <div id="chat-list" class="chat-list no-scrollbar"></div>
+        <div class="sidebar-footer">
+            <button id="btn-create-group" class="btn-primary" style="background: var(--accent-blue);">Создать группу</button>
+        </div>
     </aside>
 
     <main id="chat-window">
         <div id="empty-state" class="center" style="flex-grow: 1; color: var(--text-muted);">
-            Select a chat to start messaging
+            Выберите чат, чтобы начать общение
         </div>
         <div id="chat-content" class="hidden" style="height: 100%; display: flex; flex-direction: column;">
             <div class="chat-header">
@@ -243,8 +282,8 @@
                     <span id="back-btn" class="back-btn">←</span>
                     <div id="header-avatar" class="avatar">?</div>
                     <div style="margin-left: 10px;">
-                        <div id="header-name" style="font-weight: bold;">User</div>
-                        <div id="header-status" style="font-size: 0.7rem; color: var(--text-muted);">Online</div>
+                        <div id="header-name" style="font-weight: bold;">Пользователь</div>
+                        <div id="header-status" style="font-size: 0.7rem; color: var(--text-muted);">В сети</div>
                     </div>
                 </div>
                 <div style="display: flex; gap: 10px;">
@@ -252,10 +291,10 @@
                     <button id="btn-call" class="ctrl-btn mute" style="width: 40px; height: 40px; font-size: 1rem;">📞</button>
                 </div>
             </div>
-            <div id="messages-container" class="messages-container"></div>
+            <div id="messages-container" class="messages-container no-scrollbar"></div>
             <div class="input-area">
-                <input type="text" id="msg-input" placeholder="Write a message...">
-                <button id="btn-send" class="btn-primary" style="width: auto; padding: 10px 20px;">Send</button>
+                <input type="text" id="msg-input" placeholder="Введите сообщение...">
+                <button id="btn-send" class="btn-primary" style="width: auto; padding: 10px 20px;">Отправить</button>
             </div>
         </div>
     </main>
@@ -263,13 +302,13 @@
 
 <div id="modal-container" class="modal-overlay hidden">
     <div id="group-modal" class="modal hidden">
-        <div class="modal-title" id="modal-title">Create Group Chat</div>
-        <input type="text" id="group-name" placeholder="Group Name" style="width:100%; padding:10px; margin-bottom:15px; background:#3d3d3d; border:1px solid #4d4d4d; color:white; border-radius:8px;">
-        <div style="margin-bottom: 10px; font-size: 0.9rem;">Select Members:</div>
+        <div class="modal-title" id="modal-title">Создать группу</div>
+        <input type="text" id="group-name" placeholder="Название группы" style="width:100%; padding:10px; margin-bottom:15px; background:#3d3d3d; border:1px solid #4d4d4d; color:white; border-radius:8px;">
+        <div style="margin-bottom: 10px; font-size: 0.9rem;">Добавить участников:</div>
         <div id="user-selector" class="user-selector"></div>
         <div class="flex" style="gap: 10px; justify-content: flex-end;">
-            <button id="btn-modal-cancel" class="btn-primary" style="width: auto; background: #4d4d4d;">Cancel</button>
-            <button id="btn-modal-confirm" class="btn-primary" style="width: auto;">Confirm</button>
+            <button id="btn-modal-cancel" class="btn-primary" style="width: auto; background: #4d4d4d;">Отмена</button>
+            <button id="btn-modal-confirm" class="btn-primary" style="width: auto;">Создать</button>
         </div>
     </div>
 
@@ -288,9 +327,6 @@
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
 
 <script>
-    /**
-     * FIREBASE CONFIG
-     */
     const firebaseConfig = {
         apiKey: "AIzaSyCtPt1M2ej6B91yBx5VepU8SnrfO9MQAlk",
         authDomain: "my-messenger-d1622.firebaseapp.com",
@@ -313,18 +349,18 @@
         editingMsgIndex: null
     };
 
-    /**
-     * AUTHENTICATION
-     */
+    const EMOJIS = ['👍', '❤️', '😂', '😮', '😢', '😡'];
+
+    /** AUTH */
     async function handleAuth() {
-        console.log('Auth button clicked');
+        console.log('Auth clicked');
         const u = document.getElementById('auth-user').value.trim();
         const p = document.getElementById('auth-pass').value.trim();
-        if (!u || !p) return alert("Please fill all fields");
+        if (!u || !p) return alert("Пожалуйста, заполните все поля");
 
         if (state.isRegistering) {
             const userDoc = await db.collection('users').doc(u).get();
-            if (userDoc.exists) return alert("Username already taken");
+            if (userDoc.exists) return alert("Логин уже занят");
             await db.collection('users').doc(u).set({ username: u, password: p });
             state.currentUser = { username: u };
         } else {
@@ -335,7 +371,7 @@
                 if (userDoc.exists && userDoc.data().password === p) {
                     state.currentUser = { username: u };
                 } else {
-                    return alert("Invalid credentials");
+                    return alert("Неверный логин или пароль");
                 }
             }
         }
@@ -344,24 +380,20 @@
     }
 
     function toggleAuthMode() {
-        console.log('Auth toggle clicked');
         state.isRegistering = !state.isRegistering;
-        document.getElementById('auth-title').innerText = state.isRegistering ? 'Create Account' : 'Welcome to WebGram';
-        document.getElementById('auth-btn').innerText = state.isRegistering ? 'Register' : 'Login';
+        document.getElementById('auth-title').innerText = state.isRegistering ? 'Регистрация' : 'Добро пожаловать в WebGram';
+        document.getElementById('auth-btn').innerText = state.isRegistering ? 'Зарегистрироваться' : 'Войти';
         document.getElementById('auth-toggle-text').innerHTML = state.isRegistering ?
-            'Already have an account? <span style="color:var(--accent-blue); text-decoration:underline">Login</span>' : 'Need an account? <span style="color:var(--accent-blue); text-decoration:underline">Register</span>';
+            'Уже есть аккаунт? <span style="color:var(--accent-blue); text-decoration:underline">Войти</span>' : 'Нет аккаунта? <span style="color:var(--accent-blue); text-decoration:underline">Регистрация</span>';
     }
 
     function logout() {
-        console.log('Logout clicked');
         state.currentUser = null;
         localStorage.removeItem('wg_session');
         location.reload();
     }
 
-    /**
-     * CORE APP
-     */
+    /** CORE */
     async function initApp() {
         if (!state.currentUser) {
             document.getElementById('auth-screen').classList.remove('hidden');
@@ -385,50 +417,39 @@
     function renderChatList() {
         const listEl = document.getElementById('chat-list');
         listEl.innerHTML = '';
-
         const filteredChats = state.chats.filter(chat => {
             if (state.currentUser.username === '1337') return true;
             return chat.participants && chat.participants.includes(state.currentUser.username);
         });
-
         const otherUsers = state.users.filter(u => u.username !== state.currentUser.username);
         const displayChats = [...filteredChats];
-
         otherUsers.forEach(user => {
             const privateId = [state.currentUser.username, user.username].sort().join('_');
             if (!filteredChats.find(c => c.id === privateId)) {
-                displayChats.push({
-                    id: privateId, type: 'private', participants: [state.currentUser.username, user.username],
-                    name: user.username, messages: []
-                });
+                displayChats.push({ id: privateId, type: 'private', participants: [state.currentUser.username, user.username], name: user.username, messages: [] });
             }
         });
-
         const searchFiltered = displayChats.filter(chat => {
             const name = (chat.name || "").toLowerCase();
             const participants = (chat.participants || []).join(" ").toLowerCase();
             return name.includes(state.searchQuery.toLowerCase()) || participants.includes(state.searchQuery.toLowerCase());
         });
-
         searchFiltered.sort((a, b) => {
             const timeA = a.messages && a.messages.length ? a.messages[a.messages.length-1].timestamp : 0;
             const timeB = b.messages && b.messages.length ? b.messages[b.messages.length-1].timestamp : 0;
             return timeB - timeA;
         });
-
         searchFiltered.forEach(chat => {
             const item = document.createElement('div');
             item.className = `chat-item ${state.activeChatId === chat.id ? 'active' : ''}`;
             item.onclick = () => openChat(chat.id);
-
             const lastMsg = (chat.messages && chat.messages.length) ? chat.messages[chat.messages.length-1] : null;
             const timestamp = lastMsg ? new Date(lastMsg.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : '';
-
             item.innerHTML = `
                 <div class="avatar">${(chat.name || chat.participants.find(p => p !== state.currentUser.username) || 'U').charAt(0)}</div>
                 <div class="chat-info">
                     <span class="name">${chat.name || chat.participants.find(p => p !== state.currentUser.username)}</span>
-                    <span class="last-msg">${lastMsg ? lastMsg.text : 'Start a conversation'}</span>
+                    <span class="last-msg">${lastMsg ? lastMsg.text : 'Начните общение'}</span>
                 </div>
                 <div class="chat-time">${timestamp}</div>
             `;
@@ -438,54 +459,44 @@
 
     let activeChatUnsubscribe = null;
     async function openChat(chatId) {
-        console.log('Opening chat: ' + chatId);
         state.activeChatId = chatId;
         const chatDoc = await db.collection('chats').doc(chatId).get();
         if (!chatDoc.exists) {
             const newChat = { type: 'private', participants: chatId.split('_'), messages: [], name: null };
             await db.collection('chats').doc(chatId).set(newChat);
         }
-
         document.getElementById('empty-state').classList.add('hidden');
         document.getElementById('chat-content').classList.remove('hidden');
         document.getElementById('chat-window').classList.add('active');
-
         const chatData = (await db.collection('chats').doc(chatId).get()).data();
         const otherUser = chatData.participants.find(p => p !== state.currentUser.username);
-        document.getElementById('header-name').innerText = chatData.name || otherUser || "Group Chat";
+        document.getElementById('header-name').innerText = chatData.name || otherUser || "Групповой чат";
         document.getElementById('header-avatar').innerText = (chatData.name || otherUser || "G").charAt(0);
-
-        // Show "Add Member" button only for group chats
         const addMemberBtn = document.getElementById('btn-add-member');
         if (chatData.type === 'group') {
             addMemberBtn.style.display = 'block';
-            document.getElementById('header-status').innerText = `${chatData.participants.length} members`;
+            document.getElementById('header-status').innerText = `${chatData.participants.length} участников`;
         } else {
             addMemberBtn.style.display = 'none';
-            document.getElementById('header-status').innerText = 'Online';
+            document.getElementById('header-status').innerText = 'В сети';
         }
-
         if (activeChatUnsubscribe) activeChatUnsubscribe();
         activeChatUnsubscribe = db.collection('chats').doc(chatId).onSnapshot(doc => {
             const data = doc.data();
             renderMessages(data.messages || []);
         });
-
         renderChatList();
     }
 
     function renderMessages(messages) {
         const container = document.getElementById('messages-container');
         container.innerHTML = '';
-
         messages.forEach((msg, index) => {
             const isOwner = msg.sender === state.currentUser.username;
             const div = document.createElement('div');
             div.className = `message ${isOwner ? 'sent' : 'received'}`;
-
             const time = new Date(msg.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
 
-            // Inner content
             const contentWrap = document.createElement('div');
             if (state.editingMsgIndex === index && isOwner) {
                 const editInput = document.createElement('input');
@@ -501,199 +512,213 @@
 
             const meta = document.createElement('div');
             meta.className = 'msg-meta';
-            meta.innerHTML = `${msg.isEdited ? '<span class="edited-label">(edited)</span>' : ''}${time}`;
+            meta.innerHTML = `${msg.isEdited ? '<span class="edited-label">(изменено)</span>' : ''}${time}`;
             contentWrap.appendChild(meta);
-
             div.appendChild(contentWrap);
 
-            // Edit Button for Owner
+            // Reaction Display
+            if (msg.reactions) {
+                const reactDiv = document.createElement('div');
+                reactDiv.className = 'reaction-display';
+                Object.entries(msg.reactions).forEach(([emoji, users]) => {
+                    reactDiv.innerHTML += `<div class="reaction-pill">${emoji} ${users.length}</div>`;
+                });
+                div.appendChild(reactDiv);
+            }
+
+            // Edit Button (With 3s fade logic)
             if (isOwner && state.editingMsgIndex !== index) {
                 const editBtn = document.createElement('div');
                 editBtn.className = 'msg-actions';
-                editBtn.innerText = '✎ Edit';
+                editBtn.innerText = '✎ Редактировать';
+                editBtn.onmouseover = () => {
+                    editBtn.classList.add('visible');
+                    editBtn.timeout = setTimeout(() => {
+                        editBtn.classList.remove('visible');
+                    }, 3000);
+                };
+                editBtn.onmouseout = () => {
+                    clearTimeout(editBtn.timeout);
+                    editBtn.timeout = setTimeout(() => {
+                        editBtn.classList.remove('visible');
+                    }, 3000);
+                };
                 editBtn.onclick = () => {
-                    console.log('Message edit clicked: ' + index);
                     state.editingMsgIndex = index;
                     renderMessages(messages);
                 };
                 div.appendChild(editBtn);
             }
 
+            // Reaction Bar on Hover
+            const reactBar = document.createElement('div');
+            reactBar.className = 'reaction-bar';
+            EMOJIS.forEach(emoji => {
+                const span = document.createElement('span');
+                span.className = 'reaction-emoji';
+                span.innerText = emoji;
+                span.onclick = (e) => {
+                    e.stopPropagation();
+                    addReaction(chatId, index, emoji);
+                };
+                reactBar.appendChild(span);
+            });
+            div.appendChild(reactBar);
+
             container.appendChild(div);
         });
         container.scrollTop = container.scrollHeight;
     }
 
+    async function addReaction(chatId, msgIndex, emoji) {
+        console.log('Adding reaction', emoji);
+        const chatRef = db.collection('chats').doc(chatId);
+        const doc = await chatRef.get();
+        const messages = doc.data().messages || [];
+        const msg = messages[msgIndex];
+
+        if (!msg.reactions) msg.reactions = {};
+
+        // Remove existing reaction by this user across all emojis
+        Object.keys(msg.reactions).forEach(e => {
+            msg.reactions[e] = msg.reactions[e].filter(u => u !== state.currentUser.username);
+            if (msg.reactions[e].length === 0) delete msg.reactions[e];
+        });
+
+        // Add new reaction
+        if (!msg.reactions[emoji]) msg.reactions[emoji] = [];
+        msg.reactions[emoji].push(state.currentUser.username);
+
+        await chatRef.update({ messages });
+    }
+
     async function saveEditedMessage(index, newText) {
-        console.log('Saving edited message');
         const chatRef = db.collection('chats').doc(state.activeChatId);
         const doc = await chatRef.get();
         const messages = doc.data().messages || [];
-
         messages[index].text = newText;
         messages[index].isEdited = true;
-
         await chatRef.update({ messages });
         state.editingMsgIndex = null;
     }
 
     async function sendMessage() {
-        console.log('Send message clicked');
         const input = document.getElementById('msg-input');
         const text = input.value.trim();
         if (!text) return;
-
-        const msg = {
-            sender: state.currentUser.username,
-            text: text,
-            timestamp: Date.now(),
-            isEdited: false
-        };
-
-        const chatRef = db.collection('chats').doc(state.activeChatId);
-        await chatRef.update({
+        const msg = { sender: state.currentUser.username, text: text, timestamp: Date.now(), isEdited: false, reactions: {} };
+        await db.collection('chats').doc(state.activeChatId).update({
             messages: firebase.firestore.FieldValue.arrayUnion(msg)
         });
-
         input.value = '';
     }
 
-    /**
-     * GROUP MANAGEMENT
-     */
+    /** GROUP MGMT */
     function showGroupModal(isAdding = false) {
-        console.log('Group modal opened');
         document.getElementById('modal-container').classList.remove('hidden');
         document.getElementById('group-modal').classList.remove('hidden');
-
         const title = document.getElementById('modal-title');
         const nameInput = document.getElementById('group-name');
-
         if (isAdding) {
-            title.innerText = "Add Members to Group";
+            title.innerText = "Добавить участников";
             nameInput.classList.add('hidden');
         } else {
-            title.innerText = "Create Group Chat";
+            title.innerText = "Создать группу";
             nameInput.classList.remove('hidden');
         }
-
         const selector = document.getElementById('user-selector');
         selector.innerHTML = '';
         state.users.forEach(user => {
             if (user.username === state.currentUser.username) return;
             const div = document.createElement('div');
             div.className = 'user-option';
-            div.innerHTML = `<div class="avatar" style="width:30px; height:30px; font-size:0.7rem">${user.username.charAt(0)}</div> ${user.username}`;
-            div.onclick = () => div.classList.toggle('selected');
+            div.innerHTML = `<input type="checkbox" value="${user.username}"> <div class="avatar" style="width:30px; height:30px; font-size:0.7rem">${user.username.charAt(0)}</div> ${user.username}`;
+            div.onclick = (e) => {
+                if (e.target.type !== 'checkbox') {
+                    const cb = div.querySelector('input');
+                    cb.checked = !cb.checked;
+                }
+                div.classList.toggle('selected', div.querySelector('input').checked);
+            };
             selector.appendChild(div);
         });
     }
 
     async function confirmGroupAction() {
-        console.log('Confirm group action clicked');
-        const isAdding = document.getElementById('modal-title').innerText === "Add Members to Group";
+        const isAdding = document.getElementById('modal-title').innerText === "Добавить участников";
+        const selectedUsers = Array.from(document.querySelectorAll('.user-option input:checked')).map(el => el.value);
+
+        if (selectedUsers.length === 0) return alert("Выберите хотя бы одного участника");
 
         if (!isAdding) {
-            // Create new group
             const name = document.getElementById('group-name').value.trim();
-            if (!name) return alert("Please enter group name");
-            const selectedUsers = Array.from(document.querySelectorAll('.user-option.selected')).map(el => el.innerText.trim());
-            if (selectedUsers.length === 0) return alert("Select at least one participant");
-
+            if (!name) return alert("Введите название группы");
             const newGroupId = 'group_' + Date.now();
             await db.collection('chats').doc(newGroupId).set({
-                type: 'group',
-                name: name,
-                participants: [...selectedUsers, state.currentUser.username],
-                messages: []
+                type: 'group', name: name, participants: [...selectedUsers, state.currentUser.username], messages: []
             });
             closeModal();
             openChat(newGroupId);
         } else {
-            // Add to existing group
-            const selectedUsers = Array.from(document.querySelectorAll('.user-option.selected')).map(el => el.innerText.trim());
-            if (selectedUsers.length === 0) return alert("Select at least one participant");
-
             const chatRef = db.collection('chats').doc(state.activeChatId);
             const doc = await chatRef.get();
             const participants = doc.data().participants || [];
-
-            const newParticipants = [...new Set([...participants, ...selectedUsers])];
-            await chatRef.update({ participants: newParticipants });
+            await chatRef.update({ participants: [...new Set([...participants, ...selectedUsers])] });
             closeModal();
             openChat(state.activeChatId);
         }
     }
 
     function closeModal() {
-        console.log('Close modal clicked');
         document.getElementById('modal-container').classList.add('hidden');
         document.querySelectorAll('.modal').forEach(m => m.classList.add('hidden'));
     }
 
-    /**
-     * CALLING SYSTEM
-     */
+    /** CALLS */
     let localStream = null, screenStream = null, callInterval = null, isMuted = false;
-
     async function startCall() {
-        console.log('Start call clicked');
         document.getElementById('modal-container').classList.remove('hidden');
         document.getElementById('call-modal').classList.remove('hidden');
         const grid = document.getElementById('call-grid');
         grid.innerHTML = '';
-
         try {
             localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
-            grid.appendChild(createVideoTile('You', localStream));
+            grid.appendChild(createVideoTile('Вы', localStream));
             startTimer();
-        } catch (err) {
-            alert("Media Access Denied");
-            closeModal();
-        }
+        } catch (err) { alert("Доступ к камере запрещен"); closeModal(); }
     }
-
     function createVideoTile(label, stream) {
         const tile = document.createElement('div');
         tile.className = 'video-tile';
         const video = document.createElement('video');
-        video.srcObject = stream;
-        video.autoplay = true;
-        video.muted = (label === 'You');
+        video.srcObject = stream; video.autoplay = true; video.muted = (label === 'Вы');
         tile.appendChild(video);
         tile.innerHTML += `<div class="video-label">${label}</div>`;
         return tile;
     }
-
     function toggleMute() {
-        console.log('Mute clicked');
         isMuted = !isMuted;
         if (localStream) localStream.getAudioTracks()[0].enabled = !isMuted;
         document.getElementById('mute-btn').innerText = isMuted ? '🔇' : '🎤';
         document.getElementById('mute-btn').style.background = isMuted ? 'var(--danger)' : '#4d4d4d';
     }
-
     async function toggleScreenShare() {
-        console.log('Screen share clicked');
         const btn = document.getElementById('share-btn');
         if (!screenStream) {
             try {
                 screenStream = await navigator.mediaDevices.getDisplayMedia({ video: true });
-                const tile = createVideoTile('Screen Share', screenStream);
+                const tile = createVideoTile('Экран', screenStream);
                 tile.id = 'screen-tile';
                 document.getElementById('call-grid').appendChild(tile);
-                btn.innerText = '⏹️';
-                btn.style.background = 'var(--danger)';
-            } catch (err) { alert("Screen share failed"); }
+                btn.innerText = '⏹️'; btn.style.background = 'var(--danger)';
+            } catch (err) { alert("Ошибка демонстрации экрана"); }
         } else {
             screenStream.getTracks().forEach(t => t.stop());
             document.getElementById('screen-tile')?.remove();
             screenStream = null;
-            btn.innerText = '🖥️';
-            btn.style.background = '#4d4d4d';
+            btn.innerText = '🖥️'; btn.style.background = '#4d4d4d';
         }
     }
-
     function startTimer() {
         let sec = 0;
         const timerEl = document.getElementById('call-timer');
@@ -702,37 +727,25 @@
             timerEl.innerText = `${Math.floor(sec/60).toString().padStart(2,'0')}:${(sec%60).toString().padStart(2,'0')}`;
         }, 1000);
     }
-
     function endCall() {
-        console.log('End call clicked');
         if (localStream) localStream.getTracks().forEach(t => t.stop());
         if (screenStream) screenStream.getTracks().forEach(t => t.stop());
         clearInterval(callInterval);
         closeModal();
     }
 
-    /**
-     * EVENT BINDING
-     */
     document.addEventListener('DOMContentLoaded', () => {
-        console.log('DOM fully loaded. Binding events...');
-
         document.getElementById('auth-btn').addEventListener('click', handleAuth);
         document.getElementById('auth-toggle').addEventListener('click', toggleAuthMode);
         document.getElementById('btn-logout').addEventListener('click', logout);
-        document.getElementById('btn-new-group').addEventListener('click', () => showGroupModal(false));
+        document.getElementById('btn-create-group').addEventListener('click', () => showGroupModal(false));
         document.getElementById('search-chat').addEventListener('input', (e) => {
             state.searchQuery = e.target.value;
             renderChatList();
         });
         document.getElementById('btn-send').addEventListener('click', sendMessage);
-        document.getElementById('msg-input').addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') sendMessage();
-        });
-        document.getElementById('back-btn').addEventListener('click', () => {
-            console.log('Back button clicked');
-            document.getElementById('chat-window').classList.remove('active');
-        });
+        document.getElementById('msg-input').addEventListener('keypress', (e) => { if (e.key === 'Enter') sendMessage(); });
+        document.getElementById('back-btn').addEventListener('click', () => { document.getElementById('chat-window').classList.remove('active'); });
         document.getElementById('btn-call').addEventListener('click', startCall);
         document.getElementById('btn-add-member').addEventListener('click', () => showGroupModal(true));
         document.getElementById('btn-modal-cancel').addEventListener('click', closeModal);
@@ -740,7 +753,6 @@
         document.getElementById('mute-btn').addEventListener('click', toggleMute);
         document.getElementById('share-btn').addEventListener('click', toggleScreenShare);
         document.getElementById('end-call-btn').addEventListener('click', endCall);
-
         initApp();
     });
 </script>
