@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-    <title>WebGram Pro – Оптимизированный</title>
+    <title>WebGram Pro – Исправленный</title>
     <style>
         :root {
           --bg: #0d1117; --panel: #161b22; --border: #30363d; --text: #c9d1d9;
@@ -33,6 +33,8 @@
         .auth-card button { width: 100%; padding: 12px; border: none; border-radius: 8px; background: var(--accent-gradient); color: white; font-weight: 600; cursor: pointer; font-size: 16px; transition: var(--transition); }
         .auth-card button.secondary { background: transparent; color: var(--text-secondary); border: 1px solid var(--border); margin-top: 8px; }
         .auth-card .toggle-text { margin-top: 16px; font-size: 14px; color: var(--text-secondary); cursor: pointer; }
+        .auth-error { color: var(--danger); font-size: 13px; margin-top: 12px; min-height: 18px; opacity: 0; transition: opacity 0.3s; }
+        .auth-error.visible { opacity: 1; }
 
         /* Сайдбар */
         #main-ui { display: flex; width: 100%; height: 100%; }
@@ -148,6 +150,7 @@
             <input type="email" id="login-email" placeholder="Email">
             <input type="password" id="login-pass" placeholder="Пароль">
             <input type="password" id="reg-confirm-pass" class="hidden" placeholder="Подтвердите пароль">
+            <div id="auth-error" class="auth-error"></div>
             <button type="button" id="auth-btn">Войти</button>
             <button type="button" id="auth-reg-btn" class="secondary" style="display:none;">Зарегистрироваться</button>
             <div id="auth-toggle" class="toggle-text">Нет аккаунта? <span style="color:var(--accent); cursor:pointer;">Регистрация</span></div>
@@ -223,11 +226,12 @@
 
     <!-- Модальные окна -->
     <div id="modal-overlay" class="modal-overlay hidden">
+        <!-- Группа -->
         <div id="group-modal" class="modal hidden">
             <h3 id="modal-title">Создать группу</h3>
             <input type="text" id="group-name" placeholder="Название группы">
             <textarea id="group-desc" placeholder="Описание группы (необязательно)" rows="2"></textarea>
-            <div style="margin-bottom: 10px; font-size: 14px; color: var(--text-secondary);">Участники:</div>
+            <div style="margin-bottom: 10px; font-size: 14px; color: var(--text-secondary);">Участники: <span id="selected-count">0</span></div>
             <div class="search-box" style="margin-bottom: 10px;">
                 <span>🔍</span>
                 <input type="text" id="group-user-search" placeholder="Поиск пользователя...">
@@ -271,8 +275,8 @@
         </div>
 
         <div id="user-profile-modal" class="modal hidden" style="text-align:center;">
-            <img id="profile-avatar" src="" style="width:80px; height:80px; border-radius:50%; object-fit:cover; background:#21262d; margin-bottom:16px; display:none;">
-            <div id="profile-avatar-placeholder" class="avatar" style="width:80px; height:80px; font-size:32px; display:inline-flex; margin:0 auto 16px;">?</div>
+            <img id="user-profile-avatar" src="" style="width:80px; height:80px; border-radius:50%; object-fit:cover; background:#21262d; margin-bottom:16px; display:none;">
+            <div id="user-profile-avatar-placeholder" class="avatar" style="width:80px; height:80px; font-size:32px; display:inline-flex; margin:0 auto 16px;">?</div>
             <h3 id="profile-username-display"></h3>
             <p id="profile-display-name" style="color:var(--text-secondary); margin-bottom:8px;"></p>
             <p id="profile-bio-display" style="margin-bottom:8px; font-size:14px;"></p>
@@ -284,8 +288,8 @@
         <div id="profile-modal" class="modal hidden">
             <h3>👤 Профиль</h3>
             <div style="text-align:center; margin-bottom:16px;">
-                <img id="profile-avatar-preview" src="" style="width:80px; height:80px; border-radius:50%; object-fit:cover; background: #21262d; border: 2px solid var(--accent); display:none;" onerror="this.style.display='none'">
-                <div id="profile-avatar-placeholder" class="avatar" style="width:80px; height:80px; font-size:32px; display:inline-flex; margin:0;">?</div>
+                <img id="my-profile-avatar-preview" src="" style="width:80px; height:80px; border-radius:50%; object-fit:cover; background: #21262d; border: 2px solid var(--accent); display:none;" onerror="this.style.display='none'">
+                <div id="my-profile-avatar-placeholder" class="avatar" style="width:80px; height:80px; font-size:32px; display:inline-flex; margin:0;">?</div>
             </div>
             <input type="file" id="profile-avatar-input" accept="image/*" style="margin-bottom:12px;">
             <label>Имя</label>
@@ -363,7 +367,7 @@
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-storage-compat.js"></script>
 
 <script>
-    // --- Firebase Configuration ---
+    // --- Конфигурация Firebase ---
     firebase.initializeApp({
       apiKey: "AIzaSyCtPt1M2ej6B91yBx5VepU8SnrfO9MQAlk",
       authDomain: "my-messenger-d1622.firebaseapp.com",
@@ -376,7 +380,7 @@
     const db = firebase.firestore();
     const storage = firebase.storage();
 
-    // --- DOM Caching & State ---
+    // --- DOM Кэширование и Состояние ---
     const cache = {};
     const state = {
       currentUser: null,
@@ -413,7 +417,40 @@
       };
     }
 
-    // --- Encryption ---
+    // --- Ошибки Аутентификации ---
+    function showAuthError(msg) {
+      const errEl = $('auth-error');
+      errEl.textContent = msg;
+      errEl.classList.add('visible');
+      setTimeout(() => errEl.classList.remove('visible'), 5000);
+    }
+
+    function toggleAuthMode() {
+      state.isRegistering = !state.isRegistering;
+      const title = $('auth-title');
+      const authBtn = $('auth-btn');
+      const regBtn = $('auth-reg-btn');
+      const confirmPass = $('reg-confirm-pass');
+
+      if (state.isRegistering) {
+        title.innerText = 'Регистрация';
+        authBtn.style.display = 'none';
+        regBtn.style.display = 'block';
+        confirmPass.classList.remove('hidden');
+      } else {
+        title.innerText = 'Войти';
+        authBtn.style.display = 'block';
+        regBtn.style.display = 'none';
+        confirmPass.classList.add('hidden');
+      }
+
+      $('login-email').value = '';
+      $('login-pass').value = '';
+      confirmPass.value = '';
+      $('auth-error').classList.remove('visible');
+    }
+
+    // --- Шифрование ---
     async function loadEncryptionKey() {
       if (state.cryptoKey) return;
       try {
@@ -457,15 +494,15 @@
       } catch (e) { return '[ошибка расшифровки]'; }
     }
 
-    // --- Auth & Sessions ---
+    // --- Аутентификация ---
     async function handleAuth() {
       const email = val('login-email'), password = val('login-pass');
-      if (!email || !password) return showToast('Введите email и пароль');
+      if (!email || !password) return showAuthError('Введите email и пароль');
 
       if (state.isRegistering) {
         const confirmPass = val('reg-confirm-pass');
-        if (password !== confirmPass) return showToast('Пароли не совпадают');
-        if (password.length < 6) return showToast('Пароль слишком короткий (мин. 6)');
+        if (password !== confirmPass) return showAuthError('Пароли не совпадают');
+        if (password.length < 6) return showAuthError('Пароль слишком короткий (мин. 6)');
 
         try {
           const userCredential = await auth.createUserWithEmailAndPassword(email, password);
@@ -477,7 +514,8 @@
           await loadEncryptionKey();
           enterApp();
         } catch (error) {
-          showToast('Ошибка регистрации: ' + error.message);
+          if (error.code === 'auth/email-already-in-use') showAuthError('⚠️ Аккаунт с таким email уже существует');
+          else showAuthError('Ошибка регистрации: ' + error.message);
         }
       } else {
         try {
@@ -487,7 +525,10 @@
           await loadEncryptionKey();
           enterApp();
         } catch (error) {
-          showToast('Ошибка входа: ' + error.message);
+          if (error.code === 'auth/user-not-found') showAuthError('⚠️ Аккаунт с таким email не найден. Зарегистрируйтесь.');
+          else if (error.code === 'auth/wrong-password') showAuthError('❌ Неверный пароль');
+          else if (error.code === 'auth/invalid-credential') showAuthError('❌ Неверный email или пароль');
+          else showAuthError('Ошибка входа: ' + error.message);
         }
       }
     }
@@ -506,22 +547,9 @@
       });
     }
 
-    // --- Initialization ---
+    // --- Основной функционал ---
     async function initApp() {
-      const saved = localStorage.getItem('currentUser');
-      if (saved) {
-        const user = JSON.parse(saved);
-        state.currentUser = { email: user.email, uid: user.uid };
-      }
-
-      if (!state.currentUser) {
-        $('auth-screen').classList.remove('hidden');
-        $('main-ui').classList.add('hidden');
-        return;
-      }
-
-      $('auth-screen').classList.add('hidden');
-      $('main-ui').classList.remove('hidden');
+      if (!state.currentUser) return;
 
       try {
         const usersSnap = await db.collection('users').get();
@@ -678,7 +706,7 @@
         pollDiv.appendChild(row);
       });
       if (userVoted) {
-        const total = Object.values(votes).reduce((set, arr) => set + arr.length, 0);
+        const total = Object.values(votes).reduce((s, a) => s + a.length, 0);
         msg.options.forEach((opt, idx) => {
           const count = (votes[idx] || []).length;
           const pct = total ? Math.round(count/total*100) : 0;
@@ -785,7 +813,7 @@
       } else {
         const ref = db.collection('chats').doc(state.activeChatId);
         const doc = await ref.get();
-        await ref.update({ participants: [...new Set([...(doc.data().participants || []), ...selected])] });
+        await ref.update({ participants: [...new Set([..._docs.data().participants || [], ...selected])] });
       }
       closeModal();
     }
@@ -826,9 +854,10 @@
       setTimeout(() => t.remove(), 3000);
     }
 
+    // --- События ---
     document.addEventListener('DOMContentLoaded', () => {
       $('auth-btn').addEventListener('click', handleAuth);
-      $('auth-reg-btn').addEventListener('click', () => { state.isRegistering = true; handleAuth(); });
+      $('auth-reg-btn').addEventListener('click', handleAuth);
       $('auth-toggle').addEventListener('click', toggleAuthMode);
       $('logout-btn').addEventListener('click', logout);
       $('search-input').addEventListener('input', debounce(() => { state.searchQuery = $('search-input').value; renderChatList(); }, 300));
@@ -917,6 +946,20 @@
       });
 
       initApp();
+    });
+
+    // Сессия: Автоматический вход
+    auth.onAuthStateChanged(user => {
+      if (user) {
+        state.currentUser = user;
+        localStorage.setItem('currentUser', JSON.stringify({ email: user.email, uid: user.uid }));
+        enterApp();
+      } else {
+        state.currentUser = null;
+        localStorage.removeItem('currentUser');
+        document.getElementById('auth-screen').classList.remove('hidden');
+        document.getElementById('main-ui').classList.add('hidden');
+      }
     });
 </script>
 </body>
