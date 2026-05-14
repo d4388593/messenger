@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -23,7 +22,6 @@
         body { background: var(--bg); color: var(--text); height: 100vh; overflow: hidden; transition: background 0.3s; }
         #app { width: 100%; height: 100vh; display: flex; background: var(--panel); border-radius: 0; overflow: hidden; }
 
-        /* Auth Screen */
         .auth-overlay { position: fixed; top:0; left:0; width:100%; height:100%; background: radial-gradient(circle at top, #161b22, #0d1117); display:flex; align-items:center; justify-content:center; z-index:100; }
         .light .auth-overlay { background: radial-gradient(circle at top, #e0e0e0, #f0f2f5); }
         .auth-card { background: var(--panel); padding: 32px; border-radius: var(--radius); box-shadow: var(--shadow); width: 360px; text-align: center; border: 1px solid var(--border); }
@@ -36,7 +34,6 @@
         .auth-error { color: var(--danger); font-size: 13px; margin-top: 12px; min-height: 18px; opacity: 0; transition: opacity 0.3s; }
         .auth-error.visible { opacity: 1; }
 
-        /* Sidebar */
         #main-ui { display: flex; width: 100%; height: 100%; }
         .sidebar { width: 320px; min-width: 320px; background: var(--panel); display: flex; flex-direction: column; border-right: 1px solid var(--border); transition: transform 0.3s; }
         @media (max-width: 768px) {
@@ -52,24 +49,19 @@
         .chat-item { display: flex; align-items: center; padding: 14px 20px; cursor: pointer; border-bottom: 1px solid var(--border); transition: var(--transition); }
         .chat-item:hover, .chat-item.active { background: rgba(88,166,255,0.1); }
         .avatar { width: 44px; height: 44px; border-radius: 50%; background: var(--accent-gradient); display: flex; align-items: center; justify-content: center; font-weight: 600; color: white; margin-right: 12px; flex-shrink: 0; text-transform: uppercase; overflow: hidden; cursor: pointer; }
-        .avatar img { width: 100%; height: 100%; object-fit: cover; }
         .chat-info { flex:1; overflow: hidden; }
         .chat-info .name { font-weight: 500; margin-bottom: 2px; cursor: pointer; }
         .chat-info .last-msg { font-size: 13px; color: var(--text-secondary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         .chat-time { font-size: 11px; color: var(--text-secondary); margin-left: 8px; }
         .sidebar-footer { padding: 16px; border-top: 1px solid var(--border); display: flex; gap: 10px; flex-wrap: wrap; }
         .sidebar-footer button { flex:1; padding: 10px; border: none; border-radius: 8px; background: var(--accent-gradient); color: white; font-weight: 600; cursor: pointer; font-size: 13px; white-space: nowrap; }
-        .admin-toggle { background: none; border: 1px solid var(--accent); color: var(--accent); border-radius: 8px; padding: 8px 12px; font-size: 13px; cursor: pointer; display: none; }
-        .admin-toggle.active { background: var(--accent); color: white; }
 
-        /* Chat */
         .chat-main { flex:1; display:flex; flex-direction: column; position:relative; background: var(--bg); min-width: 0; }
         .chat-header { padding: 16px 24px; border-bottom: 1px solid var(--border); background: var(--panel); display: flex; align-items: center; justify-content: space-between; }
         .chat-header .user-info { display: flex; align-items: center; gap: 12px; }
         .chat-header .actions { display: flex; gap: 10px; }
         .icon-btn { background: var(--bg); border: 1px solid var(--border); width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; color: var(--text); font-size: 18px; transition: var(--transition); }
         .icon-btn:hover { background: var(--border); }
-        .icon-btn.danger { background: rgba(248,81,73,0.15); color: var(--danger); border-color: var(--danger); }
 
         .messages { flex:1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 10px; }
         .msg-wrapper { display: flex; align-items: flex-end; gap: 8px; max-width: 75%; }
@@ -81,75 +73,30 @@
         .msg-text { font-size: 15px; }
         .msg-time { font-size: 11px; color: var(--text-secondary); margin-top: 4px; text-align: right; }
 
-        .msg-actions { position: absolute; right: 0; bottom: -28px; display: none; gap: 4px; background: var(--panel); border-radius: 12px; padding: 4px 8px; border: 1px solid var(--border); z-index: 2; }
-        .msg-bubble:hover .msg-actions { display: flex; }
-        .msg-actions button { background: none; border: none; color: var(--text-secondary); cursor: pointer; font-size: 14px; padding: 2px 6px; border-radius: 4px; }
-        .msg-actions button:hover { color: var(--accent); }
-        .reactions { display: flex; gap: 4px; margin-top: 6px; flex-wrap: wrap; }
-        .reaction { background: rgba(88,166,255,0.1); border-radius: 10px; padding: 2px 8px; font-size: 13px; cursor: pointer; }
-        .emoji-bar { position: absolute; top: -36px; left: 50%; transform: translateX(-50%); display: none; gap: 6px; background: var(--panel); border-radius: 12px; padding: 4px 8px; border: 1px solid var(--border); z-index: 5; white-space: nowrap; }
-        .msg-bubble:hover .emoji-bar { display: flex; }
-        .emoji-bar span { cursor: pointer; font-size: 16px; }
-
         .input-area { padding: 12px 20px; border-top: 1px solid var(--border); background: var(--panel); display: flex; align-items: center; gap: 10px; }
         .input-area input[type="text"] { flex:1; background: var(--bg); border: 1px solid var(--border); border-radius: 24px; padding: 12px 18px; color: var(--text); outline: none; font-size: 15px; }
-        .record-btn { width: 44px; height: 44px; border-radius: 50%; border: 1px solid var(--border); background: var(--bg); color: var(--text); cursor: pointer; font-size: 18px; display: flex; align-items: center; justify-content: center; transition: var(--transition); }
-        .record-btn:hover { background: var(--border); }
-
-        .file-upload-progress { position: fixed; bottom: 20px; right: 20px; background: var(--panel); padding: 16px; border-radius: var(--radius); box-shadow: var(--shadow); border: 1px solid var(--border); z-index: 200; width: 260px; }
-        .progress-bar { height: 6px; background: var(--bg); border-radius: 3px; margin-top: 8px; }
-        .progress-bar-fill { height: 100%; width: 0%; background: var(--accent-gradient); border-radius: 3px; transition: width 0.3s; }
+        .record-btn { width: 44px; height: 44px; border-radius: 50%; border: 1px solid var(--border); background: var(--bg); color: var(--text); cursor: pointer; font-size: 18px; display: flex; align-items: center; justify-content: center; }
 
         .modal-overlay { position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.8); backdrop-filter: blur(4px); display: flex; align-items: center; justify-content: center; z-index:500; }
         .modal { background: var(--panel); border-radius: var(--radius); padding: 24px; width: 450px; max-width: 90%; border: 1px solid var(--border); box-shadow: var(--shadow); max-height: 80vh; overflow-y: auto; }
         .modal h3 { margin-bottom: 16px; font-weight: 600; }
-        .modal input, .modal textarea, .modal select { width: 100%; padding: 10px; background: var(--bg); border: 1px solid var(--border); border-radius: 8px; color: var(--text); margin-bottom: 12px; font-size: 14px; }
-        .modal .user-list { max-height: 200px; overflow-y: auto; margin-bottom: 16px; }
-        .modal .user-item { padding: 10px; display: flex; align-items: center; gap: 10px; cursor: pointer; border-radius: 8px; }
-        .modal .user-item:hover { background: rgba(88,166,255,0.1); }
-        .modal .user-item.selected { background: var(--accent); color: white; }
-
-        .call-overlay { position: fixed; top:0; left:0; width:100%; height:100%; background: #000; z-index: 1000; display: flex; flex-direction: column; }
-        .call-videos { flex:1; display: flex; flex-wrap: wrap; gap: 8px; padding: 20px; }
-        .video-tile { flex:1; min-width: 280px; height: 240px; background: var(--bg); border-radius: var(--radius); overflow: hidden; position: relative; border: 1px solid var(--border); }
-        .video-tile video { width: 100%; height: 100%; object-fit: cover; }
-        .video-tile .label { position: absolute; bottom: 10px; left: 10px; background: rgba(0,0,0,0.6); padding: 4px 10px; border-radius: 6px; }
-        .call-controls { padding: 20px; display: flex; justify-content: center; gap: 20px; }
-        .ctrl-btn { width: 50px; height: 50px; border-radius: 50%; border: none; background: var(--bg); color: var(--text); font-size: 20px; cursor: pointer; }
-        .ctrl-btn.end { background: var(--danger); }
+        .modal input, .modal textarea { width: 100%; padding: 10px; background: var(--bg); border: 1px solid var(--border); border-radius: 8px; color: var(--text); margin-bottom: 12px; font-size: 14px; }
+        .user-list { max-height: 200px; overflow-y: auto; margin-bottom: 16px; }
+        .user-item { padding: 10px; display: flex; align-items: center; gap: 10px; cursor: pointer; border-radius: 8px; }
+        .user-item:hover { background: rgba(88,166,255,0.1); }
 
         .hidden { display: none !important; }
-        .show { display: flex !important; }
-        .back-btn { display: none; cursor: pointer; font-size: 1.5rem; margin-right: 12px; }
-        @media (max-width: 768px) { .back-btn { display: block; } }
-
         .toast { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); padding: 12px 28px; border-radius: 30px; background: var(--panel); border: 1px solid var(--accent); color: var(--text); box-shadow: var(--shadow); z-index: 9999; font-weight: 500; animation: slideUp 0.3s ease; }
         @keyframes slideUp { from { opacity: 0; transform: translateX(-50%) translateY(20px); } to { opacity: 1; transform: translateX(-50%) translateY(0); } }
 
-        /* Polls */
-        .poll-container { margin-top: 8px; background: rgba(88,166,255,0.05); padding: 10px; border-radius: 12px; }
-        .poll-question { font-weight: 600; margin-bottom: 4px; }
-        .poll-desc { font-size: 13px; color: var(--text-secondary); margin-bottom: 10px; }
-        .poll-option-row { display: flex; align-items: center; gap: 8px; margin: 8px 0; cursor: pointer; padding: 6px; border-radius: 8px; transition: background 0.2s; }
-        .poll-option-row:hover { background: rgba(88,166,255,0.1); }
-        .poll-option-row input[type="radio"] { accent-color: var(--accent); transform: scale(1.2); margin: 0; }
-        .poll-option-text { flex: 1; }
-        .poll-bar-container { height: 6px; background: var(--border); border-radius: 3px; margin: 4px 0; overflow: hidden; }
-        .poll-bar { height: 100%; background: var(--accent-gradient); border-radius: 3px; transition: width 0.4s ease-out; }
-        .poll-results-text { font-size: 13px; color: var(--text-secondary); margin-top: 6px; }
-        .poll-result-item { margin-bottom: 8px; }
-        .poll-result-header { display: flex; justify-content: space-between; font-size: 13px; }
-
-        /* Backgrounds */
         .bg-default { background: var(--bg); }
         .bg-gradient1 { background: linear-gradient(135deg, #1a0533, #0d1117, #1a0533) !important; }
         .bg-pattern { background-image: radial-gradient(circle, #30363d 1px, transparent 1px); background-size: 20px 20px; }
         .bg-galaxy { background: radial-gradient(ellipse at bottom, #1b2735, #090a0f) !important; }
     </style>
 </head>
-<body id="body-root">
+<body>
 <div id="app">
-    <!-- Authentication -->
     <div id="auth-screen" class="auth-overlay">
         <div class="auth-card">
             <h2 id="auth-title">🚀 WebGram Pro</h2>
@@ -157,22 +104,21 @@
             <input type="password" id="login-pass" placeholder="Password">
             <input type="password" id="reg-confirm-pass" class="hidden" placeholder="Confirm Password">
             <div id="auth-error" class="auth-error"></div>
-            <button type="button" id="auth-btn">Login</button>
-            <button type="button" id="auth-reg-btn" class="secondary" style="display:none;">Register</button>
-            <div id="auth-toggle" class="toggle-text">No account? <span style="color:var(--accent); cursor:pointer;">Register</span></div>
+            <button id="auth-btn">Login</button>
+            <button id="auth-reg-btn" class="secondary" style="display:none;">Register</button>
+            <div id="auth-toggle" class="toggle-text">No account? <span style="color:var(--accent);">Register</span></div>
         </div>
     </div>
 
-    <!-- Main UI -->
-    <div id="main-ui" class="hidden" style="display:flex; width:100%;">
+    <div id="main-ui" class="hidden">
         <div class="sidebar" id="sidebar">
             <div class="sidebar-header">
                 <div class="logo">
-                    <span style="background: var(--accent-gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">WebGram</span>
+                    <span>WebGram</span>
                     <div style="display:flex; gap:8px;">
-                        <button id="theme-toggle" class="icon-btn" style="width:36px;height:36px;font-size:16px;" title="Theme">🌙</button>
-                        <button id="profile-btn" class="icon-btn" style="width:36px;height:36px;font-size:16px;" title="Profile">👤</button>
-                        <button id="logout-btn" class="icon-btn" style="width:36px;height:36px;font-size:14px;" title="Logout">↪</button>
+                        <button id="theme-toggle" class="icon-btn">🌙</button>
+                        <button id="profile-btn" class="icon-btn">👤</button>
+                        <button id="logout-btn" class="icon-btn">↪</button>
                     </div>
                 </div>
                 <div class="search-box">
@@ -182,15 +128,14 @@
                 <select id="sort-select" class="sort-select">
                     <option value="time">By time</option>
                     <option value="name">By name</option>
-                    <option value="type">By type</option>
                 </select>
             </div>
-            <div class="chat-list" id="chat-list"></div>
+            <div class="chat-list" id="chat-list">
+                <div style="padding:20px; text-align:center; color:var(--text-secondary);">No chats yet.<br>Click "New Chat" to start!</div>
+            </div>
             <div class="sidebar-footer">
-                <button id="new-private-chat-btn">+ New Chat</button>
-                <button id="new-group-btn">+ Create Group</button>
-                <button id="new-channel-btn">+ Create Channel</button>
-                <button id="admin-mode-btn" class="admin-toggle">👑 Admin</button>
+                <button id="new-chat-btn">+ New Chat</button>
+                <button id="create-group-btn">+ Create Group</button>
             </div>
         </div>
 
@@ -201,631 +146,514 @@
             <div id="chat-view" class="hidden" style="flex:1; display:flex; flex-direction:column;">
                 <div class="chat-header">
                     <div class="user-info">
-                        <span class="back-btn" id="back-btn">←</span>
-                        <div class="avatar" id="chat-avatar" style="cursor:pointer;">?</div>
-                        <div style="display:flex; flex-direction:column;">
-                            <div id="chat-name" style="font-weight:600; cursor:pointer;">...</div>
+                        <span class="back-btn" id="back-btn" style="cursor:pointer; font-size:24px; display:none;">←</span>
+                        <div class="avatar" id="chat-avatar">?</div>
+                        <div>
+                            <div id="chat-name" style="font-weight:600;">...</div>
                             <div id="chat-status" style="font-size:12px; color:var(--text-secondary);">Online</div>
                         </div>
                     </div>
                     <div class="actions">
-                        <button id="owner-nick-btn" class="icon-btn" title="My Nick" style="display:none;">👤</button>
-                        <button id="edit-group-btn" class="icon-btn" title="Edit" style="display:none;">✏️</button>
-                        <button id="add-member-btn" class="icon-btn" title="Add Members">👥</button>
-                        <button id="delete-chat-btn" class="icon-btn danger" title="Delete Chat" style="display:none;">🗑</button>
                         <button id="call-btn" class="icon-btn">📞</button>
                     </div>
                 </div>
                 <div class="messages bg-default" id="messages-container"></div>
-                <div class="input-area" id="input-area">
-                    <button id="attach-btn" class="record-btn">📎</button>
-                    <input type="file" id="file-input" class="hidden">
-                    <button id="voice-btn" class="record-btn">🎤</button>
-                    <button id="video-circle-btn" class="record-btn">📹</button>
-                    <button id="poll-create-btn" class="record-btn" title="Create Poll">📊</button>
+                <div class="input-area">
                     <input type="text" id="msg-input" placeholder="Type a message...">
                     <button id="send-btn" class="record-btn" style="background: var(--accent-gradient); color: white; border: none;">➤</button>
                 </div>
             </div>
         </div>
     </div>
-
-    <!-- Modals -->
-    <div id="modal-overlay" class="modal-overlay hidden">
-        <!-- Group Modal -->
-        <div id="group-modal" class="modal hidden">
-            <h3 id="modal-title">Create Group</h3>
-            <input type="text" id="group-name" placeholder="Group Name">
-            <textarea id="group-desc" placeholder="Group description (optional)" rows="2"></textarea>
-            <div style="margin-bottom: 10px; font-size: 14px; color: var(--text-secondary);">Members: <span id="selected-count">0</span></div>
-            <div class="search-box" style="margin-bottom: 10px;">
-                <span>🔍</span>
-                <input type="text" id="group-user-search" placeholder="Search users...">
-            </div>
-            <div class="user-list" id="user-selector"></div>
-            <div style="display:flex; gap:10px; justify-content:flex-end;">
-                <button id="modal-cancel" class="secondary" style="padding:10px 20px; background: #21262d; border:none; border-radius:8px; color:var(--text); cursor:pointer;">Cancel</button>
-                <button id="modal-confirm" style="padding:10px 20px; background: var(--accent-gradient); border:none; border-radius:8px; color:white; font-weight:600; cursor:pointer;">Create</button>
-            </div>
-        </div>
-
-        <div id="channel-modal" class="modal hidden">
-            <h3>Create Channel</h3>
-            <input type="text" id="channel-name" placeholder="Channel Name">
-            <textarea id="channel-desc" placeholder="Description (optional)" rows="2"></textarea>
-            <div style="display:flex; gap:10px; justify-content:flex-end;">
-                <button id="channel-cancel" class="secondary" style="padding:10px 20px; background: #21262d; border:none; border-radius:8px; color:var(--text); cursor:pointer;">Cancel</button>
-                <button id="channel-confirm" style="padding:10px 20px; background: var(--accent-gradient); border:none; border-radius:8px; color:white; font-weight:600; cursor:pointer;">Create</button>
-            </div>
-        </div>
-
-        <div id="edit-group-modal" class="modal hidden">
-            <h3>Edit Group</h3>
-            <div style="text-align:center; margin-bottom:12px;">
-                <img id="edit-group-avatar-preview" src="" style="width:80px; height:80px; border-radius:50%; object-fit:cover; background: #21262d; border: 2px solid var(--accent); display:none;">
-                <div id="edit-group-avatar-placeholder" class="avatar" style="width:80px; height:80px; font-size:32px; display:inline-flex; margin:0;">?</div>
-            </div>
-            <input type="file" id="edit-group-avatar-input" accept="image/*" style="margin-bottom:12px;">
-            <input type="text" id="edit-group-name" placeholder="Name">
-            <textarea id="edit-group-desc" placeholder="Description" rows="2"></textarea>
-            <button id="save-edit-group" style="width:100%; padding:10px; background: var(--accent-gradient); border:none; border-radius:8px; color:white; font-weight:600; cursor:pointer;">Save</button>
-            <button id="close-edit-group-modal" style="width:100%; margin-top:8px; padding:10px; background: #21262d; border:1px solid var(--border); border-radius:8px; color:var(--text); cursor:pointer;">Cancel</button>
-        </div>
-
-        <div id="private-chat-modal" class="modal hidden">
-            <h3>New Private Chat</h3>
-            <div class="user-list" id="private-user-selector"></div>
-            <div style="display:flex; gap:10px; justify-content:flex-end;">
-                <button id="private-modal-cancel" class="secondary" style="padding:10px 20px; background: #21262d; border:none; border-radius:8px; color:var(--text); cursor:pointer;">Cancel</button>
-            </div>
-        </div>
-
-        <div id="user-profile-modal" class="modal hidden" style="text-align:center;">
-            <img id="user-profile-avatar" src="" style="width:80px; height:80px; border-radius:50%; object-fit:cover; background:#21262d; margin-bottom:16px; display:none;">
-            <div id="user-profile-avatar-placeholder" class="avatar" style="width:80px; height:80px; font-size:32px; display:inline-flex; margin:0 auto 16px;">?</div>
-            <h3 id="profile-username-display"></h3>
-            <p id="profile-display-name" style="color:var(--text-secondary); margin-bottom:8px;"></p>
-            <p id="profile-bio-display" style="margin-bottom:8px; font-size:14px;"></p>
-            <p id="profile-phone-display" style="font-size:14px; color:var(--accent);"></p>
-            <p id="profile-lastseen-display" style="font-size:12px; color:var(--text-secondary); margin-top:8px;"></p>
-            <button id="close-profile-modal" style="margin-top:16px; padding:10px 24px; background: var(--accent-gradient); border:none; border-radius:8px; color:white; font-weight:600; cursor:pointer;">Close</button>
-        </div>
-
-        <div id="profile-modal" class="modal hidden">
-            <h3>👤 Profile</h3>
-            <div style="text-align:center; margin-bottom:16px;">
-                <img id="my-profile-avatar-preview" src="" style="width:80px; height:80px; border-radius:50%; object-fit:cover; background: #21262d; border: 2px solid var(--accent); display:none;" onerror="this.style.display='none'">
-                <div id="my-profile-avatar-placeholder" class="avatar" style="width:80px; height:80px; font-size:32px; display:inline-flex; margin:0;">?</div>
-            </div>
-            <input type="file" id="profile-avatar-input" accept="image/*" style="margin-bottom:12px;">
-            <label>Display Name</label>
-            <input type="text" id="profile-name" placeholder="Your display name">
-            <label>Username (login)</label>
-            <input type="text" id="profile-username" placeholder="Unique name" disabled>
-            <label>Bio</label>
-            <textarea id="profile-bio" placeholder="Tell about yourself" rows="2"></textarea>
-            <label>Phone Number</label>
-            <input type="tel" id="profile-phone" placeholder="+1 (___) ___-____">
-            <label>Chat Background</label>
-            <select id="profile-background">
-                <option value="default">Default Dark</option>
-                <option value="gradient1">Purple Gradient</option>
-                <option value="pattern">Dots Pattern</option>
-                <option value="galaxy">Galaxy</option>
-            </select>
-            <button id="profile-save" style="width:100%; padding:10px; background: var(--accent-gradient); border:none; border-radius:8px; color:white; font-weight:600; cursor:pointer;">Save</button>
-            <button id="profile-change-password" style="width:100%; padding:10px; background: #21262d; border:1px solid var(--border); border-radius:8px; color:var(--text); cursor:pointer;">🔑 Change Password</button>
-            <button id="profile-close" style="width:100%; padding:10px; background: #21262d; border:1px solid var(--border); border-radius:8px; color:var(--text); margin-top:8px; cursor:pointer;">Close</button>
-        </div>
-
-        <div id="poll-create-modal" class="modal hidden">
-            <h3>📊 New Poll</h3>
-            <input type="text" id="poll-question-input" placeholder="Question">
-            <textarea id="poll-desc-input" placeholder="Description (optional)" rows="2"></textarea>
-            <div id="poll-options-create-container" style="margin-bottom:12px;">
-                <input type="text" class="poll-option-input" placeholder="Option 1">
-                <input type="text" class="poll-option-input" placeholder="Option 2">
-            </div>
-            <button id="add-poll-option-create" style="background:none; border:1px solid var(--border); color:var(--text); padding:5px 10px; border-radius:8px; cursor:pointer; margin-bottom:12px;">+ Add Option</button>
-            <button id="send-poll-btn" style="width:100%; padding:12px; background: var(--accent-gradient); border:none; border-radius:8px; color:white; font-weight:600; cursor:pointer;">Send Poll</button>
-            <button id="close-poll-create-modal" style="width:100%; margin-top:8px; padding:12px; background: #21262d; border:1px solid var(--border); border-radius:8px; color:var(--text); cursor:pointer;">Cancel</button>
-        </div>
-    </div>
-
-    <!-- Call Overlay -->
-    <div id="call-overlay" class="call-overlay hidden">
-        <div class="call-videos" id="call-videos"></div>
-        <div class="call-controls">
-            <button id="toggle-mic" class="ctrl-btn">🎤</button>
-            <button id="toggle-camera" class="ctrl-btn">📹</button>
-            <button id="share-screen" class="ctrl-btn">🖥️</button>
-            <button id="hangup" class="ctrl-btn end">✖</button>
-        </div>
-    </div>
-
-    <!-- Incoming Call -->
-    <div id="incoming-call-modal" class="modal hidden" style="text-align:center; position:fixed; top:50%; left:50%; transform:translate(-50%,-50%); z-index:1100;">
-        <h3 id="call-incoming-title">Incoming Call</h3>
-        <p id="caller-name" style="font-size:20px; margin:16px 0;"></p>
-        <div style="display:flex; gap:12px; justify-content:center;">
-            <button id="accept-call" style="background: var(--success); padding:12px 24px; border:none; border-radius:12px; color:white; cursor:pointer;">Accept</button>
-            <button id="decline-call" style="background: var(--danger); padding:12px 24px; border:none; border-radius:12px; color:white; cursor:pointer;">Decline</button>
-        </div>
-    </div>
-
-    <!-- Progress -->
-    <div id="upload-progress" class="file-upload-progress hidden">
-        <div style="font-size:13px; margin-bottom:4px;">Uploading... <span id="progress-text">0%</span></div>
-        <div class="progress-bar"><div class="progress-bar-fill" id="progress-fill"></div></div>
-    </div>
 </div>
 
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-storage-compat.js"></script>
 
 <script>
-    // --- Firebase Configuration (COMPLETE) ---
-firebase.initializeApp({
-  apiKey: "AIzaSyCtPt1M2ej6B91yBx5VepU8SnrfO9MQAlk",
-  authDomain: "webgram-pro.firebaseapp.com",
-  projectId: "webgram-pro",
-  storageBucket: "webgram-pro.appspot.com",
-  messagingSenderId: "123456789012",
-  appId: "1:123456789012:web:abcdef1234567890"
-});
+    // Firebase config
+    const firebaseConfig = {
+      apiKey: "AIzaSyCtPt1M2ej6B91yBx5VepU8SnrfO9MQAlk",
+      authDomain: "webgram-pro.firebaseapp.com",
+      projectId: "webgram-pro",
+      storageBucket: "webgram-pro.appspot.com",
+      messagingSenderId: "123456789012",
+      appId: "1:123456789012:web:abcdef1234567890"
+    };
 
-const auth = firebase.auth();
-const db = firebase.firestore();
-const storage = firebase.storage();
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db = firebase.firestore();
 
-// --- DOM Caching System ---
-const $ = (id) => document.getElementById(id);
-const elements = {
-  authScreen: $('auth-screen'), mainUI: $('main-ui'), sidebar: $('sidebar'),
-  chatList: $('chat-list'), messagesContainer: $('messages-container'), msgInput: $('msg-input'),
-  sendBtn: $('send-btn'), chatView: $('chat-view'), emptyChat: $('empty-chat'),
-  chatName: $('chat-name'), chatAvatar: $('chat-avatar'), authBtn: $('auth-btn'),
-  authRegBtn: $('auth-reg-btn'), authToggle: $('auth-toggle'), loginEmail: $('login-email'),
-  loginPass: $('login-pass'), regConfirmPass: $('reg-confirm-pass'), authError: $('auth-error'),
-  authTitle: $('auth-title'), logoutBtn: $('logout-btn'), themeToggle: $('theme-toggle'),
-  profileBtn: $('profile-btn'), searchInput: $('search-input'), sortSelect: $('sort-select'),
-  newPrivateChatBtn: $('new-private-chat-btn'), newGroupBtn: $('new-group-btn'),
-  newChannelBtn: $('new-channel-btn'), adminModeBtn: $('admin-mode-btn'), backBtn: $('back-btn'),
-  callBtn: $('call-btn'), attachBtn: $('attach-btn'), fileInput: $('file-input'),
-  voiceBtn: $('voice-btn'), videoCircleBtn: $('video-circle-btn'), pollCreateBtn: $('poll-create-btn'),
-  modalOverlay: $('modal-overlay'), uploadProgress: $('upload-progress'), progressFill: $('progress-fill'),
-  progressText: $('progress-text'), callOverlay: $('call-overlay'), incomingCallModal: $('incoming-call-modal')
-};
+    // DOM elements
+    const $ = id => document.getElementById(id);
 
-// --- State Management ---
-let currentUser = null, currentChat = null, chats = [], messagesUnsubscribe = null;
-let currentCall = null, localStream = null, remoteStream = null, peerConnection = null;
-let isAdminMode = false, currentTheme = 'dark';
+    let currentUser = null;
+    let currentChat = null;
+    let chats = [];
+    let messagesUnsubscribe = null;
 
-// --- Helper Functions ---
-function showToast(msg, duration = 3000) {
-  const toast = document.createElement('div');
-  toast.className = 'toast';
-  toast.textContent = msg;
-  document.body.appendChild(toast);
-  setTimeout(() => toast.remove(), duration);
-}
+    function showToast(msg) {
+      const toast = document.createElement('div');
+      toast.className = 'toast';
+      toast.textContent = msg;
+      document.body.appendChild(toast);
+      setTimeout(() => toast.remove(), 3000);
+    }
 
-function encryptMessage(text) {
-  // Simple encryption for demo (in production use proper AES-GCM)
-  return btoa(encodeURIComponent(text));
-}
+    // Create a new private chat
+    async function createPrivateChat(otherUserId, otherUserName) {
+      const chatId = [currentUser.uid, otherUserId].sort().join('_');
+      const chatRef = db.collection('chats').doc(chatId);
 
-function decryptMessage(encrypted) {
-  try {
-    return decodeURIComponent(atob(encrypted));
-  } catch { return encrypted; }
-}
+      const chatDoc = await chatRef.get();
+      if (!chatDoc.exists) {
+        await chatRef.set({
+          id: chatId,
+          name: otherUserName,
+          type: 'private',
+          participants: [currentUser.uid, otherUserId],
+          createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+          lastUpdated: Date.now(),
+          lastMessage: ''
+        });
+      }
 
-async function uploadFile(file, onProgress) {
-  const storageRef = storage.ref(`chat-files/${Date.now()}_${file.name}`);
-  const uploadTask = storageRef.put(file);
-  return new Promise((resolve, reject) => {
-    uploadTask.on('state_changed', (snapshot) => {
-      const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-      if (onProgress) onProgress(progress);
-    }, reject, async () => {
-      const url = await uploadTask.snapshot.ref.getDownloadURL();
-      resolve({ url, name: file.name, type: file.type });
-    });
-  });
-}
+      // Add to user's chats list
+      const userChatsRef = db.collection('userChats').doc(currentUser.uid);
+      const userChats = await userChatsRef.get();
+      if (userChats.exists) {
+        const chats = userChats.data().chats || [];
+        if (!chats.includes(chatId)) {
+          await userChatsRef.update({ chats: firebase.firestore.FieldValue.arrayUnion(chatId) });
+        }
+      } else {
+        await userChatsRef.set({ chats: [chatId] });
+      }
 
-// --- Authentication ---
-let isLoginMode = true;
-function toggleAuthMode() {
-  isLoginMode = !isLoginMode;
-  elements.authTitle.textContent = isLoginMode ? '🚀 WebGram Pro' : '📝 Create Account';
-  elements.authBtn.textContent = isLoginMode ? 'Login' : 'Register';
-  elements.regConfirmPass.classList.toggle('hidden', isLoginMode);
-  elements.authRegBtn.style.display = isLoginMode ? 'none' : 'block';
-  elements.loginEmail.value = '';
-  elements.loginPass.value = '';
-  elements.regConfirmPass.value = '';
-  elements.authError.classList.remove('visible');
-}
+      const otherUserChatsRef = db.collection('userChats').doc(otherUserId);
+      const otherUserChats = await otherUserChatsRef.get();
+      if (otherUserChats.exists) {
+        const chats = otherUserChats.data().chats || [];
+        if (!chats.includes(chatId)) {
+          await otherUserChatsRef.update({ chats: firebase.firestore.FieldValue.arrayUnion(chatId) });
+        }
+      } else {
+        await otherUserChatsRef.set({ chats: [chatId] });
+      }
 
-async function handleAuth() {
-  const email = elements.loginEmail.value.trim();
-  const password = elements.loginPass.value;
-  const confirmPass = elements.regConfirmPass.value;
-  elements.authError.classList.remove('visible');
+      await loadChats();
+      return chatId;
+    }
 
-  if (!email || !password) {
-    elements.authError.textContent = 'Please fill all fields';
-    elements.authError.classList.add('visible');
-    return;
-  }
+    // Load all chats for current user
+    async function loadChats() {
+      if (!currentUser) return;
 
-  if (!isLoginMode && password !== confirmPass) {
-    elements.authError.textContent = 'Passwords do not match';
-    elements.authError.classList.add('visible');
-    return;
-  }
+      const userChatsDoc = await db.collection('userChats').doc(currentUser.uid).get();
+      const chatIds = userChatsDoc.data()?.chats || [];
 
-  try {
-    let userCred;
-    if (isLoginMode) {
-      userCred = await auth.signInWithEmailAndPassword(email, password);
-    } else {
-      userCred = await auth.createUserWithEmailAndPassword(email, password);
-      await db.collection('users').doc(userCred.user.uid).set({
-        uid: userCred.user.uid, email: email, displayName: email.split('@')[0],
-        username: email.split('@')[0], bio: '', phone: '', avatarUrl: '',
-        createdAt: firebase.firestore.FieldValue.serverTimestamp()
+      chats = [];
+      for (const chatId of chatIds) {
+        const chatDoc = await db.collection('chats').doc(chatId).get();
+        if (chatDoc.exists) {
+          chats.push({ id: chatId, ...chatDoc.data() });
+        }
+      }
+
+      renderChatList();
+    }
+
+    function renderChatList() {
+      const searchTerm = $('search-input').value.toLowerCase();
+      let filtered = chats.filter(c => c.name?.toLowerCase().includes(searchTerm));
+
+      const container = $('chat-list');
+      if (filtered.length === 0) {
+        container.innerHTML = '<div style="padding:20px; text-align:center; color:var(--text-secondary);">No chats yet.<br>Click "New Chat" to start!</div>';
+        return;
+      }
+
+      container.innerHTML = '';
+      filtered.forEach(chat => {
+        const div = document.createElement('div');
+        div.className = `chat-item ${currentChat?.id === chat.id ? 'active' : ''}`;
+        div.innerHTML = `
+          <div class="avatar">${chat.name?.[0]?.toUpperCase() || '💬'}</div>
+          <div class="chat-info">
+            <div class="name">${chat.name}</div>
+            <div class="last-msg">${chat.lastMessage?.substring(0, 30) || 'No messages yet'}</div>
+          </div>
+          <div class="chat-time">${chat.lastUpdated ? new Date(chat.lastUpdated).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}) : ''}</div>
+        `;
+        div.onclick = () => selectChat(chat);
+        container.appendChild(div);
       });
     }
-    showToast(isLoginMode ? 'Welcome back!' : 'Account created!');
-  } catch (error) {
-    elements.authError.textContent = error.message;
-    elements.authError.classList.add('visible');
-  }
-}
 
-// --- Message Rendering with Polls & Reactions ---
-function renderMessage(msg, isSent, senderName) {
-  const wrapper = document.createElement('div');
-  wrapper.className = `msg-wrapper ${isSent ? 'sent' : 'received'}`;
-  const bubble = document.createElement('div');
-  bubble.className = 'msg-bubble';
-  if (!isSent && senderName) {
-    const senderSpan = document.createElement('div');
-    senderSpan.className = 'msg-sender';
-    senderSpan.textContent = senderName;
-    bubble.appendChild(senderSpan);
-  }
-  const textSpan = document.createElement('div');
-  textSpan.className = 'msg-text';
+    function selectChat(chat) {
+      currentChat = chat;
+      $('chat-name').textContent = chat.name;
+      $('empty-chat').classList.add('hidden');
+      $('chat-view').classList.remove('hidden');
 
-  if (msg.type === 'poll') {
-    textSpan.innerHTML = renderPoll(msg.pollData, msg.id, currentUser?.uid);
-  } else if (msg.type === 'file') {
-    if (msg.fileType?.startsWith('image/')) {
-      textSpan.innerHTML = `<img src="${msg.fileUrl}" style="max-width:200px; border-radius:8px; cursor:pointer;" onclick="window.open('${msg.fileUrl}')">`;
-    } else {
-      textSpan.innerHTML = `<a href="${msg.fileUrl}" download style="color:var(--accent);">📎 ${msg.fileName}</a>`;
+      if (messagesUnsubscribe) messagesUnsubscribe();
+
+      const messagesRef = db.collection('chats').doc(chat.id).collection('messages').orderBy('timestamp', 'asc');
+      messagesUnsubscribe = messagesRef.onSnapshot(snapshot => {
+        const container = $('messages-container');
+        container.innerHTML = '';
+
+        snapshot.forEach(doc => {
+          const msg = doc.data();
+          const isSent = msg.senderId === currentUser.uid;
+          const wrapper = document.createElement('div');
+          wrapper.className = `msg-wrapper ${isSent ? 'sent' : 'received'}`;
+
+          const bubble = document.createElement('div');
+          bubble.className = 'msg-bubble';
+
+          if (!isSent && msg.senderName) {
+            const sender = document.createElement('div');
+            sender.className = 'msg-sender';
+            sender.textContent = msg.senderName;
+            bubble.appendChild(sender);
+          }
+
+          const text = document.createElement('div');
+          text.className = 'msg-text';
+          text.textContent = msg.text || '';
+          bubble.appendChild(text);
+
+          const time = document.createElement('div');
+          time.className = 'msg-time';
+          time.textContent = msg.timestamp?.toDate()?.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}) || 'Just now';
+          bubble.appendChild(time);
+
+          wrapper.appendChild(bubble);
+          container.appendChild(wrapper);
+        });
+
+        container.scrollTop = container.scrollHeight;
+      });
+
+      if (window.innerWidth <= 768) {
+        $('sidebar').classList.remove('open');
+        $('back-btn').style.display = 'block';
+      }
     }
-  } else {
-    textSpan.textContent = decryptMessage(msg.text);
-  }
 
-  bubble.appendChild(textSpan);
-  const timeSpan = document.createElement('div');
-  timeSpan.className = 'msg-time';
-  timeSpan.textContent = msg.timestamp?.toDate?.()?.toLocaleTimeString() || 'Just now';
-  bubble.appendChild(timeSpan);
+    async function sendMessage() {
+      if (!currentChat || !currentUser) return;
+      const input = $('msg-input');
+      const text = input.value.trim();
+      if (!text) return;
 
-  // Reactions UI
-  if (msg.reactions && Object.keys(msg.reactions).length) {
-    const reactionsDiv = document.createElement('div');
-    reactionsDiv.className = 'reactions';
-    for (const [emoji, users] of Object.entries(msg.reactions)) {
-      const reactionSpan = document.createElement('span');
-      reactionSpan.className = 'reaction';
-      reactionSpan.textContent = `${emoji} ${users.length}`;
-      reactionSpan.onclick = () => toggleReaction(msg.id, emoji);
-      reactionsDiv.appendChild(reactionSpan);
+      await db.collection('chats').doc(currentChat.id).collection('messages').add({
+        text: text,
+        senderId: currentUser.uid,
+        senderName: currentUser.displayName || currentUser.email?.split('@')[0],
+        timestamp: firebase.firestore.FieldValue.serverTimestamp()
+      });
+
+      await db.collection('chats').doc(currentChat.id).update({
+        lastMessage: text,
+        lastUpdated: Date.now()
+      });
+
+      input.value = '';
     }
-    bubble.appendChild(reactionsDiv);
-  }
 
-  const emojiBar = document.createElement('div');
-  emojiBar.className = 'emoji-bar';
-  ['👍', '❤️', '😂', '😮', '😢', '👎'].forEach(emoji => {
-    const emojiSpan = document.createElement('span');
-    emojiSpan.textContent = emoji;
-    emojiSpan.onclick = (e) => {
-      e.stopPropagation();
-      toggleReaction(msg.id, emoji);
+    // Show user selector for new chat
+    async function showNewChatModal() {
+      const users = await db.collection('users').get();
+      const userList = users.docs.filter(doc => doc.id !== currentUser.uid);
+
+      const modal = document.createElement('div');
+      modal.className = 'modal-overlay';
+      modal.innerHTML = `
+        <div class="modal">
+          <h3>New Chat</h3>
+          <div class="user-list" id="user-list-modal">
+            ${userList.map(user => `
+              <div class="user-item" data-id="${user.id}" data-name="${user.data().displayName || user.data().email?.split('@')[0]}">
+                <div class="avatar" style="width:36px;height:36px;font-size:16px;">${(user.data().displayName || user.data().email?.[0] || '?')[0].toUpperCase()}</div>
+                <div>${user.data().displayName || user.data().email?.split('@')[0]}</div>
+              </div>
+            `).join('')}
+            ${userList.length === 0 ? '<div style="padding:20px; text-align:center;">No other users found</div>' : ''}
+          </div>
+          <button id="close-modal" style="width:100%; padding:10px; background:#21262d; border:none; border-radius:8px; color:white; cursor:pointer;">Cancel</button>
+        </div>
+      `;
+
+      document.body.appendChild(modal);
+
+      modal.querySelectorAll('.user-item').forEach(el => {
+        el.onclick = async () => {
+          const userId = el.dataset.id;
+          const userName = el.dataset.name;
+          await createPrivateChat(userId, userName);
+          modal.remove();
+          showToast(`Chat with ${userName} created!`);
+        };
+      });
+
+      modal.querySelector('#close-modal').onclick = () => modal.remove();
+    }
+
+    // Create group
+    async function showCreateGroupModal() {
+      const users = await db.collection('users').get();
+      const userList = users.docs.filter(doc => doc.id !== currentUser.uid);
+      let selectedUsers = [];
+
+      const modal = document.createElement('div');
+      modal.className = 'modal-overlay';
+      modal.innerHTML = `
+        <div class="modal">
+          <h3>Create Group</h3>
+          <input type="text" id="group-name-input" placeholder="Group name" style="width:100%;">
+          <div class="user-list" id="group-user-list" style="max-height:300px;">
+            ${userList.map(user => `
+              <div class="user-item" data-id="${user.id}" data-name="${user.data().displayName || user.data().email?.split('@')[0]}">
+                <div class="avatar" style="width:36px;height:36px;font-size:16px;">${(user.data().displayName || user.data().email?.[0] || '?')[0].toUpperCase()}</div>
+                <div>${user.data().displayName || user.data().email?.split('@')[0]}</div>
+                <span class="checkmark" style="margin-left:auto; display:none;">✓</span>
+              </div>
+            `).join('')}
+          </div>
+          <button id="create-group-confirm" style="width:100%; padding:12px; background:var(--accent-gradient); border:none; border-radius:8px; color:white; font-weight:600; cursor:pointer; margin-bottom:8px;">Create Group</button>
+          <button id="close-group-modal" style="width:100%; padding:10px; background:#21262d; border:none; border-radius:8px; color:white; cursor:pointer;">Cancel</button>
+        </div>
+      `;
+
+      document.body.appendChild(modal);
+
+      modal.querySelectorAll('.user-item').forEach(el => {
+        el.onclick = () => {
+          const userId = el.dataset.id;
+          const checkmark = el.querySelector('.checkmark');
+          if (selectedUsers.includes(userId)) {
+            selectedUsers = selectedUsers.filter(id => id !== userId);
+            checkmark.style.display = 'none';
+          } else {
+            selectedUsers.push(userId);
+            checkmark.style.display = 'block';
+          }
+        };
+      });
+
+      modal.querySelector('#create-group-confirm').onclick = async () => {
+        const groupName = modal.querySelector('#group-name-input').value.trim();
+        if (!groupName) {
+          showToast('Please enter group name');
+          return;
+        }
+        if (selectedUsers.length === 0) {
+          showToast('Please select at least one member');
+          return;
+        }
+
+        const chatId = `group_${Date.now()}`;
+        const participants = [currentUser.uid, ...selectedUsers];
+
+        await db.collection('chats').doc(chatId).set({
+          id: chatId,
+          name: groupName,
+          type: 'group',
+          ownerId: currentUser.uid,
+          participants: participants,
+          createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+          lastUpdated: Date.now(),
+          lastMessage: ''
+        });
+
+        // Add to all participants' chat lists
+        for (const participant of participants) {
+          const userChatsRef = db.collection('userChats').doc(participant);
+          const userChats = await userChatsRef.get();
+          if (userChats.exists) {
+            await userChatsRef.update({ chats: firebase.firestore.FieldValue.arrayUnion(chatId) });
+          } else {
+            await userChatsRef.set({ chats: [chatId] });
+          }
+        }
+
+        await loadChats();
+        modal.remove();
+        showToast(`Group "${groupName}" created!`);
+      };
+
+      modal.querySelector('#close-group-modal').onclick = () => modal.remove();
+    }
+
+    // Profile modal
+    async function showProfileModal() {
+      const userDoc = await db.collection('users').doc(currentUser.uid).get();
+      const userData = userDoc.data() || {};
+
+      const modal = document.createElement('div');
+      modal.className = 'modal-overlay';
+      modal.innerHTML = `
+        <div class="modal">
+          <h3>👤 My Profile</h3>
+          <div class="avatar" style="width:80px; height:80px; font-size:36px; margin:0 auto 16px;">${(userData.displayName || currentUser.email?.[0] || '?')[0].toUpperCase()}</div>
+          <label>Display Name</label>
+          <input type="text" id="profile-display-name" value="${userData.displayName || ''}" placeholder="Your name">
+          <label>Bio</label>
+          <textarea id="profile-bio" rows="3" placeholder="Tell about yourself">${userData.bio || ''}</textarea>
+          <label>Chat Background</label>
+          <select id="profile-bg">
+            <option value="default" ${userData.bgPreference === 'default' ? 'selected' : ''}>Default Dark</option>
+            <option value="gradient1" ${userData.bgPreference === 'gradient1' ? 'selected' : ''}>Purple Gradient</option>
+            <option value="pattern" ${userData.bgPreference === 'pattern' ? 'selected' : ''}>Dots Pattern</option>
+            <option value="galaxy" ${userData.bgPreference === 'galaxy' ? 'selected' : ''}>Galaxy</option>
+          </select>
+          <button id="save-profile" style="width:100%; padding:12px; background:var(--accent-gradient); border:none; border-radius:8px; color:white; font-weight:600; cursor:pointer; margin-top:12px;">Save Changes</button>
+          <button id="close-profile-modal" style="width:100%; padding:10px; background:#21262d; border:none; border-radius:8px; color:white; margin-top:8px; cursor:pointer;">Close</button>
+        </div>
+      `;
+
+      document.body.appendChild(modal);
+
+      modal.querySelector('#save-profile').onclick = async () => {
+        const displayName = modal.querySelector('#profile-display-name').value.trim() || currentUser.email?.split('@')[0];
+        const bio = modal.querySelector('#profile-bio').value;
+        const bgPreference = modal.querySelector('#profile-bg').value;
+
+        await db.collection('users').doc(currentUser.uid).update({
+          displayName: displayName,
+          bio: bio,
+          bgPreference: bgPreference
+        });
+
+        currentUser.displayName = displayName;
+        applyBackground(bgPreference);
+        showToast('Profile updated!');
+        modal.remove();
+      };
+
+      modal.querySelector('#close-profile-modal').onclick = () => modal.remove();
+    }
+
+    function applyBackground(bgType) {
+      const container = $('messages-container');
+      container.classList.remove('bg-default', 'bg-gradient1', 'bg-pattern', 'bg-galaxy');
+      if (bgType === 'default') container.classList.add('bg-default');
+      else if (bgType === 'gradient1') container.classList.add('bg-gradient1');
+      else if (bgType === 'pattern') container.classList.add('bg-pattern');
+      else if (bgType === 'galaxy') container.classList.add('bg-galaxy');
+    }
+
+    // Theme toggle
+    let isDark = true;
+    $('theme-toggle').onclick = () => {
+      isDark = !isDark;
+      document.body.classList.toggle('light', !isDark);
+      $('theme-toggle').textContent = isDark ? '🌙' : '☀️';
     };
-    emojiBar.appendChild(emojiSpan);
-  });
-  bubble.appendChild(emojiBar);
 
-  wrapper.appendChild(bubble);
-  return wrapper;
-}
+    // Auth functions
+    let isLoginMode = true;
 
-function renderPoll(pollData, messageId, userId) {
-  const hasVoted = pollData.votes?.[userId];
-  const totalVotes = Object.values(pollData.votes || {}).length;
-
-  if (hasVoted || !pollData.isActive) {
-    // Show results
-    let html = `<div class="poll-container"><div class="poll-question">📊 ${pollData.question}</div>`;
-    if (pollData.description) html += `<div class="poll-desc">${pollData.description}</div>`;
-    pollData.options.forEach(option => {
-      const count = pollData.voteCounts?.[option] || 0;
-      const percentage = totalVotes ? (count / totalVotes * 100) : 0;
-      html += `
-        <div class="poll-result-item">
-          <div class="poll-result-header">
-            <span>${option}</span>
-            <span>${count} (${percentage.toFixed(0)}%)</span>
-          </div>
-          <div class="poll-bar-container">
-            <div class="poll-bar" style="width: ${percentage}%"></div>
-          </div>
-        </div>`;
-    });
-    html += `<div class="poll-results-text">Total votes: ${totalVotes}</div></div>`;
-    return html;
-  } else {
-    // Show voting options
-    let html = `<div class="poll-container"><div class="poll-question">📊 ${pollData.question}</div>`;
-    if (pollData.description) html += `<div class="poll-desc">${pollData.description}</div>`;
-    pollData.options.forEach(option => {
-      html += `
-        <div class="poll-option-row" onclick="votePoll('${messageId}', '${option.replace(/'/g, "\\'")}')">
-          <input type="radio" name="poll-${messageId}" value="${option.replace(/'/g, "&apos;")}">
-          <span class="poll-option-text">${option}</span>
-        </div>`;
-    });
-    html += `</div>`;
-    return html;
-  }
-}
-
-async function votePoll(messageId, option) {
-  if (!currentChat) return;
-  const messageRef = db.collection('chats').doc(currentChat.id).collection('messages').doc(messageId);
-  await db.runTransaction(async (transaction) => {
-    const msgDoc = await transaction.get(messageRef);
-    const pollData = msgDoc.data().pollData;
-    if (pollData.votes?.[currentUser.uid]) return;
-    transaction.update(messageRef, {
-      [`pollData.votes.${currentUser.uid}`]: option,
-      [`pollData.voteCounts.${option}`]: firebase.firestore.FieldValue.increment(1)
-    });
-  });
-  showToast('Vote recorded!');
-}
-
-async function toggleReaction(messageId, emoji) {
-  if (!currentChat || !currentUser) return;
-  const messageRef = db.collection('chats').doc(currentChat.id).collection('messages').doc(messageId);
-  await db.runTransaction(async (transaction) => {
-    const msgDoc = await transaction.get(messageRef);
-    const reactions = msgDoc.data().reactions || {};
-    if (reactions[emoji]?.includes(currentUser.uid)) {
-      reactions[emoji] = reactions[emoji].filter(uid => uid !== currentUser.uid);
-      if (reactions[emoji].length === 0) delete reactions[emoji];
-    } else {
-      reactions[emoji] = [...(reactions[emoji] || []), currentUser.uid];
+    function toggleAuthMode() {
+      isLoginMode = !isLoginMode;
+      $('auth-title').textContent = isLoginMode ? '🚀 WebGram Pro' : '📝 Create Account';
+      $('auth-btn').textContent = isLoginMode ? 'Login' : 'Register';
+      $('reg-confirm-pass').classList.toggle('hidden', isLoginMode);
+      $('auth-reg-btn').style.display = isLoginMode ? 'none' : 'block';
+      $('login-email').value = '';
+      $('login-pass').value = '';
+      $('reg-confirm-pass').value = '';
     }
-    transaction.update(messageRef, { reactions });
-  });
-}
 
-// --- Send Message with Poll Support ---
-async function sendMessage(text, type = 'text', extraData = {}) {
-  if (!currentChat || !currentUser) return;
-  const message = {
-    senderId: currentUser.uid,
-    senderName: currentUser.displayName || currentUser.email,
-    timestamp: firebase.firestore.FieldValue.serverTimestamp(),
-    type: type,
-    ...extraData
-  };
-  if (type === 'text') message.text = encryptMessage(text);
-  await db.collection('chats').doc(currentChat.id).collection('messages').add(message);
-  await db.collection('chats').doc(currentChat.id).update({ lastMessage: message.text || text, lastUpdated: Date.now() });
-  elements.msgInput.value = '';
-}
+    async function handleAuth() {
+      const email = $('login-email').value.trim();
+      const password = $('login-pass').value;
+      const errorDiv = $('auth-error');
 
-// --- Call System (Simulated with WebRTC structure) ---
-async function startCall(isVideo = true) {
-  if (!currentChat) return;
-  const callId = `call_${Date.now()}`;
-  await db.collection('calls').doc(callId).set({
-    chatId: currentChat.id, callerId: currentUser.uid, calleeId: currentChat.isGroup ? null : currentChat.participants?.find(p => p !== currentUser.uid),
-    status: 'ringing', isVideo, startedAt: firebase.firestore.FieldValue.serverTimestamp()
-  });
-  showToast(`Calling ${currentChat.name}...`);
-  // Listen for answer
-  db.collection('calls').doc(callId).onSnapshot(async (doc) => {
-    if (doc.exists && doc.data().status === 'accepted') {
-      elements.callOverlay.classList.remove('hidden');
-      setupCallUI(callId, isVideo);
+      if (!email || !password) {
+        errorDiv.textContent = 'Please fill all fields';
+        errorDiv.classList.add('visible');
+        return;
+      }
+
+      try {
+        if (isLoginMode) {
+          await auth.signInWithEmailAndPassword(email, password);
+          showToast('Welcome back!');
+        } else {
+          const confirmPass = $('reg-confirm-pass').value;
+          if (password !== confirmPass) {
+            errorDiv.textContent = 'Passwords do not match';
+            errorDiv.classList.add('visible');
+            return;
+          }
+          const userCred = await auth.createUserWithEmailAndPassword(email, password);
+          await db.collection('users').doc(userCred.user.uid).set({
+            uid: userCred.user.uid,
+            email: email,
+            displayName: email.split('@')[0],
+            bio: '',
+            bgPreference: 'default',
+            createdAt: firebase.firestore.FieldValue.serverTimestamp()
+          });
+          showToast('Account created!');
+        }
+        errorDiv.classList.remove('visible');
+      } catch (error) {
+        errorDiv.textContent = error.message;
+        errorDiv.classList.add('visible');
+      }
     }
-  });
-}
 
-async function setupCallUI(callId, isVideo) {
-  // Simplified call UI simulation
-  const videosDiv = elements.callVideos;
-  videosDiv.innerHTML = '<div class="video-tile"><video id="local-video" autoplay muted></video><div class="label">You</div></div>';
-  if (isVideo) {
-    try {
-      localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
-      document.getElementById('local-video').srcObject = localStream;
-    } catch(e) { console.log(e); }
-  }
-}
+    $('auth-btn').onclick = handleAuth;
+    $('auth-reg-btn').onclick = handleAuth;
+    $('auth-toggle').onclick = toggleAuthMode;
+    $('logout-btn').onclick = () => auth.signOut();
+    $('send-btn').onclick = sendMessage;
+    $('msg-input').addEventListener('keypress', (e) => { if (e.key === 'Enter') sendMessage(); });
+    $('new-chat-btn').onclick = showNewChatModal;
+    $('create-group-btn').onclick = showCreateGroupModal;
+    $('profile-btn').onclick = showProfileModal;
+    $('call-btn').onclick = () => showToast('Call feature would start here');
+    $('back-btn').onclick = () => {
+      $('sidebar').classList.add('open');
+      $('back-btn').style.display = 'none';
+    };
 
-// --- Background Management ---
-function applyBackground(bgType) {
-  const container = elements.messagesContainer;
-  container.classList.remove('bg-default', 'bg-gradient1', 'bg-pattern', 'bg-galaxy');
-  if (bgType === 'default') container.classList.add('bg-default');
-  else if (bgType === 'gradient1') container.classList.add('bg-gradient1');
-  else if (bgType === 'pattern') container.classList.add('bg-pattern');
-  else if (bgType === 'galaxy') container.classList.add('bg-galaxy');
-}
+    $('search-input').addEventListener('input', () => renderChatList());
 
-// --- Load Messages Real-time ---
-function loadMessages(chatId) {
-  if (messagesUnsubscribe) messagesUnsubscribe();
-  const messagesRef = db.collection('chats').doc(chatId).collection('messages').orderBy('timestamp', 'asc');
-  messagesUnsubscribe = messagesRef.onSnapshot((snapshot) => {
-    elements.messagesContainer.innerHTML = '';
-    const fragment = document.createDocumentFragment();
-    snapshot.forEach(doc => {
-      const msg = { id: doc.id, ...doc.data() };
-      const isSent = msg.senderId === currentUser.uid;
-      const senderName = isSent ? null : msg.senderName;
-      fragment.appendChild(renderMessage(msg, isSent, senderName));
+    // Auth state listener
+    auth.onAuthStateChanged(async (user) => {
+      if (user) {
+        currentUser = user;
+        const userDoc = await db.collection('users').doc(user.uid).get();
+        const userData = userDoc.data() || {};
+        currentUser.displayName = userData.displayName || user.email.split('@')[0];
+        applyBackground(userData.bgPreference || 'default');
+        $('auth-screen').classList.add('hidden');
+        $('main-ui').classList.remove('hidden');
+        await loadChats();
+
+        // Mobile sidebar handling
+        if (window.innerWidth <= 768) {
+          $('sidebar').classList.add('open');
+        }
+      } else {
+        currentUser = null;
+        currentChat = null;
+        if (messagesUnsubscribe) messagesUnsubscribe();
+        $('auth-screen').classList.remove('hidden');
+        $('main-ui').classList.add('hidden');
+        $('empty-chat').classList.remove('hidden');
+        $('chat-view').classList.add('hidden');
+      }
     });
-    elements.messagesContainer.appendChild(fragment);
-    elements.messagesContainer.scrollTop = elements.messagesContainer.scrollHeight;
-  });
-}
 
-// --- Load Chats List ---
-async function loadChats() {
-  const userChats = await db.collection('userChats').doc(currentUser.uid).get();
-  const chatIds = userChats.data()?.chats || [];
-  chats = [];
-  for (const chatId of chatIds) {
-    const chatDoc = await db.collection('chats').doc(chatId).get();
-    if (chatDoc.exists) chats.push({ id: chatId, ...chatDoc.data() });
-  }
-  renderChatList();
-}
-
-function renderChatList() {
-  const searchTerm = elements.searchInput.value.toLowerCase();
-  let filtered = chats.filter(c => c.name?.toLowerCase().includes(searchTerm));
-  const sortBy = elements.sortSelect.value;
-  filtered.sort((a,b) => sortBy === 'name' ? (a.name||'').localeCompare(b.name||'') : (b.lastUpdated||0) - (a.lastUpdated||0));
-
-  const fragment = document.createDocumentFragment();
-  filtered.forEach(chat => {
-    const div = document.createElement('div');
-    div.className = `chat-item ${currentChat?.id === chat.id ? 'active' : ''}`;
-    div.innerHTML = `
-      <div class="avatar">${chat.name?.[0]?.toUpperCase() || '💬'}</div>
-      <div class="chat-info"><div class="name">${chat.name}</div><div class="last-msg">${chat.lastMessage?.substring(0,30) || 'New chat'}</div></div>
-      <div class="chat-time">${chat.lastUpdated ? new Date(chat.lastUpdated).toLocaleTimeString() : ''}</div>
-    `;
-    div.onclick = () => selectChat(chat);
-    fragment.appendChild(div);
-  });
-  elements.chatList.innerHTML = '';
-  elements.chatList.appendChild(fragment);
-}
-
-function selectChat(chat) {
-  currentChat = chat;
-  elements.chatName.textContent = chat.name;
-  elements.emptyChat.classList.add('hidden');
-  elements.chatView.classList.remove('hidden');
-  loadMessages(chat.id);
-  // Show/hide admin buttons
-  const isOwner = chat.ownerId === currentUser.uid;
-  elements['edit-group-btn']?.classList.toggle('hidden', !isOwner || !chat.isGroup);
-  elements['delete-chat-btn']?.classList.toggle('hidden', !isOwner);
-  if (window.innerWidth <= 768) elements.sidebar.classList.remove('open');
-}
-
-// --- Auth State Listener ---
-auth.onAuthStateChanged(async (user) => {
-  if (user) {
-    currentUser = user;
-    const userDoc = await db.collection('users').doc(user.uid).get();
-    const userData = userDoc.data() || {};
-    currentUser.displayName = userData.displayName || user.email.split('@')[0];
-    currentUser.avatarUrl = userData.avatarUrl || '';
-    currentUser.bgPreference = userData.bgPreference || 'default';
-    applyBackground(currentUser.bgPreference);
-    elements.authScreen.classList.add('hidden');
-    elements.mainUI.classList.remove('hidden');
-    await loadChats();
-    showToast(`Welcome ${currentUser.displayName}!`);
-  } else {
-    currentUser = null;
-    currentChat = null;
-    if (messagesUnsubscribe) messagesUnsubscribe();
-    elements.authScreen.classList.remove('hidden');
-    elements.mainUI.classList.add('hidden');
-    elements.emptyChat.classList.remove('hidden');
-    elements.chatView.classList.add('hidden');
-  }
-});
-
-// --- Event Listeners ---
-elements.authBtn.onclick = handleAuth;
-elements.authRegBtn.onclick = handleAuth;
-elements.authToggle.onclick = () => toggleAuthMode();
-elements.logoutBtn.onclick = () => auth.signOut();
-elements.sendBtn.onclick = () => {
-  const text = elements.msgInput.value.trim();
-  if (text) sendMessage(text);
-};
-elements.msgInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') elements.sendBtn.click(); });
-elements.newPrivateChatBtn.onclick = () => showUserSelector('private');
-elements.newGroupBtn.onclick = () => showGroupModal();
-elements.newChannelBtn.onclick = () => showChannelModal();
-elements.callBtn.onclick = () => startCall(true);
-elements.themeToggle.onclick = () => {
-  currentTheme = currentTheme === 'dark' ? 'light' : 'dark';
-  document.body.classList.toggle('light', currentTheme === 'light');
-  elements.themeToggle.textContent = currentTheme === 'dark' ? '🌙' : '☀️';
-};
-elements.profileBtn.onclick = () => showProfileModal();
-elements.backBtn.onclick = () => {
-  if (window.innerWidth <= 768) elements.sidebar.classList.add('open');
-  else elements.sidebar.classList.toggle('open');
-};
-elements.searchInput.addEventListener('input', () => renderChatList());
-elements.sortSelect.addEventListener('change', () => renderChatList());
-
-// --- Modal Functions (simplified implementations) ---
-function showUserSelector(type) { showToast('User selector modal would open here'); }
-function showGroupModal() { showToast('Group creation modal'); }
-function showChannelModal() { showToast('Channel creation modal'); }
-function showProfileModal() { showToast('Profile settings modal'); }
-
-elements.pollCreateBtn.onclick = () => {
-  const question = prompt('Poll question:');
-  if (!question) return;
-  const options = [];
-  for(let i=1; i<=2; i++) {
-    const opt = prompt(`Option ${i}:`);
-    if(opt) options.push(opt);
-  }
-  if(options.length >= 2) {
-    sendMessage('', 'poll', { pollData: { question, options, votes: {}, voteCounts: {}, isActive: true, description: '' } });
-  }
-};
-
-// Debounced search
-let debounceTimer;
-elements.searchInput.addEventListener('input', () => {
-  clearTimeout(debounceTimer);
-  debounceTimer = setTimeout(() => renderChatList(), 300);
-});
-
-window.votePoll = votePoll;
-
-console.log('🚀 WebGram Pro fully loaded with all fixes!');
+    console.log('WebGram Pro ready!');
 </script>
 </body>
 </html>
