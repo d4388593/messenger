@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>WebGram - Cloud Messenger</title>
+    <title>WebGram - Cloud Messenger Pro</title>
     <style>
         :root {
             --bg-dark: #1e1e1e;
@@ -49,7 +49,6 @@
         }
         .btn-primary:hover { opacity: 0.9; }
         .auth-switch { margin-top: 1rem; font-size: 0.9rem; color: var(--text-muted); cursor: pointer; }
-        .auth-switch span { color: var(--accent-blue); text-decoration: underline; }
 
         /* Main Layout */
         #app-screen { height: 100vh; display: flex; }
@@ -62,7 +61,7 @@
             gap: 15px; border-bottom: 1px solid #3d3d3d;
         }
         .top-row { display: flex; justify-content: space-between; align-items: center; }
-        
+
         .search-container { position: relative; width: 100%; }
         .search-input {
             width: 100%; padding: 10px 12px; background: #3d3d3d;
@@ -107,9 +106,25 @@
         .message {
             max-width: 70%; padding: 8px 12px; border-radius: 12px;
             position: relative; font-size: 0.95rem; line-height: 1.4;
+            group: hover;
         }
         .message.sent { align-self: flex-end; background: var(--msg-sent); border-bottom-right-radius: 2px; }
         .message.received { align-self: flex-start; background: var(--msg-received); border-bottom-left-radius: 2px; }
+
+        /* Message Edit Styles */
+        .msg-actions {
+            position: absolute; top: 0; right: -40px; display: none;
+            cursor: pointer; color: var(--text-muted); font-size: 0.8rem;
+        }
+        .message:hover .msg-actions { display: block; }
+        .edit-input {
+            background: #444; color: white; border: 1px solid var(--accent-blue);
+            border-radius: 8px; padding: 5px; width: 100%; outline: none;
+        }
+        .edited-label {
+            font-size: 0.6rem; color: rgba(255,255,255,0.4);
+            margin-left: 5px; font-style: italic;
+        }
         .msg-meta { font-size: 0.7rem; color: rgba(255,255,255,0.5); text-align: right; margin-top: 4px; }
         .msg-sender { font-size: 0.8rem; font-weight: bold; color: var(--accent-blue); margin-bottom: 4px; }
 
@@ -147,7 +162,7 @@
             position: relative; overflow: hidden; display: flex; flex-direction: column;
         }
         .call-grid {
-            flex-grow: 1; display: grid; 
+            flex-grow: 1; display: grid;
             grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
             gap: 10px; padding: 20px;
         }
@@ -179,15 +194,15 @@
         @media (max-width: 768px) {
             #sidebar { width: 100%; }
             #chat-window { display: none; }
-            #chat-window.active { 
-                display: flex; position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 10; 
+            #chat-window.active {
+                display: flex; position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 10;
             }
             .back-btn { display: block !important; margin-right: 15px; cursor: pointer; }
         }
         .back-btn { display: none; font-size: 1.5rem; }
     </style>
 </head>
-<body id="body-root">
+<body>
 
 <div id="auth-screen" class="center">
     <div class="auth-card">
@@ -207,7 +222,7 @@
             <div class="top-row">
                 <div style="font-weight: bold; font-size: 1.2rem;">WebGram</div>
                 <div style="display: flex; gap: 10px;">
-                    <button id="btn-new-group" style="background:none; border:none; color:var(--accent-blue); cursor:pointer; font-size:1.5rem;">+</button>
+                    <button id="btn-new-group" style="background:none; border:none; color:var(--accent-blue); cursor:pointer; font-size:1.5rem;" title="New Group">+</button>
                     <button id="btn-logout" style="background:none; border:none; color:var(--text-muted); cursor:pointer; font-size:0.8rem;">Logout</button>
                 </div>
             </div>
@@ -227,12 +242,15 @@
                 <div class="user-meta">
                     <span id="back-btn" class="back-btn">←</span>
                     <div id="header-avatar" class="avatar">?</div>
-                    <div>
+                    <div style="margin-left: 10px;">
                         <div id="header-name" style="font-weight: bold;">User</div>
                         <div id="header-status" style="font-size: 0.7rem; color: var(--text-muted);">Online</div>
                     </div>
                 </div>
-                <button id="btn-call" class="ctrl-btn mute" style="width: 40px; height: 40px; font-size: 1rem;">📞</button>
+                <div style="display: flex; gap: 10px;">
+                    <button id="btn-add-member" class="ctrl-btn mute" style="width: 40px; height: 40px; font-size: 1rem; display: none;">👤+</button>
+                    <button id="btn-call" class="ctrl-btn mute" style="width: 40px; height: 40px; font-size: 1rem;">📞</button>
+                </div>
             </div>
             <div id="messages-container" class="messages-container"></div>
             <div class="input-area">
@@ -245,13 +263,13 @@
 
 <div id="modal-container" class="modal-overlay hidden">
     <div id="group-modal" class="modal hidden">
-        <div class="modal-title">Create Group Chat</div>
+        <div class="modal-title" id="modal-title">Create Group Chat</div>
         <input type="text" id="group-name" placeholder="Group Name" style="width:100%; padding:10px; margin-bottom:15px; background:#3d3d3d; border:1px solid #4d4d4d; color:white; border-radius:8px;">
         <div style="margin-bottom: 10px; font-size: 0.9rem;">Select Members:</div>
         <div id="user-selector" class="user-selector"></div>
         <div class="flex" style="gap: 10px; justify-content: flex-end;">
             <button id="btn-modal-cancel" class="btn-primary" style="width: auto; background: #4d4d4d;">Cancel</button>
-            <button id="btn-modal-confirm" class="btn-primary" style="width: auto;">Create</button>
+            <button id="btn-modal-confirm" class="btn-primary" style="width: auto;">Confirm</button>
         </div>
     </div>
 
@@ -266,13 +284,12 @@
     </div>
 </div>
 
-<!-- FIREBASE COMPAT SDKs -->
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
 
 <script>
     /**
-     * FIREBASE CONFIGURATION
+     * FIREBASE CONFIG
      */
     const firebaseConfig = {
         apiKey: "AIzaSyCtPt1M2ej6B91yBx5VepU8SnrfO9MQAlk",
@@ -286,16 +303,14 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
 
-    /**
-     * STATE MANAGEMENT
-     */
     let state = {
         users: [],
         chats: [],
         currentUser: JSON.parse(localStorage.getItem('wg_session')) || null,
         activeChatId: null,
         isRegistering: false,
-        searchQuery: ""
+        searchQuery: "",
+        editingMsgIndex: null
     };
 
     /**
@@ -310,7 +325,6 @@
         if (state.isRegistering) {
             const userDoc = await db.collection('users').doc(u).get();
             if (userDoc.exists) return alert("Username already taken");
-
             await db.collection('users').doc(u).set({ username: u, password: p });
             state.currentUser = { username: u };
         } else {
@@ -325,7 +339,6 @@
                 }
             }
         }
-
         localStorage.setItem('wg_session', JSON.stringify(state.currentUser));
         initApp();
     }
@@ -347,7 +360,7 @@
     }
 
     /**
-     * APP CORE
+     * CORE APP
      */
     async function initApp() {
         if (!state.currentUser) {
@@ -356,7 +369,6 @@
         } else {
             document.getElementById('auth-screen').classList.add('hidden');
             document.getElementById('app-screen').classList.remove('hidden');
-
             const usersSnap = await db.collection('users').get();
             state.users = usersSnap.docs.map(doc => doc.data());
             setupGlobalChatListener();
@@ -386,11 +398,8 @@
             const privateId = [state.currentUser.username, user.username].sort().join('_');
             if (!filteredChats.find(c => c.id === privateId)) {
                 displayChats.push({
-                    id: privateId,
-                    type: 'private',
-                    participants: [state.currentUser.username, user.username],
-                    name: user.username,
-                    messages: []
+                    id: privateId, type: 'private', participants: [state.currentUser.username, user.username],
+                    name: user.username, messages: []
                 });
             }
         });
@@ -410,11 +419,7 @@
         searchFiltered.forEach(chat => {
             const item = document.createElement('div');
             item.className = `chat-item ${state.activeChatId === chat.id ? 'active' : ''}`;
-
-            item.onclick = () => {
-                console.log('Chat item clicked: ' + chat.id);
-                openChat(chat.id);
-            };
+            item.onclick = () => openChat(chat.id);
 
             const lastMsg = (chat.messages && chat.messages.length) ? chat.messages[chat.messages.length-1] : null;
             const timestamp = lastMsg ? new Date(lastMsg.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : '';
@@ -433,6 +438,7 @@
 
     let activeChatUnsubscribe = null;
     async function openChat(chatId) {
+        console.log('Opening chat: ' + chatId);
         state.activeChatId = chatId;
         const chatDoc = await db.collection('chats').doc(chatId).get();
         if (!chatDoc.exists) {
@@ -449,6 +455,16 @@
         document.getElementById('header-name').innerText = chatData.name || otherUser || "Group Chat";
         document.getElementById('header-avatar').innerText = (chatData.name || otherUser || "G").charAt(0);
 
+        // Show "Add Member" button only for group chats
+        const addMemberBtn = document.getElementById('btn-add-member');
+        if (chatData.type === 'group') {
+            addMemberBtn.style.display = 'block';
+            document.getElementById('header-status').innerText = `${chatData.participants.length} members`;
+        } else {
+            addMemberBtn.style.display = 'none';
+            document.getElementById('header-status').innerText = 'Online';
+        }
+
         if (activeChatUnsubscribe) activeChatUnsubscribe();
         activeChatUnsubscribe = db.collection('chats').doc(chatId).onSnapshot(doc => {
             const data = doc.data();
@@ -462,18 +478,63 @@
         const container = document.getElementById('messages-container');
         container.innerHTML = '';
 
-        messages.forEach(msg => {
+        messages.forEach((msg, index) => {
+            const isOwner = msg.sender === state.currentUser.username;
             const div = document.createElement('div');
-            div.className = `message ${msg.sender === state.currentUser.username ? 'sent' : 'received'}`;
+            div.className = `message ${isOwner ? 'sent' : 'received'}`;
+
             const time = new Date(msg.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
-            div.innerHTML = `
-                ${msg.sender !== state.currentUser.username && state.activeChatId.startsWith('group') ? `<div class="msg-sender">${msg.sender}</div>` : ''}
-                <div>${msg.text}</div>
-                <div class="msg-meta">${time}</div>
-            `;
+
+            // Inner content
+            const contentWrap = document.createElement('div');
+            if (state.editingMsgIndex === index && isOwner) {
+                const editInput = document.createElement('input');
+                editInput.className = 'edit-input';
+                editInput.value = msg.text;
+                editInput.onkeypress = (e) => { if(e.key === 'Enter') saveEditedMessage(index, editInput.value); };
+                contentWrap.appendChild(editInput);
+            } else {
+                const textNode = document.createElement('div');
+                textNode.innerHTML = `${msg.sender !== state.currentUser.username && state.activeChatId.startsWith('group') ? `<div class="msg-sender">${msg.sender}</div>` : ''}${msg.text}`;
+                contentWrap.appendChild(textNode);
+            }
+
+            const meta = document.createElement('div');
+            meta.className = 'msg-meta';
+            meta.innerHTML = `${msg.isEdited ? '<span class="edited-label">(edited)</span>' : ''}${time}`;
+            contentWrap.appendChild(meta);
+
+            div.appendChild(contentWrap);
+
+            // Edit Button for Owner
+            if (isOwner && state.editingMsgIndex !== index) {
+                const editBtn = document.createElement('div');
+                editBtn.className = 'msg-actions';
+                editBtn.innerText = '✎ Edit';
+                editBtn.onclick = () => {
+                    console.log('Message edit clicked: ' + index);
+                    state.editingMsgIndex = index;
+                    renderMessages(messages);
+                };
+                div.appendChild(editBtn);
+            }
+
             container.appendChild(div);
         });
         container.scrollTop = container.scrollHeight;
+    }
+
+    async function saveEditedMessage(index, newText) {
+        console.log('Saving edited message');
+        const chatRef = db.collection('chats').doc(state.activeChatId);
+        const doc = await chatRef.get();
+        const messages = doc.data().messages || [];
+
+        messages[index].text = newText;
+        messages[index].isEdited = true;
+
+        await chatRef.update({ messages });
+        state.editingMsgIndex = null;
     }
 
     async function sendMessage() {
@@ -485,7 +546,8 @@
         const msg = {
             sender: state.currentUser.username,
             text: text,
-            timestamp: Date.now()
+            timestamp: Date.now(),
+            isEdited: false
         };
 
         const chatRef = db.collection('chats').doc(state.activeChatId);
@@ -499,10 +561,22 @@
     /**
      * GROUP MANAGEMENT
      */
-    function showCreateGroupModal() {
-        console.log('Create group clicked');
+    function showGroupModal(isAdding = false) {
+        console.log('Group modal opened');
         document.getElementById('modal-container').classList.remove('hidden');
         document.getElementById('group-modal').classList.remove('hidden');
+
+        const title = document.getElementById('modal-title');
+        const nameInput = document.getElementById('group-name');
+
+        if (isAdding) {
+            title.innerText = "Add Members to Group";
+            nameInput.classList.add('hidden');
+        } else {
+            title.innerText = "Create Group Chat";
+            nameInput.classList.remove('hidden');
+        }
+
         const selector = document.getElementById('user-selector');
         selector.innerHTML = '';
         state.users.forEach(user => {
@@ -510,31 +584,45 @@
             const div = document.createElement('div');
             div.className = 'user-option';
             div.innerHTML = `<div class="avatar" style="width:30px; height:30px; font-size:0.7rem">${user.username.charAt(0)}</div> ${user.username}`;
-            div.onclick = () => {
-                div.classList.toggle('selected');
-            };
+            div.onclick = () => div.classList.toggle('selected');
             selector.appendChild(div);
         });
     }
 
-    async function confirmCreateGroup() {
-        console.log('Confirm create group clicked');
-        const name = document.getElementById('group-name').value.trim();
-        if (!name) return alert("Please enter group name");
-        const selectedUsers = Array.from(document.querySelectorAll('.user-option.selected')).map(el => el.innerText.trim());
-        if (selectedUsers.length === 0) return alert("Select at least one participant");
+    async function confirmGroupAction() {
+        console.log('Confirm group action clicked');
+        const isAdding = document.getElementById('modal-title').innerText === "Add Members to Group";
 
-        const newGroupId = 'group_' + Date.now();
-        const newGroup = {
-            type: 'group',
-            name: name,
-            participants: [...selectedUsers, state.currentUser.username],
-            messages: []
-        };
+        if (!isAdding) {
+            // Create new group
+            const name = document.getElementById('group-name').value.trim();
+            if (!name) return alert("Please enter group name");
+            const selectedUsers = Array.from(document.querySelectorAll('.user-option.selected')).map(el => el.innerText.trim());
+            if (selectedUsers.length === 0) return alert("Select at least one participant");
 
-        await db.collection('chats').doc(newGroupId).set(newGroup);
-        closeModal();
-        openChat(newGroupId);
+            const newGroupId = 'group_' + Date.now();
+            await db.collection('chats').doc(newGroupId).set({
+                type: 'group',
+                name: name,
+                participants: [...selectedUsers, state.currentUser.username],
+                messages: []
+            });
+            closeModal();
+            openChat(newGroupId);
+        } else {
+            // Add to existing group
+            const selectedUsers = Array.from(document.querySelectorAll('.user-option.selected')).map(el => el.innerText.trim());
+            if (selectedUsers.length === 0) return alert("Select at least one participant");
+
+            const chatRef = db.collection('chats').doc(state.activeChatId);
+            const doc = await chatRef.get();
+            const participants = doc.data().participants || [];
+
+            const newParticipants = [...new Set([...participants, ...selectedUsers])];
+            await chatRef.update({ participants: newParticipants });
+            closeModal();
+            openChat(state.activeChatId);
+        }
     }
 
     function closeModal() {
@@ -624,24 +712,19 @@
     }
 
     /**
-     * DOM CONTENT LOADED - EVENT BINDING
+     * EVENT BINDING
      */
     document.addEventListener('DOMContentLoaded', () => {
         console.log('DOM fully loaded. Binding events...');
 
-        // Auth
         document.getElementById('auth-btn').addEventListener('click', handleAuth);
         document.getElementById('auth-toggle').addEventListener('click', toggleAuthMode);
-
-        // Sidebar
         document.getElementById('btn-logout').addEventListener('click', logout);
-        document.getElementById('btn-new-group').addEventListener('click', showCreateGroupModal);
+        document.getElementById('btn-new-group').addEventListener('click', () => showGroupModal(false));
         document.getElementById('search-chat').addEventListener('input', (e) => {
             state.searchQuery = e.target.value;
             renderChatList();
         });
-
-        // Chat
         document.getElementById('btn-send').addEventListener('click', sendMessage);
         document.getElementById('msg-input').addEventListener('keypress', (e) => {
             if (e.key === 'Enter') sendMessage();
@@ -651,12 +734,9 @@
             document.getElementById('chat-window').classList.remove('active');
         });
         document.getElementById('btn-call').addEventListener('click', startCall);
-
-        // Modals
+        document.getElementById('btn-add-member').addEventListener('click', () => showGroupModal(true));
         document.getElementById('btn-modal-cancel').addEventListener('click', closeModal);
-        document.getElementById('btn-modal-confirm').addEventListener('click', confirmCreateGroup);
-
-        // Call Controls
+        document.getElementById('btn-modal-confirm').addEventListener('click', confirmGroupAction);
         document.getElementById('mute-btn').addEventListener('click', toggleMute);
         document.getElementById('share-btn').addEventListener('click', toggleScreenShare);
         document.getElementById('end-call-btn').addEventListener('click', endCall);
