@@ -25,7 +25,6 @@
         .flex { display: flex; }
         .center { display: flex; align-items: center; justify-content: center; }
 
-        /* Scrollbar Hiding */
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 
@@ -104,6 +103,10 @@
             display: flex; flex-direction: column; gap: 10px;
             background-image: url('https://www.transparenttextures.com/patterns/dark-leather.png');
         }
+        .message-wrapper {
+            display: flex; align-items: center; width: 100%;
+            position: relative; margin-bottom: 5px;
+        }
         .message {
             max-width: 70%; padding: 8px 12px; border-radius: 12px;
             position: relative; font-size: 0.95rem; line-height: 1.4;
@@ -111,17 +114,19 @@
         .message.sent { align-self: flex-end; background: var(--msg-sent); border-bottom-right-radius: 2px; }
         .message.received { align-self: flex-start; background: var(--msg-received); border-bottom-left-radius: 2px; }
 
-        /* Edit Button - Circular Telegram Style */
+        /* BUG 3 FIX: Edit Button Circular Design */
         .msg-edit-btn {
-            position: absolute; width: 28px; height: 28px;
-            background: var(--panel-dark); border-radius: 50%;
-            display: flex; align-items: center; justify-content: center;
+            width: 28px; height: 28px; background: var(--panel-dark);
+            border-radius: 50%; display: flex; align-items: center; justify-content: center;
             cursor: pointer; color: var(--text-muted); font-size: 12px;
             opacity: 0; transition: opacity 0.5s ease; z-index: 5;
+            border: 1px solid #4d4d4d;
         }
-        .message.sent .msg-edit-btn { right: -35px; }
-        .message.received .msg-edit-btn { left: -35px; }
         .msg-edit-btn.visible { opacity: 1; }
+        .message-wrapper.sent-wrap { justify-content: flex-end; }
+        .message-wrapper.received-wrap { justify-content: flex-start; }
+        .message-wrapper.sent-wrap .msg-edit-btn { margin-left: 10px; }
+        .message-wrapper.received-wrap .msg-edit-btn { margin-right: 10px; }
 
         .edit-input {
             background: #444; color: white; border: 1px solid var(--accent-blue);
@@ -301,7 +306,6 @@
 
 <!-- MODALS -->
 <div id="modal-container" class="modal-overlay hidden">
-    <!-- Group Modal -->
     <div id="group-modal" class="modal hidden">
         <div class="modal-title" id="modal-title">Создать группу</div>
         <input type="text" id="group-name" placeholder="Название группы" style="width:100%; padding:10px; margin-bottom:15px; background:#3d3d3d; border:1px solid #4d4d4d; color:white; border-radius:8px;">
@@ -313,7 +317,6 @@
         </div>
     </div>
 
-    <!-- Incoming Call Modal -->
     <div id="incoming-call-modal" class="modal hidden" style="text-align: center;">
         <div class="modal-title">Входящий звонок...</div>
         <div id="caller-name" style="margin-bottom: 20px; font-size: 1.5rem;">Пользователь</div>
@@ -323,7 +326,6 @@
         </div>
     </div>
 
-    <!-- Call Window -->
     <div id="call-modal" class="modal hidden" style="width: 80vw; height: 80vh; background: #000; border-radius: 20px; overflow: hidden; display: flex; flex-direction: column;">
         <div class="call-timer" id="call-timer">00:00</div>
         <div class="call-grid" id="call-grid"></div>
@@ -475,7 +477,7 @@
                 <div class="avatar">${(chat.name || chat.participants.find(p => p !== state.currentUser.username) || 'U').charAt(0)}</div>
                 <div class="chat-info">
                     <span class="name">${chat.name || chat.participants.find(p => p !== state.currentUser.username)}</span>
-                    <span class="last-msg">${lastMsg ? lastMsg.text : 'Начните общение'}</span>
+                    <span class="last-msg">${lastMsg ? (lastMsg.type === 'file' ? '📎 Файл' : lastMsg.text) : 'Начните общение'}</span>
                 </div>
                 <div class="chat-time">${timestamp}</div>
             `;
@@ -519,6 +521,9 @@
         container.innerHTML = '';
         messages.forEach((msg, index) => {
             const isOwner = msg.sender === state.currentUser.username;
+            const wrapper = document.createElement('div');
+            wrapper.className = `message-wrapper ${isOwner ? 'sent-wrap' : 'received-wrap'}`;
+
             const div = document.createElement('div');
             div.className = `message ${isOwner ? 'sent' : 'received'}`;
             const time = new Date(msg.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
@@ -539,8 +544,8 @@
                               msg.fileType.startsWith('video') ? `<video src="${msg.fileUrl}" controls></video>` :
                               `<div class="avatar">📄</div>`}
                             <div style="font-size:0.8rem">
-                                <b>${msg.fileName}</b><br>
-                                ${(msg.fileSize / 1024).toFixed(1)} KB
+                                <b style="color:white">${msg.fileName}</b><br>
+                                <span style="color:var(--text-muted)">${(msg.fileSize / 1024).toFixed(1)} KB</span>
                             </div>
                         </div>`;
                 } else {
@@ -565,27 +570,36 @@
                 div.appendChild(reactDiv);
             }
 
-            // Edit Button (Outside Bubble)
+            // BUG 3 FIX: Edit Button Logic
             if (isOwner && state.editingMsgIndex !== index && msg.type !== 'file') {
                 const editBtn = document.createElement('div');
                 editBtn.className = 'msg-edit-btn';
                 editBtn.innerText = '✎';
-                editBtn.onmouseover = () => {
+
+                const showEdit = () => {
                     editBtn.classList.add('visible');
-                    editBtn.timeout = setTimeout(() => editBtn.classList.remove('visible'), 3000);
+                    editBtn.timer = setTimeout(() => editBtn.classList.remove('visible'), 3000);
                 };
-                editBtn.onmouseout = () => {
-                    clearTimeout(editBtn.timeout);
-                    editBtn.timeout = setTimeout(() => editBtn.classList.remove('visible'), 3000);
+
+                wrapper.onmouseenter = () => {
+                    clearTimeout(editBtn.timer);
+                    showEdit();
                 };
-                editBtn.onclick = () => {
+
+                wrapper.onmouseleave = () => {
+                    clearTimeout(editBtn.timer);
+                    editBtn.timer = setTimeout(() => editBtn.classList.remove('visible'), 3000);
+                };
+
+                editBtn.onclick = (e) => {
+                    e.stopPropagation();
                     state.editingMsgIndex = index;
                     renderMessages(messages);
                 };
-                div.appendChild(editBtn);
+                wrapper.appendChild(editBtn);
             }
 
-            // Reaction Bar (Below Bubble)
+            // Reaction Bar
             const reactBar = document.createElement('div');
             reactBar.className = 'reaction-bar';
             EMOJIS.forEach(emoji => {
@@ -600,7 +614,8 @@
             });
             div.appendChild(reactBar);
 
-            container.appendChild(div);
+            wrapper.appendChild(div);
+            container.appendChild(wrapper);
         });
         container.scrollTop = container.scrollHeight;
     }
@@ -616,7 +631,7 @@
             if (msg.reactions[e].length === 0) delete msg.reactions[e];
         });
         if (!msg.reactions[emoji]) msg.reactions[emoji] = [];
-        msg.reactions[emoji].push(state.currentUser.username);
+        msg.reactions[emoji].push(state.currentUserLusername || state.currentUser.username);
         await chatRef.update({ messages });
     }
 
@@ -641,43 +656,59 @@
         input.value = '';
     }
 
-    /** FILE UPLOADS **/
+    /** BUG 2 FIX: File Upload Sequence **/
     async function handleFileUpload(file) {
+        console.log('Upload started: ' + file.name);
         const progressContainer = document.getElementById('upload-progress-container');
         const progressFill = document.getElementById('progress-fill');
         const progressPercent = document.getElementById('progress-percent');
 
         progressContainer.classList.remove('hidden');
 
-        const storageRef = storage.ref(`uploads/${Date.now()}_${file.name}`);
-        const uploadTask = storageRef.put(file);
+        try {
+            const storageRef = storage.ref(`uploads/${Date.now()}_${file.name}`);
+            const uploadTask = storageRef.put(file);
 
-        uploadTask.on('state_changed',
-            (snapshot) => {
-                const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-                progressFill.style.width = progress + '%';
-                progressPercent.innerText = Math.round(progress) + '%';
-            },
-            (error) => { alert("Ошибка загрузки: " + error.message); },
-            async () => {
-                const downloadURL = await uploadTask.snapshot.ref.getDownloadURL();
-                progressContainer.classList.add('hidden');
+            uploadTask.on('state_changed',
+                (snapshot) => {
+                    const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+                    progressFill.style.width = progress + '%';
+                    progressPercent.innerText = Math.round(progress) + '%';
+                    console.log(`Upload progress: ${Math.round(progress)}%`);
+                },
+                (error) => {
+                    console.error("Firebase Storage Error: ", error);
+                    alert("Ошибка загрузки: " + error.message);
+                    progressContainer.classList.add('hidden');
+                },
+                async () => {
+                    console.log('Upload complete. Retrieving URL...');
+                    const downloadURL = await uploadTask.snapshot.ref.getDownloadURL();
+                    console.log('Download URL: ' + downloadURL);
 
-                const msg = {
-                    sender: state.currentUser.username,
-                    type: 'file',
-                    fileUrl: downloadURL,
-                    fileName: file.name,
-                    fileType: file.type,
-                    fileSize: file.size,
-                    timestamp: Date.now(),
-                    reactions: {}
-                };
-                await db.collection('chats').doc(state.activeChatId).update({
-                    messages: firebase.firestore.FieldValue.arrayUnion(msg)
-                });
-            }
-        );
+                    const msg = {
+                        sender: state.currentUser.username,
+                        type: 'file',
+                        fileUrl: downloadURL,
+                        fileName: file.name,
+                        fileType: file.type,
+                        fileSize: file.size,
+                        timestamp: Date.now(),
+                        reactions: {}
+                    };
+
+                    await db.collection('chats').doc(state.activeChatId).update({
+                        messages: firebase.firestore.FieldValue.arrayUnion(msg)
+                    });
+                    console.log('Message saved to Firestore');
+                    progressContainer.classList.add('hidden');
+                }
+            );
+        } catch (e) {
+            console.error("Critical Upload Error: ", e);
+            alert("Критическая ошибка загрузки файла");
+            progressContainer.classList.add('hidden');
+        }
     }
 
     /** GROUP MGMT **/
@@ -740,7 +771,7 @@
         document.querySelectorAll('.modal').forEach(m => m.classList.add('hidden'));
     }
 
-    /** WebRTC CALLING SYSTEM **/
+    /** BUG 1 FIX: WebRTC Call Flow **/
     async function setupCallSignalListener() {
         db.collection('calls').onSnapshot(snapshot => {
             snapshot.docChanges().forEach(change => {
@@ -758,63 +789,69 @@
     }
 
     async function startCall() {
+        console.log('Call button clicked. Initializing...');
         const chat = state.chats.find(c => c.id === state.activeChatId);
         const participants = chat.participants;
         const callee = participants.find(p => p !== state.currentUser.username);
         if (!callee) return alert("Некому звонить");
 
-        currentCallId = 'call_' + Date.now();
-        pc = new RTCPeerConnection({ iceServers: [{ urls: 'stun:stun.l.google.com:19302' }] });
+        // Open UI first so user knows it's working
+        document.getElementById('call-modal').classList.remove('hidden');
+        document.getElementById('modal-container').classList.remove('hidden');
 
-        localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
-        localStream.getTracks().forEach(track => pc.addTrack(track, localStream));
+        try {
+            currentCallId = 'call_' + Date.now();
+            pc = new RTCPeerConnection({ iceServers: [{ urls: 'stun:stun.l.google.com:19302' }] });
 
-        const offer = await pc.createOffer();
-        await pc.setLocalDescription(offer);
+            localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+            localStream.getTracks().forEach(track => pc.addTrack(track, localStream));
 
-        await db.collection('calls').doc(currentCallId).set({
-            offer: { type: offer.type, sdp: offer.sdp },
-            caller: state.currentUser.username,
-            callee: callee,
-            status: 'ringing',
-            participants: participants
-        });
+            const offer = await pc.createOffer();
+            await pc.setLocalDescription(offer);
 
-        // Listen for answer
-        db.collection('calls').doc(currentCallId).onSnapshot(doc => {
-            const data = doc.data();
-            if (data.answer && !pc.remoteDescription) {
-                pc.setRemoteDescription(new RTCSessionDescription(data.answer));
-            }
-            if (data.status === 'declined') endCall();
-        });
-
-        // Handle ICE Candidates
-        pc.onicecandidate = (e) => {
-            if (e.candidate) {
-                db.collection('calls').doc(currentCallId).collection('candidates').add(e.candidate.toJSON());
-            }
-        };
-
-        pc.ontrack = (e) => {
-            const remoteStream = e.streams[0];
-            document.getElementById('call-modal').classList.remove('hidden');
-            document.getElementById('modal-container').classList.remove('hidden');
-            const grid = document.getElementById('call-grid');
-            grid.innerHTML = '';
-            grid.appendChild(createVideoTile('Вы', localStream));
-            grid.appendChild(createVideoTile('Собеседник', remoteStream));
-            startTimer();
-        };
-
-        // Sync candidates
-        db.collection('calls').doc(currentCallId).collection('candidates').onSnapshot(snap => {
-            snap.docChanges().forEach(change => {
-                if (change.type === 'added') {
-                    pc.addIceCandidate(new RTCIceCandidate(change.doc.data()));
-                }
+            await db.collection('calls').doc(currentCallId).set({
+                offer: { type: offer.type, sdp: offer.sdp },
+                caller: state.currentUser.username,
+                callee: callee,
+                status: 'ringing',
+                participants: participants
             });
-        });
+
+            db.collection('calls').doc(currentCallId).onSnapshot(doc => {
+                const data = doc.data();
+                if (data.answer && !pc.remoteDescription) {
+                    pc.setRemoteDescription(new RTCSessionDescription(data.answer));
+                }
+                if (data.status === 'declined') endCall();
+            });
+
+            pc.onicecandidate = (e) => {
+                if (e.candidate) {
+                    db.collection('calls').doc(currentCallId).collection('candidates').add(e.candidate.toJSON());
+                }
+            };
+
+            pc.ontrack = (e) => {
+                const remoteStream = e.streams[0];
+                const grid = document.getElementById('call-grid');
+                grid.innerHTML = '';
+                grid.appendChild(createVideoTile('Вы', localStream));
+                grid.appendChild(createVideoTile('Собеседник', remoteStream));
+                startTimer();
+            };
+
+            db.collection('calls').doc(currentCallId).collection('candidates').onSnapshot(snap => {
+                snap.docChanges().forEach(change => {
+                    if (change.type === 'added') {
+                        pc.addIceCandidate(new RTCIceCandidate(change.doc.data()));
+                    }
+                });
+            });
+        } catch (err) {
+            console.error('Call Error: ', err);
+            alert("Ошибка доступа к камере/микрофону");
+            closeModal();
+        }
     }
 
     async function acceptCall() {
@@ -923,6 +960,8 @@
     }
 
     document.addEventListener('DOMContentLoaded', () => {
+        console.log('DOM Loaded. Binding all event listeners...');
+
         document.getElementById('auth-btn').addEventListener('click', handleAuth);
         document.getElementById('auth-toggle').addEventListener('click', toggleAuthMode);
         document.getElementById('btn-logout').addEventListener('click', logout);
@@ -934,9 +973,15 @@
         document.getElementById('btn-send').addEventListener('click', sendMessage);
         document.getElementById('msg-input').addEventListener('keypress', (e) => { if (e.key === 'Enter') sendMessage(); });
         document.getElementById('back-btn').addEventListener('click', () => { document.getElementById('chat-window').classList.remove('active'); });
-        document.getElementById('btn-call').addEventListener('click', startCall);
+
+        // BUG 1 FIX: Proper Call Button Listener
+        document.getElementById('btn-call').addEventListener('click', () => {
+            console.log('Call button triggered');
+            startCall();
+        });
+
         document.getElementById('btn-add-member').addEventListener('click', () => showGroupModal(true));
-        document.getElementById('btn-modal-cancel').addEventListener('click', closeModal);
+        documentC.getElementById('btn-modal-cancel').addEventListener('click', closeModal);
         document.getElementById('btn-modal-confirm').addEventListener('click', confirmGroupAction);
         document.getElementById('mute-btn').addEventListener('click', toggleMute);
         document.getElementById('share-btn').addEventListener('click', toggleScreenShare);
@@ -947,6 +992,7 @@
         document.getElementById('file-input').addEventListener('change', (e) => {
             if (e.target.files[0]) handleFileUpload(e.target.files[0]);
         });
+
         initApp();
     });
 </script>
