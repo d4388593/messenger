@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>WebGram - Облачный Мессенджер</title>
+    <title>WebGram - Cloud Messenger Pro</title>
     <style>
         :root {
             --bg-dark: #1e1e1e;
@@ -25,12 +25,9 @@
         .flex { display: flex; }
         .center { display: flex; align-items: center; justify-content: center; }
 
-        /* Скрытие скроллбара */
+        /* Scrollbar Hiding */
         .no-scrollbar::-webkit-scrollbar { display: none; }
-        .no-scrollbar {
-            -ms-overflow-style: none;
-            scrollbar-width: none;
-        }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 
         /* Auth Screen */
         #auth-screen {
@@ -54,7 +51,6 @@
             color: white; border: none; border-radius: 8px;
             cursor: pointer; font-weight: bold; transition: var(--transition);
         }
-        .btn-primary:hover { opacity: 0.9; }
         .auth-switch { margin-top: 1rem; font-size: 0.9rem; color: var(--text-muted); cursor: pointer; }
 
         /* Main Layout */
@@ -68,21 +64,18 @@
             gap: 15px; border-bottom: 1px solid #3d3d3d;
         }
         .top-row { display: flex; justify-content: space-between; align-items: center; }
-
-        .search-container { position: relative; width: 100%; }
         .search-input {
             width: 100%; padding: 10px 12px; background: #3d3d3d;
             border: 1px solid #4d4d4d; border-radius: 20px;
             color: white; outline: none; font-size: 0.9rem;
         }
-        .search-input:focus { border-color: var(--accent-blue); }
 
         .chat-list { overflow-y: auto; flex-grow: 1; }
         .chat-item {
             padding: 15px; cursor: pointer; display: flex; align-items: center;
             transition: background 0.2s; border-bottom: 1px solid #333;
         }
-        .chat-item:hover { background: #36363 la; }
+        .chat-item:hover { background: #363636; }
         .chat-item.active { background: #3d3d3d; border-left: 4px solid var(--accent-blue); }
         .avatar {
             width: 45px; height: 45px; border-radius: 50%;
@@ -95,11 +88,7 @@
         .chat-info .last-msg { font-size: 0.85rem; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         .chat-time { font-size: 0.75rem; color: var(--text-muted); }
 
-        /* Sidebar Footer */
-        .sidebar-footer {
-            padding: 15px; border-top: 1px solid #3d3d3d;
-            background: var(--panel-dark);
-        }
+        .sidebar-footer { padding: 15px; border-top: 1px solid #3d3d3d; }
 
         #chat-window {
             flex-grow: 1; display: flex; flex-direction: column;
@@ -110,7 +99,6 @@
             display: flex; align-items: center; justify-content: space-between;
             border-bottom: 1px solid #3d3d3d;
         }
-        .chat-header .user-meta { display: flex; align-items: center; }
         .messages-container {
             flex-grow: 1; padding: 20px; overflow-y: auto;
             display: flex; flex-direction: column; gap: 10px;
@@ -123,47 +111,57 @@
         .message.sent { align-self: flex-end; background: var(--msg-sent); border-bottom-right-radius: 2px; }
         .message.received { align-self: flex-start; background: var(--msg-received); border-bottom-left-radius: 2px; }
 
-        /* Edit Button Animation */
-        .msg-actions {
-            position: absolute; top: 0; right: -50px;
-            cursor: pointer; color: var(--text-muted); font-size: 0.8rem;
-            opacity: 0; transition: opacity 0.5s ease;
-            white-space: nowrap;
+        /* Edit Button - Circular Telegram Style */
+        .msg-edit-btn {
+            position: absolute; width: 28px; height: 28px;
+            background: var(--panel-dark); border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            cursor: pointer; color: var(--text-muted); font-size: 12px;
+            opacity: 0; transition: opacity 0.5s ease; z-index: 5;
         }
-        .msg-actions.visible { opacity: 1; }
+        .message.sent .msg-edit-btn { right: -35px; }
+        .message.received .msg-edit-btn { left: -35px; }
+        .msg-edit-btn.visible { opacity: 1; }
 
         .edit-input {
             background: #444; color: white; border: 1px solid var(--accent-blue);
             border-radius: 8px; padding: 5px; width: 100%; outline: none;
         }
-        .edited-label {
-            font-size: 0.6rem; color: rgba(255,255,255,0.4);
-            margin-left: 5px; font-style: italic;
-        }
+        .edited-label { font-size: 0.6rem; color: rgba(255,255,255,0.4); margin-left: 5px; font-style: italic; }
         .msg-meta { font-size: 0.7rem; color: rgba(255,255,255,0.5); text-align: right; margin-top: 4px; }
         .msg-sender { font-size: 0.8rem; font-weight: bold; color: var(--accent-blue); margin-bottom: 4px; }
 
-        /* Reaction Bar */
+        /* Reactions */
         .reaction-bar {
-            position: absolute; top: -35px; right: 0;
+            position: absolute; bottom: -35px;
             background: var(--panel-dark); border-radius: 20px;
             padding: 5px 10px; display: none; gap: 8px;
             box-shadow: 0 4px 10px rgba(0,0,0,0.3); z-index: 10;
         }
+        .message.sent .reaction-bar { right: 0; }
+        .message.received .reaction-bar { left: 0; }
         .message:hover .reaction-bar { display: flex; }
-        .reaction-emoji {
-            cursor: pointer; font-size: 1.2rem; transition: transform 0.2s;
-            user-select: none;
-        }
+        .reaction-emoji { cursor: pointer; font-size: 1.2rem; transition: transform 0.2s; user-select: none; }
         .reaction-emoji:hover { transform: scale(1.3); }
         .reaction-display {
             display: flex; gap: 5px; margin-top: 4px;
             font-size: 0.75rem; justify-content: flex-start;
         }
-        .reaction-pill {
-            background: rgba(0,0,0,0.2); padding: 2px 6px;
-            border-radius: 10px; cursor: pointer;
+        .reaction-pill { background: rgba(0,0,0,0.2); padding: 2px 6px; border-radius: 10px; cursor: pointer; }
+
+        /* File Upload */
+        .file-card {
+            background: rgba(0,0,0,0.2); border-radius: 8px; padding: 8px;
+            display: flex; align-items: center; gap: 10px; cursor: pointer;
         }
+        .file-card img, .file-card video { max-width: 200px; max-height: 150px; border-radius: 5px; }
+        .upload-progress {
+            position: fixed; bottom: 20px; right: 20px;
+            background: var(--panel-dark); padding: 15px; border-radius: 10px;
+            border: 1px solid var(--accent-blue); z-index: 2000;
+        }
+        .progress-bg { width: 200px; height: 10px; background: #444; border-radius: 5px; overflow: hidden; }
+        .progress-fill { height: 100%; background: var(--accent-blue); width: 0%; transition: width 0.2s; }
 
         .input-area {
             padding: 20px; background: var(--panel-dark);
@@ -194,6 +192,7 @@
         .user-option:hover { background: #3d3d3d; }
         .user-option.selected { background: var(--msg-sent); }
 
+        /* CALL UI */
         #call-modal {
             width: 80vw; height: 80vh; background: #000; border-radius: 20px;
             position: relative; overflow: hidden; display: flex; flex-direction: column;
@@ -258,9 +257,7 @@
         <div class="sidebar-header">
             <div class="top-row">
                 <div style="font-weight: bold; font-size: 1.2rem;">WebGram</div>
-                <div style="display: flex; gap: 10px;">
-                    <button id="btn-logout" style="background:none; border:none; color:var(--text-muted); cursor:pointer; font-size:0.8rem;">Выйти</button>
-                </div>
+                <button id="btn-logout" style="background:none; border:none; color:var(--text-muted); cursor:pointer; font-size:0.8rem;">Выйти</button>
             </div>
             <div class="search-container">
                 <input type="text" id="search-chat" class="search-input" placeholder="Поиск чатов, людей...">
@@ -293,6 +290,8 @@
             </div>
             <div id="messages-container" class="messages-container no-scrollbar"></div>
             <div class="input-area">
+                <button id="btn-attach" style="background:none; border:none; color:var(--text-muted); cursor:pointer; font-size:1.5rem;">📎</button>
+                <input type="file" id="file-input" class="hidden">
                 <input type="text" id="msg-input" placeholder="Введите сообщение...">
                 <button id="btn-send" class="btn-primary" style="width: auto; padding: 10px 20px;">Отправить</button>
             </div>
@@ -300,7 +299,9 @@
     </main>
 </div>
 
+<!-- MODALS -->
 <div id="modal-container" class="modal-overlay hidden">
+    <!-- Group Modal -->
     <div id="group-modal" class="modal hidden">
         <div class="modal-title" id="modal-title">Создать группу</div>
         <input type="text" id="group-name" placeholder="Название группы" style="width:100%; padding:10px; margin-bottom:15px; background:#3d3d3d; border:1px solid #4d4d4d; color:white; border-radius:8px;">
@@ -312,7 +313,18 @@
         </div>
     </div>
 
-    <div id="call-modal" class="modal hidden">
+    <!-- Incoming Call Modal -->
+    <div id="incoming-call-modal" class="modal hidden" style="text-align: center;">
+        <div class="modal-title">Входящий звонок...</div>
+        <div id="caller-name" style="margin-bottom: 20px; font-size: 1.5rem;">Пользователь</div>
+        <div class="flex" style="gap: 15px; justify-content: center;">
+            <button id="btn-accept-call" class="btn-primary" style="background: #4caf50; width: auto;">Принять</button>
+            <button id="btn-decline-call" class="btn-primary" style="background: var(--danger); width: auto;">Отклонить</button>
+        </div>
+    </div>
+
+    <!-- Call Window -->
+    <div id="call-modal" class="modal hidden" style="width: 80vw; height: 80vh; background: #000; border-radius: 20px; overflow: hidden; display: flex; flex-direction: column;">
         <div class="call-timer" id="call-timer">00:00</div>
         <div class="call-grid" id="call-grid"></div>
         <div class="call-controls">
@@ -323,10 +335,17 @@
     </div>
 </div>
 
+<div id="upload-progress-container" class="upload-progress hidden">
+    <div style="font-size: 0.8rem; margin-bottom: 5px;">Загрузка файла... <span id="progress-percent">0%</span></div>
+    <div class="progress-bg"><div id="progress-fill" class="progress-fill"></div></div>
+</div>
+
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-storage-compat.js"></script>
 
 <script>
+    /** FIREBASE CONFIG **/
     const firebaseConfig = {
         apiKey: "AIzaSyCtPt1M2ej6B91yBx5VepU8SnrfO9MQAlk",
         authDomain: "my-messenger-d1622.firebaseapp.com",
@@ -338,6 +357,7 @@
 
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
+    const storage = firebase.storage();
 
     let state = {
         users: [],
@@ -350,10 +370,15 @@
     };
 
     const EMOJIS = ['👍', '❤️', '😂', '😮', '😢', '😡'];
+    let pc = null;
+    let localStream = null;
+    let screenStream = null;
+    let callInterval = null;
+    let isMuted = false;
+    let currentCallId = null;
 
-    /** AUTH */
+    /** AUTH **/
     async function handleAuth() {
-        console.log('Auth clicked');
         const u = document.getElementById('auth-user').value.trim();
         const p = document.getElementById('auth-pass').value.trim();
         if (!u || !p) return alert("Пожалуйста, заполните все поля");
@@ -393,7 +418,7 @@
         location.reload();
     }
 
-    /** CORE */
+    /** CORE APP **/
     async function initApp() {
         if (!state.currentUser) {
             document.getElementById('auth-screen').classList.remove('hidden');
@@ -404,6 +429,7 @@
             const usersSnap = await db.collection('users').get();
             state.users = usersSnap.docs.map(doc => doc.data());
             setupGlobalChatListener();
+            setupCallSignalListener();
         }
     }
 
@@ -506,7 +532,20 @@
                 contentWrap.appendChild(editInput);
             } else {
                 const textNode = document.createElement('div');
-                textNode.innerHTML = `${msg.sender !== state.currentUser.username && state.activeChatId.startsWith('group') ? `<div class="msg-sender">${msg.sender}</div>` : ''}${msg.text}`;
+                if (msg.type === 'file') {
+                    textNode.innerHTML = `
+                        <div class="file-card" onclick="window.open('${msg.fileUrl}', '_blank')">
+                            ${msg.fileType.startsWith('image') ? `<img src="${msg.fileUrl}">` :
+                              msg.fileType.startsWith('video') ? `<video src="${msg.fileUrl}" controls></video>` :
+                              `<div class="avatar">📄</div>`}
+                            <div style="font-size:0.8rem">
+                                <b>${msg.fileName}</b><br>
+                                ${(msg.fileSize / 1024).toFixed(1)} KB
+                            </div>
+                        </div>`;
+                } else {
+                    textNode.innerHTML = `${msg.sender !== state.currentUser.username && state.activeChatId.startsWith('group') ? `<div class="msg-sender">${msg.sender}</div>` : ''}${msg.text}`;
+                }
                 contentWrap.appendChild(textNode);
             }
 
@@ -526,22 +565,18 @@
                 div.appendChild(reactDiv);
             }
 
-            // Edit Button (With 3s fade logic)
-            if (isOwner && state.editingMsgIndex !== index) {
+            // Edit Button (Outside Bubble)
+            if (isOwner && state.editingMsgIndex !== index && msg.type !== 'file') {
                 const editBtn = document.createElement('div');
-                editBtn.className = 'msg-actions';
-                editBtn.innerText = '✎ Редактировать';
+                editBtn.className = 'msg-edit-btn';
+                editBtn.innerText = '✎';
                 editBtn.onmouseover = () => {
                     editBtn.classList.add('visible');
-                    editBtn.timeout = setTimeout(() => {
-                        editBtn.classList.remove('visible');
-                    }, 3000);
+                    editBtn.timeout = setTimeout(() => editBtn.classList.remove('visible'), 3000);
                 };
                 editBtn.onmouseout = () => {
                     clearTimeout(editBtn.timeout);
-                    editBtn.timeout = setTimeout(() => {
-                        editBtn.classList.remove('visible');
-                    }, 3000);
+                    editBtn.timeout = setTimeout(() => editBtn.classList.remove('visible'), 3000);
                 };
                 editBtn.onclick = () => {
                     state.editingMsgIndex = index;
@@ -550,7 +585,7 @@
                 div.appendChild(editBtn);
             }
 
-            // Reaction Bar on Hover
+            // Reaction Bar (Below Bubble)
             const reactBar = document.createElement('div');
             reactBar.className = 'reaction-bar';
             EMOJIS.forEach(emoji => {
@@ -559,7 +594,7 @@
                 span.innerText = emoji;
                 span.onclick = (e) => {
                     e.stopPropagation();
-                    addReaction(chatId, index, emoji);
+                    addReaction(state.activeChatId, index, emoji);
                 };
                 reactBar.appendChild(span);
             });
@@ -571,24 +606,17 @@
     }
 
     async function addReaction(chatId, msgIndex, emoji) {
-        console.log('Adding reaction', emoji);
         const chatRef = db.collection('chats').doc(chatId);
         const doc = await chatRef.get();
         const messages = doc.data().messages || [];
         const msg = messages[msgIndex];
-
         if (!msg.reactions) msg.reactions = {};
-
-        // Remove existing reaction by this user across all emojis
         Object.keys(msg.reactions).forEach(e => {
             msg.reactions[e] = msg.reactions[e].filter(u => u !== state.currentUser.username);
             if (msg.reactions[e].length === 0) delete msg.reactions[e];
         });
-
-        // Add new reaction
         if (!msg.reactions[emoji]) msg.reactions[emoji] = [];
         msg.reactions[emoji].push(state.currentUser.username);
-
         await chatRef.update({ messages });
     }
 
@@ -613,7 +641,46 @@
         input.value = '';
     }
 
-    /** GROUP MGMT */
+    /** FILE UPLOADS **/
+    async function handleFileUpload(file) {
+        const progressContainer = document.getElementById('upload-progress-container');
+        const progressFill = document.getElementById('progress-fill');
+        const progressPercent = document.getElementById('progress-percent');
+
+        progressContainer.classList.remove('hidden');
+
+        const storageRef = storage.ref(`uploads/${Date.now()}_${file.name}`);
+        const uploadTask = storageRef.put(file);
+
+        uploadTask.on('state_changed',
+            (snapshot) => {
+                const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+                progressFill.style.width = progress + '%';
+                progressPercent.innerText = Math.round(progress) + '%';
+            },
+            (error) => { alert("Ошибка загрузки: " + error.message); },
+            async () => {
+                const downloadURL = await uploadTask.snapshot.ref.getDownloadURL();
+                progressContainer.classList.add('hidden');
+
+                const msg = {
+                    sender: state.currentUser.username,
+                    type: 'file',
+                    fileUrl: downloadURL,
+                    fileName: file.name,
+                    fileType: file.type,
+                    fileSize: file.size,
+                    timestamp: Date.now(),
+                    reactions: {}
+                };
+                await db.collection('chats').doc(state.activeChatId).update({
+                    messages: firebase.firestore.FieldValue.arrayUnion(msg)
+                });
+            }
+        );
+    }
+
+    /** GROUP MGMT **/
     function showGroupModal(isAdding = false) {
         document.getElementById('modal-container').classList.remove('hidden');
         document.getElementById('group-modal').classList.remove('hidden');
@@ -647,7 +714,6 @@
     async function confirmGroupAction() {
         const isAdding = document.getElementById('modal-title').innerText === "Добавить участников";
         const selectedUsers = Array.from(document.querySelectorAll('.user-option input:checked')).map(el => el.value);
-
         if (selectedUsers.length === 0) return alert("Выберите хотя бы одного участника");
 
         if (!isAdding) {
@@ -674,19 +740,132 @@
         document.querySelectorAll('.modal').forEach(m => m.classList.add('hidden'));
     }
 
-    /** CALLS */
-    let localStream = null, screenStream = null, callInterval = null, isMuted = false;
-    async function startCall() {
-        document.getElementById('modal-container').classList.remove('hidden');
-        document.getElementById('call-modal').classList.remove('hidden');
-        const grid = document.getElementById('call-grid');
-        grid.innerHTML = '';
-        try {
-            localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
-            grid.appendChild(createVideoTile('Вы', localStream));
-            startTimer();
-        } catch (err) { alert("Доступ к камере запрещен"); closeModal(); }
+    /** WebRTC CALLING SYSTEM **/
+    async function setupCallSignalListener() {
+        db.collection('calls').onSnapshot(snapshot => {
+            snapshot.docChanges().forEach(change => {
+                if (change.type === 'added') {
+                    const call = change.doc.data();
+                    if (call.callee === state.currentUser.username && call.status === 'ringing') {
+                        currentCallId = change.doc.id;
+                        document.getElementById('incoming-call-modal').classList.remove('hidden');
+                        document.getElementById('modal-container').classList.remove('hidden');
+                        document.getElementById('caller-name').innerText = call.caller;
+                    }
+                }
+            });
+        });
     }
+
+    async function startCall() {
+        const chat = state.chats.find(c => c.id === state.activeChatId);
+        const participants = chat.participants;
+        const callee = participants.find(p => p !== state.currentUser.username);
+        if (!callee) return alert("Некому звонить");
+
+        currentCallId = 'call_' + Date.now();
+        pc = new RTCPeerConnection({ iceServers: [{ urls: 'stun:stun.l.google.com:19302' }] });
+
+        localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+        localStream.getTracks().forEach(track => pc.addTrack(track, localStream));
+
+        const offer = await pc.createOffer();
+        await pc.setLocalDescription(offer);
+
+        await db.collection('calls').doc(currentCallId).set({
+            offer: { type: offer.type, sdp: offer.sdp },
+            caller: state.currentUser.username,
+            callee: callee,
+            status: 'ringing',
+            participants: participants
+        });
+
+        // Listen for answer
+        db.collection('calls').doc(currentCallId).onSnapshot(doc => {
+            const data = doc.data();
+            if (data.answer && !pc.remoteDescription) {
+                pc.setRemoteDescription(new RTCSessionDescription(data.answer));
+            }
+            if (data.status === 'declined') endCall();
+        });
+
+        // Handle ICE Candidates
+        pc.onicecandidate = (e) => {
+            if (e.candidate) {
+                db.collection('calls').doc(currentCallId).collection('candidates').add(e.candidate.toJSON());
+            }
+        };
+
+        pc.ontrack = (e) => {
+            const remoteStream = e.streams[0];
+            document.getElementById('call-modal').classList.remove('hidden');
+            document.getElementById('modal-container').classList.remove('hidden');
+            const grid = document.getElementById('call-grid');
+            grid.innerHTML = '';
+            grid.appendChild(createVideoTile('Вы', localStream));
+            grid.appendChild(createVideoTile('Собеседник', remoteStream));
+            startTimer();
+        };
+
+        // Sync candidates
+        db.collection('calls').doc(currentCallId).collection('candidates').onSnapshot(snap => {
+            snap.docChanges().forEach(change => {
+                if (change.type === 'added') {
+                    pc.addIceCandidate(new RTCIceCandidate(change.doc.data()));
+                }
+            });
+        });
+    }
+
+    async function acceptCall() {
+        document.getElementById('incoming-call-modal').classList.add('hidden');
+        pc = new RTCPeerConnection({ iceServers: [{ urls: 'stun:stun.l.google.com:19302' }] });
+
+        localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+        localStream.getTracks().forEach(track => pc.addTrack(track, localStream));
+
+        const callDoc = await db.collection('calls').doc(currentCallId).get();
+        const offer = callDoc.data().offer;
+        await pc.setRemoteDescription(new RTCSessionDescription(offer));
+
+        const answer = await pc.createAnswer();
+        await pc.setLocalDescription(answer);
+        await db.collection('calls').doc(currentCallId).update({
+            answer: { type: answer.type, sdp: answer.sdp },
+            status: 'accepted'
+        });
+
+        pc.onicecandidate = (e) => {
+            if (e.candidate) {
+                db.collection('calls').doc(currentCallId).collection('candidates').add(e.candidate.toJSON());
+            }
+        };
+
+        db.collection('calls').doc(currentCallId).collection('candidates').onSnapshot(snap => {
+            snap.docChanges().forEach(change => {
+                if (change.type === 'added') {
+                    pc.addIceCandidate(new RTCIceCandidate(change.doc.data()));
+                }
+            });
+        });
+
+        pc.ontrack = (e) => {
+            const remoteStream = e.streams[0];
+            document.getElementById('call-modal').classList.remove('hidden');
+            document.getElementById('modal-container').classList.remove('hidden');
+            const grid = document.getElementById('call-grid');
+            grid.innerHTML = '';
+            grid.appendChild(createVideoTile('Вы', localStream));
+            grid.appendChild(createVideoTile('Собеседник', remoteStream));
+            startTimer();
+        };
+    }
+
+    function declineCall() {
+        if (currentCallId) db.collection('calls').doc(currentCallId).update({ status: 'declined' });
+        document.getElementById('incoming-call-modal').classList.add('hidden');
+    }
+
     function createVideoTile(label, stream) {
         const tile = document.createElement('div');
         tile.className = 'video-tile';
@@ -696,38 +875,47 @@
         tile.innerHTML += `<div class="video-label">${label}</div>`;
         return tile;
     }
+
     function toggleMute() {
         isMuted = !isMuted;
         if (localStream) localStream.getAudioTracks()[0].enabled = !isMuted;
         document.getElementById('mute-btn').innerText = isMuted ? '🔇' : '🎤';
         document.getElementById('mute-btn').style.background = isMuted ? 'var(--danger)' : '#4d4d4d';
     }
+
     async function toggleScreenShare() {
         const btn = document.getElementById('share-btn');
         if (!screenStream) {
             try {
                 screenStream = await navigator.mediaDevices.getDisplayMedia({ video: true });
-                const tile = createVideoTile('Экран', screenStream);
-                tile.id = 'screen-tile';
-                document.getElementById('call-grid').appendChild(tile);
+                const videoTrack = screenStream.getTracks()[0];
+                const sender = pc.getSenders().find(s => s.track.kind === 'video');
+                sender.replaceTrack(videoTrack);
                 btn.innerText = '⏹️'; btn.style.background = 'var(--danger)';
             } catch (err) { alert("Ошибка демонстрации экрана"); }
         } else {
             screenStream.getTracks().forEach(t => t.stop());
-            document.getElementById('screen-tile')?.remove();
+            const videoTrack = localStream.getVideoTracks()[0];
+            const sender = pc.getSenders().find(s => s.track.kind === 'video');
+            sender.replaceTrack(videoTrack);
             screenStream = null;
             btn.innerText = '🖥️'; btn.style.background = '#4d4d4d';
         }
     }
+
     function startTimer() {
         let sec = 0;
         const timerEl = document.getElementById('call-timer');
+        clearInterval(callInterval);
         callInterval = setInterval(() => {
             sec++;
             timerEl.innerText = `${Math.floor(sec/60).toString().padStart(2,'0')}:${(sec%60).toString().padStart(2,'0')}`;
         }, 1000);
     }
+
     function endCall() {
+        if (currentCallId) db.collection('calls').doc(currentCallId).delete();
+        if (pc) pc.close();
         if (localStream) localStream.getTracks().forEach(t => t.stop());
         if (screenStream) screenStream.getTracks().forEach(t => t.stop());
         clearInterval(callInterval);
@@ -753,6 +941,12 @@
         document.getElementById('mute-btn').addEventListener('click', toggleMute);
         document.getElementById('share-btn').addEventListener('click', toggleScreenShare);
         document.getElementById('end-call-btn').addEventListener('click', endCall);
+        document.getElementById('btn-accept-call').addEventListener('click', acceptCall);
+        document.getElementById('btn-decline-call').addEventListener('click', declineCall);
+        document.getElementById('btn-attach').addEventListener('click', () => document.getElementById('file-input').click());
+        document.getElementById('file-input').addEventListener('change', (e) => {
+            if (e.target.files[0]) handleFileUpload(e.target.files[0]);
+        });
         initApp();
     });
 </script>
