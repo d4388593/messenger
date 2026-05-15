@@ -1,568 +1,1497 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Vortex | Тёмный мессенджер</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Vortex Messenger</title>
+
+    <link
+            rel="stylesheet"
+            href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css"
+    />
+
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Roboto, sans-serif; }
-        body { background: #0a0c10; color: #e4e6eb; height: 100vh; overflow: hidden; }
-        .toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: #2b2f36; color: #fff; padding: 10px 20px; border-radius: 40px; font-size: 14px; z-index: 2000; box-shadow: 0 4px 12px rgba(0,0,0,0.3); border-left: 4px solid #5865f2; pointer-events: none; opacity: 0; transition: opacity 0.2s; }
-        .toast.show { opacity: 1; }
-        .toast.error { border-left-color: #ed4245; }
-        .app { display: flex; height: 100vh; width: 100%; }
-        .sidebar { width: 300px; background: #111214; border-right: 1px solid #202225; display: flex; flex-direction: column; transition: transform 0.2s; z-index: 10; }
-        .sidebar-header { padding: 16px; border-bottom: 1px solid #202225; display: flex; justify-content: space-between; align-items: center; }
-        .user-actions button { background: none; border: none; color: #b5bac1; font-size: 18px; cursor: pointer; margin-left: 10px; }
-        .chats-list, .all-users-list { overflow-y: auto; padding: 8px; max-height: 35%; border-top: 1px solid #202225; }
-        .section-title { padding: 8px; font-size: 12px; color: #aaa; letter-spacing: 1px; }
-        .chat-item, .user-item { padding: 10px; border-radius: 12px; margin-bottom: 6px; cursor: pointer; display: flex; align-items: center; gap: 12px; transition: background 0.1s; }
-        .chat-item:hover, .user-item:hover { background: #1e1f25; }
-        .chat-avatar, .user-avatar { width: 36px; height: 36px; background: #2c2f36; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
-        .plus-menu { padding: 12px; border-top: 1px solid #202225; position: relative; }
-        .plus-btn { background: #5865f2; border: none; color: white; width: 42px; height: 42px; border-radius: 50%; font-size: 22px; cursor: pointer; }
-        .dropdown-menu { position: absolute; bottom: 70px; left: 15px; background: #1e1f25; border-radius: 12px; width: 220px; display: none; flex-direction: column; z-index: 20; }
-        .dropdown-menu.show { display: flex; }
-        .dropdown-menu button { background: none; border: none; padding: 12px 16px; text-align: left; color: #ddd; cursor: pointer; }
-        .dropdown-menu button:hover { background: #2b2d36; }
-        .chat-main { flex: 1; display: flex; flex-direction: column; background: #0f1115; }
-        .chat-header { padding: 12px 20px; border-bottom: 1px solid #202225; display: flex; justify-content: space-between; background: #111214; }
-        .chat-title { font-weight: bold; font-size: 18px; }
-        .messages-area { flex: 1; overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 12px; }
-        .message { display: flex; flex-direction: column; max-width: 70%; background: #1e1f25; border-radius: 18px; padding: 8px 12px; }
-        .message.own { align-self: flex-end; background: #2b2f36; }
-        .message-header { font-size: 12px; color: #b0b3b8; display: flex; justify-content: space-between; }
-        .message-actions i { cursor: pointer; opacity: 0.6; margin-left: 8px; }
-        .reactions { display: flex; gap: 6px; margin-top: 4px; font-size: 12px; }
-        .reaction-badge { background: #2c2f36; border-radius: 12px; padding: 2px 6px; cursor: pointer; }
-        .input-area { padding: 12px; background: #111214; display: flex; gap: 10px; border-top: 1px solid #202225; }
-        .input-area input { flex: 1; background: #1e1f25; border: none; padding: 12px; border-radius: 28px; color: white; outline: none; }
-        .input-area button { background: none; border: none; font-size: 24px; cursor: pointer; color: #b5bac1; }
-        .burger { display: none; font-size: 24px; cursor: pointer; margin-right: 12px; }
-        .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); display: none; align-items: center; justify-content: center; z-index: 1000; }
-        .modal-content { background: #1e1f25; border-radius: 20px; width: 400px; max-width: 90%; padding: 20px; color: white; }
-        .modal-content input, .modal-content textarea { width: 100%; margin: 8px 0; padding: 10px; background: #2b2d36; border: none; color: white; border-radius: 12px; }
-        .modal-content button { background: #5865f2; border: none; padding: 8px 16px; border-radius: 20px; color: white; margin-top: 8px; cursor: pointer; }
-        .close-modal { float: right; cursor: pointer; font-size: 20px; }
-        .auth-tabs { display: flex; gap: 10px; margin-bottom: 20px; border-bottom: 1px solid #2b2d36; }
-        .auth-tab { flex: 1; text-align: center; padding: 8px; cursor: pointer; background: none; border: none; color: #aaa; }
-        .auth-tab.active { color: #5865f2; border-bottom: 2px solid #5865f2; }
-        .auth-form { display: flex; flex-direction: column; gap: 12px; }
-        .auth-form.hide { display: none; }
-        .vortex-panel { position: fixed; bottom: 100px; right: 20px; width: 380px; background: #1a1c22; border-radius: 16px; padding: 16px; z-index: 1050; box-shadow: 0 4px 20px black; display: none; flex-direction: column; gap: 8px; max-height: 80vh; overflow-y: auto; }
-        .vortex-panel button, .vortex-panel input { margin: 4px 0; background: #2c2f36; border: none; padding: 8px; border-radius: 8px; color: white; cursor: pointer; }
-        .virus-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: black; z-index: 9999; display: flex; align-items: center; justify-content: center; flex-direction: column; color: red; font-family: monospace; font-size: 24px; animation: blink 0.1s infinite; display: none; }
-        @keyframes blink { 0% { opacity: 1; } 50% { opacity: 0; } 100% { opacity: 1; } }
-        @media (max-width: 768px) { .sidebar { position: fixed; left: -300px; top: 0; height: 100%; width: 280px; z-index: 15; } .sidebar.open { left: 0; } .burger { display: block; } }
+        :root {
+          --bg: #0f172a;
+          --panel: #111827;
+          --panel-2: #1f2937;
+          --text: #f9fafb;
+          --muted: #9ca3af;
+          --primary: #6366f1;
+          --primary-2: #818cf8;
+          --danger: #ef4444;
+          --success: #22c55e;
+          --border: rgba(255, 255, 255, 0.08);
+          --message-me: #4f46e5;
+          --message-other: #374151;
+        }
+
+        body.light {
+          --bg: #f3f4f6;
+          --panel: #ffffff;
+          --panel-2: #e5e7eb;
+          --text: #111827;
+          --muted: #6b7280;
+          --primary: #4f46e5;
+          --primary-2: #6366f1;
+          --border: rgba(0, 0, 0, 0.08);
+          --message-me: #6366f1;
+          --message-other: #e5e7eb;
+        }
+
+        * {
+          box-sizing: border-box;
+        }
+
+        body {
+          margin: 0;
+          font-family: Inter, Arial, sans-serif;
+          background: var(--bg);
+          color: var(--text);
+          height: 100vh;
+          overflow: hidden;
+        }
+
+        button,
+        input {
+          font-family: inherit;
+        }
+
+        .hidden {
+          display: none !important;
+        }
+
+        .app {
+          display: grid;
+          grid-template-columns: 340px 1fr;
+          height: 100vh;
+          background: var(--bg);
+        }
+
+        .auth-page {
+          min-height: 100vh;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          padding: 24px;
+          background:
+            radial-gradient(circle at top left, rgba(99, 102, 241, 0.28), transparent 35%),
+            radial-gradient(circle at bottom right, rgba(34, 197, 94, 0.15), transparent 35%),
+            var(--bg);
+        }
+
+        .auth-card {
+          width: 100%;
+          max-width: 420px;
+          background: var(--panel);
+          border: 1px solid var(--border);
+          border-radius: 24px;
+          padding: 28px;
+          box-shadow: 0 20px 60px rgba(0, 0, 0, 0.35);
+        }
+
+        .logo {
+          display: flex;
+          align-items: center;
+          gap: 12px;
+          margin-bottom: 24px;
+        }
+
+        .logo-icon {
+          width: 46px;
+          height: 46px;
+          border-radius: 16px;
+          background: linear-gradient(135deg, var(--primary), #06b6d4);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          color: white;
+          font-size: 21px;
+        }
+
+        .logo h1 {
+          margin: 0;
+          font-size: 26px;
+        }
+
+        .logo p {
+          margin: 2px 0 0;
+          color: var(--muted);
+          font-size: 13px;
+        }
+
+        .field {
+          margin-bottom: 14px;
+        }
+
+        .field label {
+          display: block;
+          font-size: 13px;
+          color: var(--muted);
+          margin-bottom: 7px;
+        }
+
+        .field input {
+          width: 100%;
+          padding: 13px 14px;
+          border-radius: 14px;
+          border: 1px solid var(--border);
+          background: var(--panel-2);
+          color: var(--text);
+          outline: none;
+        }
+
+        .field input:focus {
+          border-color: var(--primary);
+        }
+
+        .btn {
+          border: 0;
+          border-radius: 14px;
+          padding: 12px 15px;
+          color: white;
+          background: var(--primary);
+          cursor: pointer;
+          transition: 0.15s;
+          font-weight: 600;
+        }
+
+        .btn:hover {
+          background: var(--primary-2);
+          transform: translateY(-1px);
+        }
+
+        .btn.secondary {
+          background: var(--panel-2);
+          color: var(--text);
+          border: 1px solid var(--border);
+        }
+
+        .btn.danger {
+          background: var(--danger);
+        }
+
+        .btn.success {
+          background: var(--success);
+        }
+
+        .btn.full {
+          width: 100%;
+          margin-top: 8px;
+        }
+
+        .auth-switch {
+          color: var(--muted);
+          text-align: center;
+          margin-top: 16px;
+          font-size: 14px;
+        }
+
+        .auth-switch button {
+          background: transparent;
+          color: var(--primary-2);
+          border: 0;
+          cursor: pointer;
+          font-weight: 700;
+        }
+
+        .error {
+          margin-top: 12px;
+          color: #fecaca;
+          background: rgba(239, 68, 68, 0.14);
+          border: 1px solid rgba(239, 68, 68, 0.25);
+          border-radius: 12px;
+          padding: 10px;
+          font-size: 13px;
+        }
+
+        .sidebar {
+          background: var(--panel);
+          border-right: 1px solid var(--border);
+          display: flex;
+          flex-direction: column;
+          min-width: 0;
+        }
+
+        .sidebar-top {
+          padding: 16px;
+          border-bottom: 1px solid var(--border);
+        }
+
+        .user-row {
+          display: flex;
+          align-items: center;
+          gap: 12px;
+          margin-bottom: 14px;
+        }
+
+        .avatar {
+          width: 44px;
+          height: 44px;
+          border-radius: 50%;
+          background: linear-gradient(135deg, var(--primary), #22c55e);
+          color: white;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-weight: 800;
+          flex: 0 0 auto;
+          overflow: hidden;
+        }
+
+        .avatar img {
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+        }
+
+        .user-meta {
+          min-width: 0;
+          flex: 1;
+        }
+
+        .user-name {
+          font-weight: 800;
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+        }
+
+        .user-code {
+          color: var(--muted);
+          font-size: 12px;
+          margin-top: 2px;
+        }
+
+        .top-actions {
+          display: flex;
+          gap: 8px;
+        }
+
+        .icon-btn {
+          width: 40px;
+          height: 40px;
+          border-radius: 13px;
+          border: 1px solid var(--border);
+          background: var(--panel-2);
+          color: var(--text);
+          cursor: pointer;
+        }
+
+        .search-box {
+          display: flex;
+          gap: 8px;
+          margin-top: 14px;
+        }
+
+        .search-box input {
+          flex: 1;
+          min-width: 0;
+          padding: 12px;
+          border-radius: 13px;
+          border: 1px solid var(--border);
+          background: var(--panel-2);
+          color: var(--text);
+          outline: none;
+        }
+
+        .tabs {
+          display: grid;
+          grid-template-columns: repeat(3, 1fr);
+          gap: 6px;
+          padding: 10px;
+          border-bottom: 1px solid var(--border);
+        }
+
+        .tab {
+          border: 0;
+          border-radius: 12px;
+          padding: 10px 6px;
+          background: transparent;
+          color: var(--muted);
+          cursor: pointer;
+          font-weight: 700;
+          font-size: 13px;
+        }
+
+        .tab.active {
+          background: var(--panel-2);
+          color: var(--text);
+        }
+
+        .list {
+          flex: 1;
+          overflow-y: auto;
+          padding: 8px;
+        }
+
+        .item {
+          padding: 12px;
+          border-radius: 16px;
+          display: flex;
+          gap: 12px;
+          align-items: center;
+          cursor: pointer;
+          border: 1px solid transparent;
+        }
+
+        .item:hover,
+        .item.active {
+          background: var(--panel-2);
+          border-color: var(--border);
+        }
+
+        .item-body {
+          flex: 1;
+          min-width: 0;
+        }
+
+        .item-title {
+          font-weight: 800;
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+        }
+
+        .item-sub {
+          font-size: 13px;
+          color: var(--muted);
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          margin-top: 3px;
+        }
+
+        .item-actions {
+          display: flex;
+          gap: 6px;
+        }
+
+        .small-btn {
+          border: 0;
+          border-radius: 10px;
+          padding: 8px 9px;
+          cursor: pointer;
+          color: white;
+          background: var(--primary);
+        }
+
+        .small-btn.danger {
+          background: var(--danger);
+        }
+
+        .small-btn.success {
+          background: var(--success);
+        }
+
+        .chat {
+          display: flex;
+          flex-direction: column;
+          min-width: 0;
+          background:
+            radial-gradient(circle at top right, rgba(99, 102, 241, 0.12), transparent 35%),
+            var(--bg);
+        }
+
+        .chat-header {
+          height: 74px;
+          padding: 14px 18px;
+          background: var(--panel);
+          border-bottom: 1px solid var(--border);
+          display: flex;
+          align-items: center;
+          gap: 12px;
+        }
+
+        .chat-title {
+          font-weight: 900;
+        }
+
+        .chat-sub {
+          color: var(--muted);
+          font-size: 13px;
+          margin-top: 2px;
+        }
+
+        .messages {
+          flex: 1;
+          overflow-y: auto;
+          padding: 18px;
+          display: flex;
+          flex-direction: column;
+          gap: 10px;
+        }
+
+        .message {
+          max-width: min(560px, 80%);
+          padding: 11px 13px;
+          border-radius: 17px;
+          line-height: 1.35;
+          word-break: break-word;
+          position: relative;
+        }
+
+        .message.me {
+          align-self: flex-end;
+          background: var(--message-me);
+          color: white;
+          border-bottom-right-radius: 6px;
+        }
+
+        .message.other {
+          align-self: flex-start;
+          background: var(--message-other);
+          color: var(--text);
+          border-bottom-left-radius: 6px;
+        }
+
+        .message-time {
+          opacity: 0.75;
+          font-size: 11px;
+          margin-top: 5px;
+          text-align: right;
+        }
+
+        .composer {
+          padding: 14px;
+          background: var(--panel);
+          border-top: 1px solid var(--border);
+          display: flex;
+          gap: 10px;
+        }
+
+        .composer input {
+          flex: 1;
+          min-width: 0;
+          padding: 14px;
+          border-radius: 16px;
+          border: 1px solid var(--border);
+          background: var(--panel-2);
+          color: var(--text);
+          outline: none;
+        }
+
+        .empty {
+          height: 100%;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          color: var(--muted);
+          text-align: center;
+          padding: 24px;
+        }
+
+        .empty i {
+          display: block;
+          font-size: 42px;
+          margin-bottom: 12px;
+          color: var(--primary-2);
+        }
+
+        .mobile-menu {
+          display: none;
+        }
+
+        @media (max-width: 800px) {
+          .app {
+            grid-template-columns: 1fr;
+          }
+
+          .sidebar {
+            position: fixed;
+            inset: 0 auto 0 0;
+            width: 88%;
+            max-width: 340px;
+            z-index: 5;
+            transform: translateX(-105%);
+            transition: 0.2s;
+            box-shadow: 20px 0 50px rgba(0, 0, 0, 0.35);
+          }
+
+          .sidebar.open {
+            transform: translateX(0);
+          }
+
+          .mobile-menu {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+          }
+
+          .message {
+            max-width: 88%;
+          }
+        }
     </style>
 </head>
+
 <body>
-<div class="app">
-    <div class="sidebar" id="sidebar">
-        <div class="sidebar-header">
-            <h3>Vortex</h3>
-            <div class="user-actions">
-                <button id="friendsRequestsBtn" title="Заявки"><i class="fas fa-user-friends"></i></button>
-                <button id="profileBtn"><i class="fas fa-user-circle"></i></button>
-                <button id="logoutBtn"><i class="fas fa-sign-out-alt"></i></button>
+<div id="authPage" class="auth-page">
+    <div class="auth-card">
+        <div class="logo">
+            <div class="logo-icon">
+                <i class="fas fa-bolt"></i>
+            </div>
+            <div>
+                <h1>Vortex</h1>
+                <p>Messenger на Firebase</p>
             </div>
         </div>
-        <div class="section-title">📌 МОИ ЧАТЫ</div>
-        <div class="chats-list" id="chatsList"></div>
-        <div class="section-title">🌍 ВСЕ ПОЛЬЗОВАТЕЛИ</div>
-        <div class="all-users-list" id="allUsersList"></div>
-        <div class="plus-menu">
-            <button class="plus-btn" id="plusBtn"><i class="fas fa-plus"></i></button>
-            <div class="dropdown-menu" id="plusDropdown">
-                <button id="findUserBtn"><i class="fas fa-search"></i> Найти пользователя</button>
-                <button id="createGroupBtn"><i class="fas fa-users"></i> Создать группу</button>
-                <button id="createChannelBtn"><i class="fas fa-bullhorn"></i> Создать канал</button>
-                <button id="addByCodeBtn"><i class="fas fa-qrcode"></i> Добавить по коду дружбы</button>
-                <button id="blockUserGlobalBtn"><i class="fas fa-ban"></i> Заблокировать пользователя</button>
+
+        <div id="loginBox">
+            <div class="field">
+                <label>Email</label>
+                <input id="loginEmail" type="email" placeholder="you@example.com" />
+            </div>
+
+            <div class="field">
+                <label>Пароль</label>
+                <input id="loginPassword" type="password" placeholder="••••••••" />
+            </div>
+
+            <button id="loginBtn" class="btn full">
+                Войти
+            </button>
+
+            <button id="googleBtn1" class="btn secondary full">
+                <i class="fab fa-google"></i>
+                Войти через Google
+            </button>
+
+            <div class="auth-switch">
+                Нет аккаунта?
+                <button id="showRegisterBtn">Создать</button>
             </div>
         </div>
-    </div>
-    <div class="chat-main">
-        <div class="chat-header">
-            <div style="display:flex; align-items:center;"><div class="burger" id="burgerBtn"><i class="fas fa-bars"></i></div><div class="chat-title" id="chatTitle">Выберите чат</div></div>
-            <button id="subscribeChannelBtn" style="background:none; border:none; color:#5865f2; display:none;"><i class="fas fa-bell"></i> Подписаться</button>
+
+        <div id="registerBox" class="hidden">
+            <div class="field">
+                <label>Имя</label>
+                <input id="registerName" type="text" placeholder="Твоё имя" />
+            </div>
+
+            <div class="field">
+                <label>Email</label>
+                <input id="registerEmail" type="email" placeholder="you@example.com" />
+            </div>
+
+            <div class="field">
+                <label>Пароль</label>
+                <input id="registerPassword" type="password" placeholder="Минимум 6 символов" />
+            </div>
+
+            <button id="registerBtn" class="btn full">
+                Зарегистрироваться
+            </button>
+
+            <button id="googleBtn2" class="btn secondary full">
+                <i class="fab fa-google"></i>
+                Войти через Google
+            </button>
+
+            <div class="auth-switch">
+                Уже есть аккаунт?
+                <button id="showLoginBtn">Войти</button>
+            </div>
         </div>
-        <div class="messages-area" id="messagesArea"><div style="text-align:center;">👈 Начните общение</div></div>
-        <div class="input-area" id="inputArea">
-            <input type="text" id="messageInput" placeholder="Сообщение..." disabled>
-            <button id="pollBtn" disabled><i class="fas fa-chart-bar"></i></button>
-            <button id="sendMsgBtn" disabled><i class="fas fa-paper-plane"></i></button>
-        </div>
+
+        <div id="authError" class="error hidden"></div>
     </div>
 </div>
 
-<div class="virus-overlay" id="virusOverlay">
-    <i class="fas fa-skull" style="font-size: 80px;"></i>
-    <h1>⚠️ VORTEX ВАШ ПК ЗАРАЖЕН ⚠️</h1>
-    <p>Все данные переданы в сектор Vortex. Перезагрузка через 5 секунд...</p>
+<div id="mainApp" class="app hidden">
+    <aside id="sidebar" class="sidebar">
+        <div class="sidebar-top">
+            <div class="user-row">
+                <div id="myAvatar" class="avatar">V</div>
+                <div class="user-meta">
+                    <div id="myName" class="user-name">Загрузка...</div>
+                    <div id="myCode" class="user-code">Код: ------</div>
+                </div>
+
+                <button id="themeBtn" class="icon-btn" title="Тема">
+                    <i class="fas fa-moon"></i>
+                </button>
+
+                <button id="logoutBtn" class="icon-btn" title="Выйти">
+                    <i class="fas fa-sign-out-alt"></i>
+                </button>
+            </div>
+
+            <div class="search-box">
+                <input id="friendCodeInput" maxlength="6" placeholder="Код друга" />
+                <button id="addFriendBtn" class="icon-btn" title="Добавить">
+                    <i class="fas fa-user-plus"></i>
+                </button>
+            </div>
+        </div>
+
+        <div class="tabs">
+            <button class="tab active" data-tab="chats">
+                Чаты
+            </button>
+            <button class="tab" data-tab="friends">
+                Друзья
+            </button>
+            <button class="tab" data-tab="requests">
+                Заявки
+            </button>
+        </div>
+
+        <div id="list" class="list"></div>
+    </aside>
+
+    <main class="chat">
+        <div id="emptyChat" class="empty">
+            <div>
+                <i class="fas fa-comments"></i>
+                <h2>Выбери чат</h2>
+                <p>Добавь друга по 6-значному коду и начни переписку.</p>
+            </div>
+        </div>
+
+        <div id="chatPanel" class="hidden" style="height:100%; display:flex; flex-direction:column;">
+            <div class="chat-header">
+                <button id="mobileMenuBtn" class="icon-btn mobile-menu">
+                    <i class="fas fa-bars"></i>
+                </button>
+
+                <div id="chatAvatar" class="avatar">?</div>
+
+                <div>
+                    <div id="chatName" class="chat-title">Чат</div>
+                    <div id="chatInfo" class="chat-sub">online</div>
+                </div>
+            </div>
+
+            <div id="messages" class="messages"></div>
+
+            <div class="composer">
+                <input id="messageInput" placeholder="Сообщение..." />
+                <button id="sendBtn" class="btn">
+                    <i class="fas fa-paper-plane"></i>
+                </button>
+            </div>
+        </div>
+    </main>
 </div>
 
-<!-- Модалки -->
-<div id="authModal" class="modal" style="display: flex;"><div class="modal-content"><div class="auth-tabs"><button class="auth-tab active" data-tab="login">Вход</button><button class="auth-tab" data-tab="register">Регистрация</button></div><div id="loginForm" class="auth-form"><input type="email" id="loginEmail" placeholder="Email"><input type="password" id="loginPassword" placeholder="Пароль"><button id="doLoginBtn">Войти</button></div><div id="registerForm" class="auth-form hide"><input type="email" id="regEmail" placeholder="Email"><input type="password" id="regPassword" placeholder="Пароль"><input type="text" id="regDisplayName" placeholder="Имя (не только цифры)"><button id="doRegisterBtn">Зарегистрироваться</button></div></div></div>
-<div id="requestsModal" class="modal"><div class="modal-content"><span class="close-modal">&times;</span><h3>Заявки в друзья</h3><div id="requestsList"></div></div></div>
-<div id="searchUserModal" class="modal"><div class="modal-content"><span class="close-modal">&times;</span><h3>Поиск пользователей</h3><input type="text" id="searchInput" placeholder="Имя, email или код"><button id="searchBtn">Найти</button><div id="searchResults"></div></div></div>
-<div id="createGroupModal" class="modal"><div class="modal-content"><span class="close-modal">&times;</span><h3>Создать группу</h3><input id="groupName" placeholder="Название"><div id="friendsListGroup"></div><button id="confirmGroupBtn">Создать</button></div></div>
-<div id="createChannelModal" class="modal"><div class="modal-content"><span class="close-modal">&times;</span><h3>Создать канал</h3><input id="channelName" placeholder="Название"><textarea id="channelDesc" placeholder="Описание"></textarea><button id="confirmChannelBtn">Создать</button></div></div>
-<div id="pollModal" class="modal"><div class="modal-content"><span class="close-modal">&times;</span><h3>Создать опрос</h3><input id="pollQuestion" placeholder="Вопрос"><div id="pollOptions"><input placeholder="Вариант 1"><input placeholder="Вариант 2"></div><button id="addOptionBtn">+ Добавить вариант</button><button id="sendPollBtn">Отправить опрос</button></div></div>
-<div id="profileModal" class="modal"><div class="modal-content"><span class="close-modal">&times;</span><h3>Профиль</h3><input id="profileName" placeholder="Имя"><input type="file" id="avatarInput" accept="image/*"><button id="updateProfileBtn">Обновить имя</button><button id="changePasswordBtn">Сменить пароль</button><div style="margin-top:10px;"><strong>Ваш код дружбы:</strong> <span id="friendCodeDisplay"></span></div><div><strong>Заблокированные:</strong> <span id="blockedListSpan"></span></div></div></div>
-<div id="addByCodeModal" class="modal"><div class="modal-content"><span class="close-modal">&times;</span><h3>Добавить друга по коду</h3><input id="friendCodeInput" placeholder="6-значный код"><button id="searchByCodeBtn">Найти</button><div id="codeSearchResult"></div></div></div>
-<div id="blockUserGlobalModal" class="modal"><div class="modal-content"><span class="close-modal">&times;</span><h3>Заблокировать пользователя</h3><input id="blockUserIdInput" placeholder="UID или имя"><button id="blockUserGlobalSubmit">Заблокировать</button><div id="blockResult"></div></div></div>
-<div id="vortexPanel" class="vortex-panel"><h4>🌀 VORTEX EXTREME <button id="closeVortexBtn" style="float:right; background:none; border:none; color:red; font-size:20px;">✖</button></h4><hr><input id="ipAddress" placeholder="IP адрес"><button id="getIpDataBtn">🌐 Данные по IP</button><button id="myIpBtn">📍 Мой IP</button><div id="ipInfo" style="background:#0f1115; padding:8px; border-radius:8px; font-size:12px; max-height:150px; overflow:auto;"></div><button id="exportChatJsonBtn">📥 Экспорт чата (JSON)</button><button id="exportAllUsersBtn">📁 Скачать всех пользователей</button><button id="massSpamBtn">💣 Массовая рассылка всем</button><button id="eavesdropBtn">🎧 Подслушивание чата (фейк)</button><button id="stealthReadBtn">👁 Скрытый режим чтения</button><button id="fakePasswordResetBtn">🔐 Сброс пароля любого (фейк)</button><button id="globalBanBtn">🌍 Глобальный бан (симуляция)</button><select id="blockUserSelect"><option>Выберите участника чата</option></select><button id="blockUserBtn">🚫 Заблокировать в чате</button><button id="systemInfoBtn">💻 Системная информация</button><button id="invisibleModeBtn">👻 Режим невидимки</button><button id="clearCacheBtn">🗑 Очистить кэш</button><button id="fakeVirusBtn">💀 Вирус-пугалка</button><button id="scanChatBtn">🔍 Сканировать чат (IP мета)</button><button id="keyloggerSimBtn">⌨️ Кейлоггер (симуляция)</button><button id="spamChatBtn">📨 Спам в чат (5 сообщ.)</button><button id="fakeNickBtn">🎭 Отправить с чужим ником</button><button id="globalMuteBtn">🔇 Заглушка чата (10с)</button><button id="ddosBtn">💣 Эмуляция DDoS</button><button id="hackAccountBtn">🔓 Взлом аккаунта (фейк)</button><button id="cloneLastMsgBtn">📋 Клонировать последнее сообщение</button><button id="viewAllUsersStatusBtn">👁 Статус всех пользователей</button></div>
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-app.js";
+    import {
+      getAuth,
+      onAuthStateChanged,
+      createUserWithEmailAndPassword,
+      signInWithEmailAndPassword,
+      signOut,
+      GoogleAuthProvider,
+      signInWithPopup,
+      updateProfile
+    } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-auth.js";
+    import {
+      getFirestore,
+      doc,
+      getDoc,
+      setDoc,
+      updateDoc,
+      collection,
+      query,
+      where,
+      getDocs,
+      onSnapshot,
+      addDoc,
+      serverTimestamp,
+      orderBy,
+      arrayUnion,
+      arrayRemove,
+      writeBatch
+    } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-firestore.js";
 
-<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-storage-compat.js"></script>
-<script>
+    /*
+      ВАЖНО:
+      1. Замени firebaseConfig на config из Firebase Console.
+      2. Включи Authentication: Email/Password и Google.
+      3. Создай Firestore Database.
+      4. Добавь домен сайта в Authentication > Settings > Authorized domains.
+    */
+
     const firebaseConfig = {
-        apiKey: "AIzaSyCtPt1M2ej6B91yBx5VepU8SnrfO9MQAlk",
-        authDomain: "my-messenger-d1622.firebaseapp.com",
-        projectId: "my-messenger-d1622",
-        storageBucket: "my-messenger-d1622.firebasestorage.app",
-        messagingSenderId: "103633663743",
-        appId: "1:103633663743:web:77638c18e54353fc717eca"
+      apiKey: "ВСТАВЬ_СВОЙ_API_KEY",
+      authDomain: "my-messenger-d1622.firebaseapp.com",
+      projectId: "my-messenger-d1622",
+      storageBucket: "my-messenger-d1622.appspot.com",
+      messagingSenderId: "ВСТАВЬ_MESSAGING_SENDER_ID",
+      appId: "ВСТАВЬ_APP_ID"
     };
-    firebase.initializeApp(firebaseConfig);
-    const auth = firebase.auth();
-    const db = firebase.firestore();
-    const storage = firebase.storage();
 
-    let currentUser = null, currentChatId = null, currentChatData = null, unsubscribeMessages = null, vortexActive = false;
-    let friendRequestListener = null;
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+    const googleProvider = new GoogleAuthProvider();
 
-    function toast(msg, isError = false) { 
-        let t = document.createElement('div'); 
-        t.className = 'toast'; 
-        if(isError) t.classList.add('error'); 
-        t.innerText = msg; 
-        document.body.appendChild(t); 
-        setTimeout(() => t.classList.add('show'), 10); 
-        setTimeout(() => { t.classList.remove('show'); setTimeout(()=>t.remove(),300); }, 3000); 
+    const $ = (id) => document.getElementById(id);
+
+    const authPage = $("authPage");
+    const mainApp = $("mainApp");
+    const authError = $("authError");
+
+    const loginBox = $("loginBox");
+    const registerBox = $("registerBox");
+
+    const list = $("list");
+    const emptyChat = $("emptyChat");
+    const chatPanel = $("chatPanel");
+    const messagesEl = $("messages");
+
+    let currentUser = null;
+    let currentProfile = null;
+    let currentTab = "chats";
+    let selectedChatId = null;
+    let selectedFriend = null;
+
+    let unsubscribeProfile = null;
+    let unsubscribeList = null;
+    let unsubscribeMessages = null;
+
+    function showError(message) {
+      authError.textContent = message;
+      authError.classList.remove("hidden");
     }
-    function validateDisplayName(name) { return name.trim() && !/^\d+$/.test(name.trim()); }
-    
-    async function generateUniqueFriendCode() { 
-        let code = Math.floor(100000 + Math.random() * 900000).toString(); 
-        let exists = await db.collection('users').where('friendCode', '==', code).get(); 
-        if(!exists.empty) return generateUniqueFriendCode(); 
-        return code; 
+
+    function clearError() {
+      authError.textContent = "";
+      authError.classList.add("hidden");
     }
-    
-    async function registerUser(email, password, displayName) {
-        if(!validateDisplayName(displayName)) throw new Error("Имя не может состоять только из цифр");
-        const cred = await auth.createUserWithEmailAndPassword(email, password);
-        const friendCode = await generateUniqueFriendCode();
-        await cred.user.updateProfile({displayName});
-        await db.collection('users').doc(cred.user.uid).set({
-            uid: cred.user.uid, email, displayName, status: "online", photoURL: null, 
-            friendCode: friendCode, blockedUsers: [], createdAt: firebase.firestore.FieldValue.serverTimestamp()
+
+    function initials(nameOrEmail) {
+      const text = nameOrEmail || "V";
+      return text.trim()[0]?.toUpperCase() || "V";
+    }
+
+    function formatTime(date) {
+      if (!date) return "";
+      return new Intl.DateTimeFormat("ru-RU", {
+        hour: "2-digit",
+        minute: "2-digit"
+      }).format(date);
+    }
+
+    function normalizeCode(code) {
+      return String(code || "").replace(/\D/g, "").slice(0, 6);
+    }
+
+    function createUserCode() {
+      return String(Math.floor(100000 + Math.random() * 900000));
+    }
+
+    async function generateUniqueUserCode() {
+      for (let i = 0; i < 20; i++) {
+        const code = createUserCode();
+        const q = query(collection(db, "users"), where("code", "==", code));
+        const snap = await getDocs(q);
+        if (snap.empty) return code;
+      }
+
+      throw new Error("Не получилось создать уникальный код. Попробуй ещё раз.");
+    }
+
+    async function ensureUserProfile(user, customName = "") {
+      const ref = doc(db, "users", user.uid);
+      const snap = await getDoc(ref);
+
+      if (snap.exists()) {
+        return snap.data();
+      }
+
+      const name =
+        customName ||
+        user.displayName ||
+        user.email?.split("@")[0] ||
+        "Vortex User";
+
+      const code = await generateUniqueUserCode();
+
+      const profile = {
+        uid: user.uid,
+        name,
+        email: user.email || "",
+        photoURL: user.photoURL || "",
+        code,
+        friends: [],
+        chats: [],
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp()
+      };
+
+      await setDoc(ref, profile);
+      return profile;
+    }
+
+    async function findUserByCode(code) {
+      const q = query(collection(db, "users"), where("code", "==", code));
+      const snap = await getDocs(q);
+
+      if (snap.empty) return null;
+
+      const docSnap = snap.docs[0];
+      return {
+        id: docSnap.id,
+        ...docSnap.data()
+      };
+    }
+
+    function getPrivateChatId(uid1, uid2) {
+      return [uid1, uid2].sort().join("_");
+    }
+
+    async function createOrGetPrivateChat(friendProfile) {
+      const chatId = getPrivateChatId(currentUser.uid, friendProfile.uid);
+      const chatRef = doc(db, "chats", chatId);
+      const chatSnap = await getDoc(chatRef);
+
+      if (!chatSnap.exists()) {
+        await setDoc(chatRef, {
+          id: chatId,
+          type: "private",
+          members: [currentUser.uid, friendProfile.uid],
+          memberNames: {
+            [currentUser.uid]: currentProfile.name,
+            [friendProfile.uid]: friendProfile.name
+          },
+          lastMessage: "",
+          lastMessageAt: serverTimestamp(),
+          createdAt: serverTimestamp()
         });
-        await db.collection('friendRequests').doc(cred.user.uid).set({incoming: [], outgoing: []});
-        await db.collection('friends').doc(cred.user.uid).set({friends: []});
-        await db.collection('userChats').doc(cred.user.uid).set({chats: []});
-        return cred.user;
+      }
+
+      const myRef = doc(db, "users", currentUser.uid);
+      const friendRef = doc(db, "users", friendProfile.uid);
+
+      await updateDoc(myRef, {
+        chats: arrayUnion(chatId),
+        updatedAt: serverTimestamp()
+      });
+
+      await updateDoc(friendRef, {
+        chats: arrayUnion(chatId),
+        updatedAt: serverTimestamp()
+      });
+
+      return chatId;
     }
-    
-    async function loginUser(email, password) { await auth.signInWithEmailAndPassword(email, password); }
-    function showMainUI() { document.getElementById('authModal').style.display = 'none'; document.getElementById('messageInput').disabled = false; document.getElementById('sendMsgBtn').disabled = false; document.getElementById('pollBtn').disabled = false; }
-    document.getElementById('logoutBtn').onclick = async() => { if(currentUser) await db.collection('users').doc(currentUser.uid).update({status:'offline'}); await auth.signOut(); location.reload(); };
-    
-    function setupFriendRequestListener() { 
-        if(friendRequestListener) friendRequestListener(); 
-        friendRequestListener = db.collection('friendRequests').doc(currentUser?.uid).onSnapshot(doc => { 
-            if(doc.exists && currentUser) { 
-                let incoming = doc.data().incoming || []; 
-                let prevCount = window._prevFriendReqs || 0; 
-                if(incoming.length > prevCount) toast(`📨 Новый запрос в друзья!`, false); 
-                window._prevFriendReqs = incoming.length; 
-            } 
-        }); 
+
+    async function sendFriendRequest() {
+      try {
+        const rawCode = $("friendCodeInput").value;
+        const code = normalizeCode(rawCode);
+
+        if (code.length !== 6) {
+          alert("Введи 6-значный код друга.");
+          return;
+        }
+
+        if (code === currentProfile.code) {
+          alert("Нельзя добавить самого себя.");
+          return;
+        }
+
+        const target = await findUserByCode(code);
+
+        if (!target) {
+          alert("Пользователь с таким кодом не найден.");
+          return;
+        }
+
+        if ((currentProfile.friends || []).includes(target.uid)) {
+          alert("Этот пользователь уже в друзьях.");
+          return;
+        }
+
+        const requestId = `${currentUser.uid}_${target.uid}`;
+        const reverseRequestId = `${target.uid}_${currentUser.uid}`;
+
+        const existing = await getDoc(doc(db, "friendRequests", requestId));
+        const reverseExisting = await getDoc(doc(db, "friendRequests", reverseRequestId));
+
+        if (existing.exists()) {
+          alert("Заявка уже отправлена.");
+          return;
+        }
+
+        if (reverseExisting.exists()) {
+          alert("Этот пользователь уже отправил тебе заявку. Прими её во вкладке «Заявки».");
+          return;
+        }
+
+        await setDoc(doc(db, "friendRequests", requestId), {
+          id: requestId,
+          fromUid: currentUser.uid,
+          toUid: target.uid,
+          fromName: currentProfile.name,
+          toName: target.name,
+          fromCode: currentProfile.code,
+          toCode: target.code,
+          status: "pending",
+          createdAt: serverTimestamp()
+        });
+
+        $("friendCodeInput").value = "";
+        alert("Заявка отправлена.");
+      } catch (error) {
+        alert(error.message);
+      }
     }
-    
-    auth.onAuthStateChanged(async(user) => { 
-        if(!user) { currentUser = null; document.getElementById('authModal').style.display = 'flex'; return; } 
-        currentUser = user; 
-        await db.collection('users').doc(user.uid).set({status:'online', displayName: user.displayName}, {merge:true}); 
-        await db.collection('users').doc(user.uid).update({status:'online'}); 
-        showMainUI(); 
-        loadUserChats(); 
-        loadAllUsers(); 
-        document.getElementById('profileName').value = user.displayName; 
-        loadFriendsForBlockSelect(); 
-        setupFriendRequestListener(); 
-        let userDoc = await db.collection('users').doc(user.uid).get(); 
-        if(userDoc.exists && userDoc.data().friendCode) document.getElementById('friendCodeDisplay').innerText = userDoc.data().friendCode; 
-        else { let code = await generateUniqueFriendCode(); await db.collection('users').doc(user.uid).update({friendCode: code}); document.getElementById('friendCodeDisplay').innerText = code; } 
-        let blocked = userDoc.data().blockedUsers || [];
-        document.getElementById('blockedListSpan').innerText = blocked.length ? blocked.join(', ') : 'нет';
+
+    async function acceptFriendRequest(request) {
+      try {
+        const batch = writeBatch(db);
+
+        const myRef = doc(db, "users", currentUser.uid);
+        const friendRef = doc(db, "users", request.fromUid);
+        const requestRef = doc(db, "friendRequests", request.id);
+
+        batch.update(myRef, {
+          friends: arrayUnion(request.fromUid),
+          updatedAt: serverTimestamp()
+        });
+
+        batch.update(friendRef, {
+          friends: arrayUnion(currentUser.uid),
+          updatedAt: serverTimestamp()
+        });
+
+        batch.update(requestRef, {
+          status: "accepted",
+          acceptedAt: serverTimestamp()
+        });
+
+        await batch.commit();
+
+        const friendSnap = await getDoc(friendRef);
+
+        if (friendSnap.exists()) {
+          await createOrGetPrivateChat({
+            uid: request.fromUid,
+            ...friendSnap.data()
+          });
+        }
+
+        alert("Заявка принята.");
+      } catch (error) {
+        alert(error.message);
+      }
+    }
+
+    async function declineFriendRequest(request) {
+      try {
+        await updateDoc(doc(db, "friendRequests", request.id), {
+          status: "declined",
+          declinedAt: serverTimestamp()
+        });
+
+        alert("Заявка отклонена.");
+      } catch (error) {
+        alert(error.message);
+      }
+    }
+
+    async function removeFriend(friendUid) {
+      if (!confirm("Удалить друга?")) return;
+
+      try {
+        const myRef = doc(db, "users", currentUser.uid);
+        const friendRef = doc(db, "users", friendUid);
+
+        await updateDoc(myRef, {
+          friends: arrayRemove(friendUid),
+          updatedAt: serverTimestamp()
+        });
+
+        await updateDoc(friendRef, {
+          friends: arrayRemove(currentUser.uid),
+          updatedAt: serverTimestamp()
+        });
+
+        alert("Друг удалён.");
+      } catch (error) {
+        alert(error.message);
+      }
+    }
+
+    async function openChatWithFriend(friendProfile) {
+      selectedFriend = friendProfile;
+      selectedChatId = await createOrGetPrivateChat(friendProfile);
+
+      emptyChat.classList.add("hidden");
+      chatPanel.classList.remove("hidden");
+
+      $("chatName").textContent = friendProfile.name || "Друг";
+      $("chatInfo").textContent = `Код: ${friendProfile.code || "------"}`;
+      $("chatAvatar").textContent = initials(friendProfile.name || friendProfile.email);
+
+      if (friendProfile.photoURL) {
+        $("chatAvatar").innerHTML = `<img src="${friendProfile.photoURL}" alt="">`;
+      }
+
+      if (window.innerWidth <= 800) {
+        $("sidebar").classList.remove("open");
+      }
+
+      listenMessages(selectedChatId);
+    }
+
+    async function sendMessage() {
+      const input = $("messageInput");
+      const text = input.value.trim();
+
+      if (!text || !selectedChatId || !selectedFriend) return;
+
+      input.value = "";
+
+      const chatRef = doc(db, "chats", selectedChatId);
+      const messagesRef = collection(db, "chats", selectedChatId, "messages");
+
+      await addDoc(messagesRef, {
+        text,
+        senderUid: currentUser.uid,
+        senderName: currentProfile.name,
+        createdAt: serverTimestamp()
+      });
+
+      await updateDoc(chatRef, {
+        lastMessage: text,
+        lastMessageAt: serverTimestamp()
+      });
+    }
+
+    function listenMessages(chatId) {
+      if (unsubscribeMessages) unsubscribeMessages();
+
+      const q = query(
+        collection(db, "chats", chatId, "messages"),
+        orderBy("createdAt", "asc")
+      );
+
+      unsubscribeMessages = onSnapshot(q, (snap) => {
+        messagesEl.innerHTML = "";
+
+        snap.forEach((docSnap) => {
+          const msg = docSnap.data();
+          const isMe = msg.senderUid === currentUser.uid;
+          const createdDate = msg.createdAt?.toDate?.();
+
+          const div = document.createElement("div");
+          div.className = `message ${isMe ? "me" : "other"}`;
+          div.innerHTML = `
+            <div>${escapeHtml(msg.text || "")}</div>
+            <div class="message-time">${formatTime(createdDate)}</div>
+          `;
+
+          messagesEl.appendChild(div);
+        });
+
+        messagesEl.scrollTop = messagesEl.scrollHeight;
+      });
+    }
+
+    function escapeHtml(text) {
+      return String(text)
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+    }
+
+    function setTab(tab) {
+      currentTab = tab;
+
+      document.querySelectorAll(".tab").forEach((btn) => {
+        btn.classList.toggle("active", btn.dataset.tab === tab);
+      });
+
+      listenCurrentTab();
+    }
+
+    function listenCurrentTab() {
+      if (unsubscribeList) unsubscribeList();
+
+      list.innerHTML = "";
+
+      if (!currentUser) return;
+
+      if (currentTab === "chats") {
+        renderChats();
+      }
+
+      if (currentTab === "friends") {
+        renderFriends();
+      }
+
+      if (currentTab === "requests") {
+        renderRequests();
+      }
+    }
+
+    function renderEmptyList(text) {
+      list.innerHTML = `
+        <div class="empty" style="height:auto; padding:40px 16px;">
+          <div>
+            <i class="fas fa-inbox"></i>
+            <p>${text}</p>
+          </div>
+        </div>
+      `;
+    }
+
+    function renderChats() {
+      const q = query(
+        collection(db, "chats"),
+        where("members", "array-contains", currentUser.uid)
+      );
+
+      unsubscribeList = onSnapshot(q, async (snap) => {
+        list.innerHTML = "";
+
+        if (snap.empty) {
+          renderEmptyList("Пока нет чатов.");
+          return;
+        }
+
+        const chats = [];
+
+        snap.forEach((docSnap) => {
+          chats.push({
+            id: docSnap.id,
+            ...docSnap.data()
+          });
+        });
+
+        chats.sort((a, b) => {
+          const at = a.lastMessageAt?.toMillis?.() || 0;
+          const bt = b.lastMessageAt?.toMillis?.() || 0;
+          return bt - at;
+        });
+
+        for (const chat of chats) {
+          const friendUid = chat.members.find((uid) => uid !== currentUser.uid);
+
+          if (!friendUid) continue;
+
+          const friendSnap = await getDoc(doc(db, "users", friendUid));
+
+          if (!friendSnap.exists()) continue;
+
+          const friend = {
+            uid: friendUid,
+            ...friendSnap.data()
+          };
+
+          const item = document.createElement("div");
+          item.className = `item ${selectedChatId === chat.id ? "active" : ""}`;
+          item.innerHTML = `
+            <div class="avatar">${friend.photoURL ? `<img src="${friend.photoURL}" alt="">` : initials(friend.name)}</div>
+            <div class="item-body">
+              <div class="item-title">${escapeHtml(friend.name || "Друг")}</div>
+              <div class="item-sub">${escapeHtml(chat.lastMessage || "Открыть чат")}</div>
+            </div>
+          `;
+
+          item.addEventListener("click", () => openChatWithFriend(friend));
+          list.appendChild(item);
+        }
+      });
+    }
+
+    function renderFriends() {
+      const userRef = doc(db, "users", currentUser.uid);
+
+      unsubscribeList = onSnapshot(userRef, async (snap) => {
+        const data = snap.data();
+        const friends = data?.friends || [];
+
+        list.innerHTML = "";
+
+        if (!friends.length) {
+          renderEmptyList("Пока нет друзей. Добавь по коду.");
+          return;
+        }
+
+        for (const friendUid of friends) {
+          const friendSnap = await getDoc(doc(db, "users", friendUid));
+
+          if (!friendSnap.exists()) continue;
+
+          const friend = {
+            uid: friendUid,
+            ...friendSnap.data()
+          };
+
+          const item = document.createElement("div");
+          item.className = "item";
+          item.innerHTML = `
+            <div class="avatar">${friend.photoURL ? `<img src="${friend.photoURL}" alt="">` : initials(friend.name)}</div>
+            <div class="item-body">
+              <div class="item-title">${escapeHtml(friend.name || "Друг")}</div>
+              <div class="item-sub">Код: ${escapeHtml(friend.code || "------")}</div>
+            </div>
+            <div class="item-actions">
+              <button class="small-btn" title="Чат">
+                <i class="fas fa-message"></i>
+              </button>
+              <button class="small-btn danger" title="Удалить">
+                <i class="fas fa-trash"></i>
+              </button>
+            </div>
+          `;
+
+          const buttons = item.querySelectorAll("button");
+
+          buttons[0].addEventListener("click", (e) => {
+            e.stopPropagation();
+            openChatWithFriend(friend);
+          });
+
+          buttons[1].addEventListener("click", (e) => {
+            e.stopPropagation();
+            removeFriend(friend.uid);
+          });
+
+          item.addEventListener("click", () => openChatWithFriend(friend));
+          list.appendChild(item);
+        }
+      });
+    }
+
+    function renderRequests() {
+      const q = query(
+        collection(db, "friendRequests"),
+        where("toUid", "==", currentUser.uid),
+        where("status", "==", "pending")
+      );
+
+      unsubscribeList = onSnapshot(q, (snap) => {
+        list.innerHTML = "";
+
+        if (snap.empty) {
+          renderEmptyList("Нет входящих заявок.");
+          return;
+        }
+
+        snap.forEach((docSnap) => {
+          const request = {
+            id: docSnap.id,
+            ...docSnap.data()
+          };
+
+          const item = document.createElement("div");
+          item.className = "item";
+          item.innerHTML = `
+            <div class="avatar">${initials(request.fromName)}</div>
+            <div class="item-body">
+              <div class="item-title">${escapeHtml(request.fromName || "Пользователь")}</div>
+              <div class="item-sub">Код: ${escapeHtml(request.fromCode || "------")}</div>
+            </div>
+            <div class="item-actions">
+              <button class="small-btn success" title="Принять">
+                <i class="fas fa-check"></i>
+              </button>
+              <button class="small-btn danger" title="Отклонить">
+                <i class="fas fa-xmark"></i>
+              </button>
+            </div>
+          `;
+
+          const buttons = item.querySelectorAll("button");
+
+          buttons[0].addEventListener("click", () => acceptFriendRequest(request));
+          buttons[1].addEventListener("click", () => declineFriendRequest(request));
+
+          list.appendChild(item);
+        });
+      });
+    }
+
+    function bindProfile() {
+      if (unsubscribeProfile) unsubscribeProfile();
+
+      unsubscribeProfile = onSnapshot(doc(db, "users", currentUser.uid), (snap) => {
+        if (!snap.exists()) return;
+
+        currentProfile = snap.data();
+
+        $("myName").textContent = currentProfile.name || currentUser.email || "Vortex User";
+        $("myCode").textContent = `Код: ${currentProfile.code || "------"}`;
+
+        if (currentProfile.photoURL) {
+          $("myAvatar").innerHTML = `<img src="${currentProfile.photoURL}" alt="">`;
+        } else {
+          $("myAvatar").textContent = initials(currentProfile.name || currentProfile.email);
+        }
+
+        listenCurrentTab();
+      });
+    }
+
+    async function handleLogin() {
+      try {
+        clearError();
+
+        const email = $("loginEmail").value.trim();
+        const password = $("loginPassword").value;
+
+        if (!email || !password) {
+          showError("Введи email и пароль.");
+          return;
+        }
+
+        await signInWithEmailAndPassword(auth, email, password);
+      } catch (error) {
+        showError(error.message);
+      }
+    }
+
+    async function handleRegister() {
+      try {
+        clearError();
+
+        const name = $("registerName").value.trim();
+        const email = $("registerEmail").value.trim();
+        const password = $("registerPassword").value;
+
+        if (!name || !email || !password) {
+          showError("Заполни имя, email и пароль.");
+          return;
+        }
+
+        const cred = await createUserWithEmailAndPassword(auth, email, password);
+
+        await updateProfile(cred.user, {
+          displayName: name
+        });
+
+        await ensureUserProfile(cred.user, name);
+      } catch (error) {
+        showError(error.message);
+      }
+    }
+
+    async function handleGoogleLogin() {
+      try {
+        clearError();
+
+        const result = await signInWithPopup(auth, googleProvider);
+        await ensureUserProfile(result.user);
+      } catch (error) {
+        showError(error.message);
+      }
+    }
+
+    function showApp() {
+      authPage.classList.add("hidden");
+      mainApp.classList.remove("hidden");
+    }
+
+    function showAuth() {
+      mainApp.classList.add("hidden");
+      authPage.classList.remove("hidden");
+    }
+
+    function resetState() {
+      currentUser = null;
+      currentProfile = null;
+      selectedChatId = null;
+      selectedFriend = null;
+
+      if (unsubscribeProfile) unsubscribeProfile();
+      if (unsubscribeList) unsubscribeList();
+      if (unsubscribeMessages) unsubscribeMessages();
+
+      unsubscribeProfile = null;
+      unsubscribeList = null;
+      unsubscribeMessages = null;
+
+      list.innerHTML = "";
+      messagesEl.innerHTML = "";
+      chatPanel.classList.add("hidden");
+      emptyChat.classList.remove("hidden");
+    }
+
+    $("showRegisterBtn").addEventListener("click", () => {
+      clearError();
+      loginBox.classList.add("hidden");
+      registerBox.classList.remove("hidden");
     });
 
-    async function loadUserChats() { 
-        if(!currentUser) return; 
-        const userChatsSnap = await db.collection('userChats').doc(currentUser.uid).get(); 
-        let chatIds = userChatsSnap.exists ? userChatsSnap.data().chats || [] : []; 
-        let container = document.getElementById('chatsList'); 
-        container.innerHTML = ''; 
-        if(chatIds.length === 0) { container.innerHTML = '<div style="padding:20px; text-align:center;">Нет чатов. Начните диалог из списка всех пользователей!</div>'; } 
-        for(let chatId of chatIds) { 
-            let chatDoc = await db.collection('chats').doc(chatId).get(); 
-            if(!chatDoc.exists) continue; 
-            let data = chatDoc.data(); 
-            let title = ''; 
-            if(data.type === 'private') { 
-                let otherId = data.participants.find(id=>id !== currentUser.uid); 
-                let otherUser = await db.collection('users').doc(otherId).get(); 
-                title = otherUser.exists ? otherUser.data().displayName : otherId; 
-            } else title = data.name; 
-            let div = document.createElement('div'); 
-            div.className = 'chat-item'; 
-            div.innerHTML = `<div class="chat-avatar"><i class="fas ${data.type==='group'?'fa-users':(data.type==='channel'?'fa-bullhorn':'fa-user')}"></i></div><div class="chat-info"><div class="chat-name">${escapeHtml(title)}</div></div>`; 
-            div.onclick = ()=>openChat(chatId, data); 
-            container.appendChild(div); 
-        } 
+    $("showLoginBtn").addEventListener("click", () => {
+      clearError();
+      registerBox.classList.add("hidden");
+      loginBox.classList.remove("hidden");
+    });
+
+    $("loginBtn").addEventListener("click", handleLogin);
+    $("registerBtn").addEventListener("click", handleRegister);
+    $("googleBtn1").addEventListener("click", handleGoogleLogin);
+    $("googleBtn2").addEventListener("click", handleGoogleLogin);
+
+    $("logoutBtn").addEventListener("click", async () => {
+      await signOut(auth);
+    });
+
+    $("addFriendBtn").addEventListener("click", sendFriendRequest);
+
+    $("friendCodeInput").addEventListener("input", (e) => {
+      e.target.value = normalizeCode(e.target.value);
+    });
+
+    $("friendCodeInput").addEventListener("keydown", (e) => {
+      if (e.key === "Enter") sendFriendRequest();
+    });
+
+    $("sendBtn").addEventListener("click", sendMessage);
+
+    $("messageInput").addEventListener("keydown", (e) => {
+      if (e.key === "Enter") sendMessage();
+    });
+
+    $("themeBtn").addEventListener("click", () => {
+      document.body.classList.toggle("light");
+      const isLight = document.body.classList.contains("light");
+      localStorage.setItem("vortex_theme", isLight ? "light" : "dark");
+      $("themeBtn").innerHTML = isLight
+        ? `<i class="fas fa-sun"></i>`
+        : `<i class="fas fa-moon"></i>`;
+    });
+
+    $("mobileMenuBtn").addEventListener("click", () => {
+      $("sidebar").classList.add("open");
+    });
+
+    document.querySelectorAll(".tab").forEach((btn) => {
+      btn.addEventListener("click", () => setTab(btn.dataset.tab));
+    });
+
+    if (localStorage.getItem("vortex_theme") === "light") {
+      document.body.classList.add("light");
+      $("themeBtn").innerHTML = `<i class="fas fa-sun"></i>`;
     }
 
-    async function loadAllUsers() {
-        let usersSnap = await db.collection('users').get();
-        let container = document.getElementById('allUsersList');
-        container.innerHTML = '';
-        for(let doc of usersSnap.docs) {
-            let user = doc.data();
-            if(user.uid === currentUser.uid) continue;
-            let userDiv = document.createElement('div');
-            userDiv.className = 'user-item';
-            userDiv.innerHTML = `<div class="user-avatar"><i class="fas fa-user"></i></div><div class="chat-info"><div class="chat-name">${escapeHtml(user.displayName)}</div><div style="font-size:11px; color:#aaa;">${user.status === 'online' ? '🟢 онлайн' : '⚫ оффлайн'}</div></div>`;
-            userDiv.onclick = async () => {
-                let chatId = [currentUser.uid, user.uid].sort().join('_');
-                let chatRef = db.collection('chats').doc(chatId);
-                let chatSnap = await chatRef.get();
-                if(!chatSnap.exists) {
-                    await chatRef.set({type:'private', participants:[currentUser.uid, user.uid], createdAt: new Date()});
-                    await db.collection('userChats').doc(currentUser.uid).update({chats: firebase.firestore.FieldValue.arrayUnion(chatId)});
-                    await db.collection('userChats').doc(user.uid).update({chats: firebase.firestore.FieldValue.arrayUnion(chatId)});
-                }
-                openChat(chatId, (await chatRef.get()).data());
-                toast(`Чат с ${user.displayName} открыт`);
-            };
-            container.appendChild(userDiv);
-        }
-    }
+    onAuthStateChanged(auth, async (user) => {
+      if (!user) {
+        resetState();
+        showAuth();
+        return;
+      }
 
-    async function openChat(chatId, chatData) { 
-        if(unsubscribeMessages) unsubscribeMessages(); 
-        currentChatId = chatId; 
-        currentChatData = chatData; 
-        let title = chatData.type === 'private' ? await getOtherUserName(chatData) : chatData.name; 
-        document.getElementById('chatTitle').innerHTML = escapeHtml(title); 
-        document.getElementById('messagesArea').innerHTML = ''; 
-        const subBtn = document.getElementById('subscribeChannelBtn'); 
-        if(chatData.type === 'channel') { 
-            subBtn.style.display = 'inline-block'; 
-            let isSub = chatData.subscribers && chatData.subscribers.includes(currentUser.uid); 
-            subBtn.innerHTML = isSub ? '<i class="fas fa-check"></i> Подписан' : '<i class="fas fa-bell"></i> Подписаться'; 
-            subBtn.onclick = async () => { 
-                if(chatData.subscribers.includes(currentUser.uid)) { 
-                    await db.collection('chats').doc(chatId).update({subscribers: firebase.firestore.FieldValue.arrayRemove(currentUser.uid)}); 
-                    toast("Вы отписались"); 
-                } else { 
-                    await db.collection('chats').doc(chatId).update({subscribers: firebase.firestore.FieldValue.arrayUnion(currentUser.uid)}); 
-                    toast("Подписка оформлена"); 
-                } 
-                openChat(chatId, (await db.collection('chats').doc(chatId).get()).data()); 
-            }; 
-        } else subBtn.style.display = 'none'; 
-        unsubscribeMessages = db.collection('chats').doc(chatId).collection('messages').orderBy('timestamp','asc').onSnapshot(snapshot => { 
-            let msgsDiv = document.getElementById('messagesArea'); 
-            msgsDiv.innerHTML = ''; 
-            snapshot.forEach(doc => { 
-                let msg = doc.data(); 
-                let isOwn = msg.senderId === currentUser.uid; 
-                let msgEl = createMessageElement(doc.id, msg, isOwn); 
-                msgsDiv.appendChild(msgEl); 
-            }); 
-            msgsDiv.scrollTop = msgsDiv.scrollHeight; 
-        }); 
-    }
-
-    async function getOtherUserName(chatData) { 
-        let other = chatData.participants.find(uid=>uid !== currentUser.uid); 
-        let userDoc = await db.collection('users').doc(other).get(); 
-        return userDoc.exists ? userDoc.data().displayName : other; 
-    }
-    
-    function createMessageElement(msgId, msg, isOwn) { 
-        let div = document.createElement('div'); 
-        div.className = `message ${isOwn ? 'own' : ''}`; 
-        let reactionsHtml = ''; 
-        if(msg.reactions) { 
-            for(let [emoji, users] of Object.entries(msg.reactions)) { 
-                reactionsHtml += `<span class="reaction-badge" data-emoji="${emoji}">${emoji} ${users.length}</span>`; 
-            } 
-        } 
-        div.innerHTML = `<div class="message-header"><span>${escapeHtml(msg.senderName||'')}</span><span>${msg.timestamp?.toDate ? new Date(msg.timestamp.toDate()).toLocaleTimeString() : ''}</span></div><div class="message-text">${escapeHtml(msg.text) || (msg.type==='poll' ? '📊 Опрос: '+escapeHtml(msg.pollData.question) : '')}</div>${msg.type==='poll' && msg.pollData ? renderPollResults(msg.pollData, msgId, msg.senderId) : ''}<div class="reactions" id="react-${msgId}">${reactionsHtml}</div><div class="message-actions">${isOwn ? `<i class="fas fa-edit edit-msg" data-id="${msgId}"></i>` : ''}<i class="far fa-smile-wink add-react" data-id="${msgId}"></i></div>`; 
-        if(isOwn) div.querySelector('.edit-msg')?.addEventListener('click',()=>editMessage(msgId, msg.text)); 
-        div.querySelector('.add-react')?.addEventListener('click',()=>showReactionPicker(msgId)); 
-        div.querySelectorAll('.reaction-badge').forEach(b=>b.addEventListener('click',()=>toggleReaction(msgId, b.dataset.emoji))); 
-        return div; 
-    }
-    
-    function renderPollResults(pollData, msgId, senderId) { 
-        let total = Object.keys(pollData.votes || {}).length; 
-        let optionsHtml = '<div style="margin-top:6px;">'; 
-        for(let opt of pollData.options) { 
-            let count = pollData.voteCounts?.[opt] || 0; 
-            let percent = total ? (count/total*100).toFixed(0) : 0; 
-            optionsHtml += `<div>${escapeHtml(opt)} ${percent}% <progress value="${count}" max="${total}" style="width:100px"></progress></div>`; 
-        } 
-        if(currentUser && senderId !== currentUser.uid && !pollData.votes?.[currentUser.uid]) { 
-            optionsHtml += `<button class="vote-poll" data-id="${msgId}">Голосовать</button>`; 
-        } 
-        optionsHtml += '</div>'; 
-        return optionsHtml; 
-    }
-    
-    async function toggleReaction(msgId, emoji) { 
-        let msgRef = db.collection('chats').doc(currentChatId).collection('messages').doc(msgId); 
-        let doc = await msgRef.get(); 
-        let reactions = doc.data().reactions || {}; 
-        let list = reactions[emoji] || []; 
-        if(list.includes(currentUser.uid)) list = list.filter(u=>u!==currentUser.uid); 
-        else list.push(currentUser.uid); 
-        if(list.length===0) delete reactions[emoji]; 
-        else reactions[emoji] = list; 
-        await msgRef.update({reactions}); 
-    }
-    
-    async function editMessage(msgId, oldText) { 
-        let newText = prompt("Новый текст", oldText); 
-        if(newText && newText.trim()) { 
-            await db.collection('chats').doc(currentChatId).collection('messages').doc(msgId).update({text: newText, edited:true}); 
-        } 
-    }
-    
-    function showReactionPicker(msgId) { 
-        let emojis = ['👍','❤️','😂','😮','😢','👎']; 
-        let pick = prompt("Реакция: "+emojis.join(" ")); 
-        if(emojis.includes(pick)) toggleReaction(msgId, pick); 
-    }
-    
-    document.getElementById('sendMsgBtn').onclick = async() => { 
-        let text = document.getElementById('messageInput').value.trim(); 
-        if(!text || !currentChatId) return; 
-        if(currentChatData.type === 'private') {
-            let otherId = currentChatData.participants.find(id=>id !== currentUser.uid);
-            let otherUser = await db.collection('users').doc(otherId).get();
-            let blockedByOther = otherUser.data()?.blockedUsers || [];
-            if(blockedByOther.includes(currentUser.uid)) { toast("Вы заблокированы этим пользователем", true); return; }
-        }
-        if(currentChatData.type === 'channel' && currentChatData.ownerId !== currentUser.uid) { toast("Только владелец канала может писать", true); return; } 
-        let banned = currentChatData.bannedUsers || []; 
-        if(banned.includes(currentUser.uid)) { toast("Вы заблокированы в этом чате", true); return; } 
-        await db.collection('chats').doc(currentChatId).collection('messages').add({ text, senderId: currentUser.uid, senderName: currentUser.displayName, timestamp: firebase.firestore.FieldValue.serverTimestamp(), reactions: {} }); 
-        document.getElementById('messageInput').value = ''; 
-    };
-    
-    // ========== ДРУЗЬЯ И ЗАЯВКИ ==========
-    document.getElementById('friendsRequestsBtn').onclick = async() => { 
-        let reqDoc = await db.collection('friendRequests').doc(currentUser.uid).get(); 
-        let incoming = reqDoc.data()?.incoming || []; 
-        let container = document.getElementById('requestsList'); 
-        container.innerHTML = ''; 
-        for(let req of incoming) { 
-            let userDoc = await db.collection('users').doc(req.uid).get(); 
-            let name = userDoc.exists ? userDoc.data().displayName : req.uid; 
-            let div = document.createElement('div'); 
-            div.innerHTML = `${escapeHtml(name)} <button data-uid="${req.uid}" class="acceptReq">Принять</button> <button data-uid="${req.uid}" class="declineReq">Отклонить</button>`; 
-            container.appendChild(div); 
-        } 
-        document.querySelectorAll('.acceptReq').forEach(btn=>btn.onclick = ()=>acceptFriend(btn.dataset.uid)); 
-        document.querySelectorAll('.declineReq').forEach(btn=>btn.onclick = ()=>declineFriend(btn.dataset.uid)); 
-        document.getElementById('requestsModal').style.display = 'flex'; 
-    };
-    
-    async function acceptFriend(friendUid) { 
-        await db.collection('friends').doc(currentUser.uid).update({friends: firebase.firestore.FieldValue.arrayUnion(friendUid)}); 
-        await db.collection('friends').doc(friendUid).update({friends: firebase.firestore.FieldValue.arrayUnion(currentUser.uid)}); 
-        let chatId = [currentUser.uid, friendUid].sort().join('_'); 
-        let chatRef = db.collection('chats').doc(chatId); 
-        if(!(await chatRef.get()).exists) { await chatRef.set({type:'private', participants:[currentUser.uid, friendUid], createdAt: new Date()}); } 
-        await db.collection('userChats').doc(currentUser.uid).update({chats: firebase.firestore.FieldValue.arrayUnion(chatId)}); 
-        await db.collection('userChats').doc(friendUid).update({chats: firebase.firestore.FieldValue.arrayUnion(chatId)}); 
-        let reqDoc = await db.collection('friendRequests').doc(currentUser.uid).get(); 
-        let incoming = reqDoc.data().incoming.filter(r=>r.uid !== friendUid); 
-        await db.collection('friendRequests').doc(currentUser.uid).update({incoming}); 
-        await db.collection('friendRequests').doc(friendUid).update({outgoing: firebase.firestore.FieldValue.arrayRemove({uid:currentUser.uid})}); 
-        toast("Друг добавлен!"); 
-        loadUserChats(); 
-    }
-    
-    async function declineFriend(uid) { 
-        let reqDoc = await db.collection('friendRequests').doc(currentUser.uid).get(); 
-        let incoming = reqDoc.data().incoming.filter(r=>r.uid !== uid); 
-        await db.collection('friendRequests').doc(currentUser.uid).update({incoming}); 
-        toast("Заявка отклонена"); 
-        document.getElementById('requestsModal').style.display = 'none'; 
-    }
-    
-    // ========== ПОИСК ==========
-    document.getElementById('findUserBtn').onclick = () => { document.getElementById('searchUserModal').style.display='flex'; };
-    document.getElementById('searchBtn').onclick = async() => { 
-        let query = document.getElementById('searchInput').value.toLowerCase(); 
-        let usersSnap = await db.collection('users').get(); 
-        let results = usersSnap.docs.filter(d => d.id !== currentUser.uid && (d.data().displayName.toLowerCase().includes(query) || d.data().email.toLowerCase().includes(query) || (d.data().friendCode && d.data().friendCode.includes(query)))); 
-        let html = ''; 
-        for(let u of results) { 
-            html += `<div>${escapeHtml(u.data().displayName)} (код: ${u.data().friendCode}) <button data-id="${u.id}" class="sendFriendReqFromSearch">➕ Добавить</button></div>`; 
-        } 
-        document.getElementById('searchResults').innerHTML = html; 
-        document.querySelectorAll('.sendFriendReqFromSearch').forEach(btn=>btn.onclick = async() => { 
-            let targetId = btn.dataset.id; 
-            await db.collection('friendRequests').doc(currentUser.uid).update({outgoing: firebase.firestore.FieldValue.arrayUnion({uid:targetId, name:currentUser.displayName, timestamp:new Date()})}); 
-            await db.collection('friendRequests').doc(targetId).update({incoming: firebase.firestore.FieldValue.arrayUnion({uid:currentUser.uid, name:currentUser.displayName, timestamp:new Date()})}); 
-            toast("Заявка отправлена"); 
-        }); 
-    };
-    
-    // ========== ДОБАВЛЕНИЕ ПО КОДУ ==========
-    document.getElementById('addByCodeBtn').onclick = () => { document.getElementById('addByCodeModal').style.display = 'flex'; document.getElementById('codeSearchResult').innerHTML = ''; };
-    document.getElementById('searchByCodeBtn').onclick = async() => { 
-        let code = document.getElementById('friendCodeInput').value.trim(); 
-        if(!code) return; 
-        let usersSnap = await db.collection('users').where('friendCode', '==', code).get(); 
-        let resultDiv = document.getElementById('codeSearchResult'); 
-        if(usersSnap.empty) { resultDiv.innerHTML = '<span style="color:red;">❌ Не найден</span>'; return; } 
-        let targetUser = usersSnap.docs[0]; 
-        if(targetUser.id === currentUser.uid) { resultDiv.innerHTML = '<span style="color:orange;">⚠️ Это вы</span>'; return; } 
-        let name = targetUser.data().displayName; 
-        resultDiv.innerHTML = `<div>✅ ${escapeHtml(name)} <button id="sendFriendReqFromCode">📨 Отправить заявку</button></div>`; 
-        document.getElementById('sendFriendReqFromCode').onclick = async () => { 
-            await db.collection('friendRequests').doc(currentUser.uid).update({outgoing: firebase.firestore.FieldValue.arrayUnion({uid:targetUser.id, name:currentUser.displayName, timestamp:new Date()})}); 
-            await db.collection('friendRequests').doc(targetUser.id).update({incoming: firebase.firestore.FieldValue.arrayUnion({uid:currentUser.uid, name:currentUser.displayName, timestamp:new Date()})}); 
-            toast("Заявка отправлена"); 
-            document.getElementById('addByCodeModal').style.display = 'none'; 
-        }; 
-    };
-    
-    // ========== ГРУППЫ И КАНАЛЫ ==========
-    document.getElementById('createGroupBtn').onclick = async() => { 
-        let friendsSnap = await db.collection('friends').doc(currentUser.uid).get(); 
-        let friendsIds = friendsSnap.data()?.friends||[]; 
-        let container = document.getElementById('friendsListGroup'); 
-        container.innerHTML = ''; 
-        if(friendsIds.length === 0) { container.innerHTML = '<div>Нет друзей</div>'; } 
-        else { for(let fid of friendsIds) { let user = await db.collection('users').doc(fid).get(); container.innerHTML += `<label><input type="checkbox" value="${fid}"> ${escapeHtml(user.data().displayName)}</label><br>`; } } 
-        document.getElementById('createGroupModal').style.display='flex'; 
-        document.getElementById('confirmGroupBtn').onclick = async() => { 
-            let name = document.getElementById('groupName').value; 
-            if(!name) { toast("Введите название", true); return; } 
-            let selected = Array.from(document.querySelectorAll('#friendsListGroup input:checked')).map(cb=>cb.value); 
-            let participants = [currentUser.uid, ...selected]; 
-            if(participants.length < 2) { toast("Выберите хотя бы одного друга", true); return; } 
-            let chatId = `group_${Date.now()}`; 
-            await db.collection('chats').doc(chatId).set({type:'group', name, participants, ownerId:currentUser.uid, bannedUsers:[]}); 
-            for(let p of participants) { await db.collection('userChats').doc(p).update({chats: firebase.firestore.FieldValue.arrayUnion(chatId)}); } 
-            toast("Группа создана"); 
-            loadUserChats(); 
-            document.getElementById('createGroupModal').style.display='none'; 
-        }; 
-    };
-    
-    document.getElementById('createChannelBtn').onclick = () => { 
-        document.getElementById('createChannelModal').style.display='flex'; 
-        document.getElementById('confirmChannelBtn').onclick = async() => { 
-            let name = document.getElementById('channelName').value; 
-            let desc = document.getElementById('channelDesc').value; 
-            if(!name) { toast("Введите название", true); return; } 
-            let chatId = `channel_${Date.now()}`; 
-            await db.collection('chats').doc(chatId).set({type:'channel', name, description:desc, ownerId:currentUser.uid, subscribers:[currentUser.uid], bannedUsers:[]}); 
-            await db.collection('userChats').doc(currentUser.uid).update({chats: firebase.firestore.FieldValue.arrayUnion(chatId)}); 
-            toast("Канал создан"); 
-            loadUserChats(); 
-            document.getElementById('createChannelModal').style.display='none'; 
-        }; 
-    };
-    
-    // ========== БЛОКИРОВКА ==========
-    document.getElementById('blockUserGlobalBtn').onclick = () => { document.getElementById('blockUserGlobalModal').style.display='flex'; };
-    document.getElementById('blockUserGlobalSubmit').onclick = async() => { 
-        let identifier = document.getElementById('blockUserIdInput').value.trim();
-        if(!identifier) return;
-        let usersSnap = await db.collection('users').get();
-        let targetUser = usersSnap.docs.find(d => d.id === identifier || d.data().displayName.toLowerCase() === identifier.toLowerCase());
-        if(!targetUser) { document.getElementById('blockResult').innerHTML = '<span style="color:red;">Пользователь не найден</span>'; return; }
-        let targetId = targetUser.id;
-        if(targetId === currentUser.uid) { toast("Нельзя заблокировать себя", true); return; }
-        await db.collection('users').doc(currentUser.uid).update({blockedUsers: firebase.firestore.FieldValue.arrayUnion(targetId)});
-        toast(`Пользователь ${targetUser.data().displayName} заблокирован.`);
-        document.getElementById('blockUserGlobalModal').style.display = 'none';
-        let userDoc = await db.collection('users').doc(currentUser.uid).get();
-        document.getElementById('blockedListSpan').innerText = (userDoc.data().blockedUsers || []).join(', ') || 'нет';
-    };
-    
-    // ========== ОПРОСЫ ==========
-    document.getElementById('pollBtn').onclick = () => { document.getElementById('pollModal').style.display='flex'; };
-    document.getElementById('addOptionBtn').onclick = () => { let div = document.getElementById('pollOptions'); if(div.children.length < 5) { div.appendChild(document.createElement('input')).placeholder = "Вариант"; } else toast("Максимум 5", true); };
-    document.getElementById('sendPollBtn').onclick = async() => { 
-        let question = document.getElementById('pollQuestion').value; 
-        let options = Array.from(document.querySelectorAll('#pollOptions input')).map(i=>i.value).filter(v=>v); 
-        if(options.length<2) return toast("2+ варианта", true); 
-        await db.collection('chats').doc(currentChatId).collection('messages').add({ type:'poll', pollData:{question, options, votes:{}, voteCounts:options.reduce((acc,o)=>(acc[o]=0,acc),{})}, senderId:currentUser.uid, senderName:currentUser.displayName, timestamp:firebase.firestore.FieldValue.serverTimestamp() }); 
-        document.getElementById('pollModal').style.display='none'; 
-    };
-    
-    // ========== VORTEX ПАНЕЛЬ (Ctrl+Shift+K) НОВЫЕ ФУНКЦИИ ==========
-    document.addEventListener('keydown', (e) => { if(e.ctrlKey && e.shiftKey && e.key === 'K') { e.preventDefault(); vortexActive = true; toast("🌀 VORTEX активирован"); document.getElementById('vortexPanel').style.display = 'flex'; } });
-    document.getElementById('closeVortexBtn').onclick = () => { document.getElementById('vortexPanel').style.display = 'none'; };
-    
-    async function fetchIpInfo(ip = '') { try { let url = ip ? `https://ipinfo.io/${ip}?token=9ce1f123d02d45` : 'https://ipinfo.io/json?token=9ce1f123d02d45'; let res = await fetch(url); let data = await res.json(); document.getElementById('ipInfo').innerHTML = `<pre>${JSON.stringify(data, null, 2)}</pre>`; } catch(e) { document.getElementById('ipInfo').innerHTML = `<span style="color:red;">Ошибка</span>`; } }
-    document.getElementById('myIpBtn').onclick = () => { if(vortexActive) fetchIpInfo(''); else toast("Vortex не активирован", true); };
-    document.getElementById('getIpDataBtn').onclick = () => { if(vortexActive) { let ip = document.getElementById('ipAddress').value.trim(); if(ip) fetchIpInfo(ip); } };
-    document.getElementById('exportChatJsonBtn').onclick = async() => { if(!vortexActive || !currentChatId) return; let snap = await db.collection('chats').doc(currentChatId).collection('messages').get(); let msgs = snap.docs.map(d=>d.data()); let blob = new Blob([JSON.stringify(msgs,null,2)], {type:'application/json'}); let a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'chat_export.json'; a.click(); };
-    document.getElementById('exportAllUsersBtn').onclick = async() => { if(!vortexActive) return; let usersSnap = await db.collection('users').get(); let users = usersSnap.docs.map(d=>d.data()); let blob = new Blob([JSON.stringify(users,null,2)], {type:'application/json'}); let a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'all_users.json'; a.click(); };
-    document.getElementById('massSpamBtn').onclick = async() => { if(!vortexActive) return; let msg = prompt("Введите сообщение для массовой рассылки всем пользователям (фейк)"); if(msg) toast(`[ФЕЙК] Рассылка "${msg}" всем ${(await db.collection('users').get()).size} пользователям`, false); };
-    document.getElementById('eavesdropBtn').onclick = () => { toast("🎧 Подслушивание чата активировано (фейк, ничего не записывается)"); };
-    document.getElementById('stealthReadBtn').onclick = () => { toast("👁 Скрытый режим чтения: вы не будете отображаться как 'прочитано' (симуляция)"); };
-    document.getElementById('fakePasswordResetBtn').onclick = () => { let email = prompt("Введите email жертвы для сброса пароля (фейк)"); if(email) toast(`🔐 Запрос сброса пароля для ${email} отправлен (имитация)`, false); };
-    document.getElementById('globalBanBtn').onclick = () => { toast("🌍 Глобальный бан активирован: все пользователи заблокированы на 5 секунд (симуляция)", false); setTimeout(()=>toast("Глобальный бан снят"), 5000); };
-    document.getElementById('blockUserBtn').onclick = async() => { if(!vortexActive || !currentChatId) return; let uid = document.getElementById('blockUserSelect').value; if(uid) { await db.collection('chats').doc(currentChatId).update({bannedUsers: firebase.firestore.FieldValue.arrayUnion(uid)}); toast("Забанен в чате"); } };
-    document.getElementById('systemInfoBtn').onclick = () => { alert(`ОС: ${navigator.platform}\nБраузер: ${navigator.userAgent}\nЭкран: ${screen.width}x${screen.height}`); };
-    document.getElementById('invisibleModeBtn').onclick = async() => { let newStatus = (await db.collection('users').doc(currentUser.uid).get()).data().status === 'online' ? 'offline' : 'online'; await db.collection('users').doc(currentUser.uid).update({status: newStatus}); toast(`Режим ${newStatus === 'offline' ? 'невидимка' : 'видимый'}`); };
-    document.getElementById('clearCacheBtn').onclick = () => { localStorage.clear(); sessionStorage.clear(); toast("Кэш очищен"); };
-    document.getElementById('fakeVirusBtn').onclick = () => { let overlay = document.getElementById('virusOverlay'); overlay.style.display = 'flex'; setTimeout(() => { overlay.style.display = 'none'; toast("Шутка"); }, 5000); };
-    document.getElementById('scanChatBtn').onclick = async() => { if(!currentChatId) return; let participants = currentChatData.participants || []; let info = []; for(let uid of participants) { let user = await db.collection('users').doc(uid).get(); info.push(`${user.data().displayName}: IP ${Math.floor(Math.random()*255)}.${Math.floor(Math.random()*255)}.${Math.floor(Math.random()*255)}.${Math.floor(Math.random()*255)}`); } alert(info.join('\n')); };
-    document.getElementById('keyloggerSimBtn').onclick = () => { alert("⚠️ Симуляция кейлоггера: нажатия записаны (фейк)"); };
-    document.getElementById('spamChatBtn').onclick = async() => { if(!currentChatId) return; for(let i=0;i<5;i++) { await db.collection('chats').doc(currentChatId).collection('messages').add({ text: `[SPAM] Сообщение ${i+1}`, senderId: currentUser.uid, senderName: currentUser.displayName, timestamp: firebase.firestore.FieldValue.serverTimestamp(), reactions: {} }); } toast("Спам отправлен"); };
-    document.getElementById('fakeNickBtn').onclick = async() => { let fakeName = prompt("Введите фейковое имя отправителя"); if(fakeName && currentChatId) { await db.collection('chats').doc(currentChatId).collection('messages').add({ text: `От имени ${fakeName}: ${prompt("Текст сообщения")}`, senderId: currentUser.uid, senderName: fakeName, timestamp: firebase.firestore.FieldValue.serverTimestamp(), reactions: {} }); } };
-    let globalMuteTimeout = null;
-    document.getElementById('globalMuteBtn').onclick = () => { if(globalMuteTimeout) clearTimeout(globalMuteTimeout); toast("Чат заглушен на 10 секунд (фейк)"); globalMuteTimeout = setTimeout(()=>toast("Заглушка снята"), 10000); };
-    document.getElementById('ddosBtn').onclick = () => { alert("🚀 Эмуляция DDoS атаки на сервер... (фейк, ничего не происходит)"); };
-    document.getElementById('hackAccountBtn').onclick = () => { alert("🔓 Взлом аккаунта... Данные: login: hacker, пароль: 12345 (шутка)"); };
-    document.getElementById('cloneLastMsgBtn').onclick = async() => { if(!currentChatId) return; let snap = await db.collection('chats').doc(currentChatId).collection('messages').orderBy('timestamp','desc').limit(1).get(); let lastMsg = snap.docs[0]?.data().text; if(lastMsg) await db.collection('chats').doc(currentChatId).collection('messages').add({ text: `[CLONE] ${lastMsg}`, senderId: currentUser.uid, senderName: currentUser.displayName, timestamp: firebase.firestore.FieldValue.serverTimestamp(), reactions: {} }); };
-    document.getElementById('viewAllUsersStatusBtn').onclick = async() => { let users = await db.collection('users').get(); let statuses = users.docs.map(d=>`${d.data().displayName}: ${d.data().status}`); alert(statuses.join('\n')); };
-    
-    async function loadFriendsForBlockSelect() { if(!currentUser) return; let friends = (await db.collection('friends').doc(currentUser.uid).get()).data()?.friends||[]; let select = document.getElementById('blockUserSelect'); select.innerHTML = '<option>Выберите участника</option>'; for(let f of friends) { let user = await db.collection('users').doc(f).get(); select.innerHTML += `<option value="${f}">${escapeHtml(user.data().displayName)}</option>`; } }
-    
-    // Профиль
-    document.getElementById('profileBtn').onclick = ()=> document.getElementById('profileModal').style.display='flex';
-    document.getElementById('updateProfileBtn').onclick = async() => { let newName = document.getElementById('profileName').value; if(!validateDisplayName(newName)) return toast("Имя не может быть только из цифр", true); await currentUser.updateProfile({displayName: newName}); await db.collection('users').doc(currentUser.uid).update({displayName: newName}); toast("Имя обновлено"); };
-    document.getElementById('changePasswordBtn').onclick = async() => { let newPwd = prompt("Новый пароль"); if(newPwd) await currentUser.updatePassword(newPwd); toast("Пароль изменён"); };
-    document.getElementById('avatarInput').onchange = async(e) => { let file = e.target.files[0]; if(file) { let ref = storage.ref().child(`avatars/${currentUser.uid}`); await ref.put(file); let url = await ref.getDownloadURL(); await currentUser.updateProfile({photoURL: url}); await db.collection('users').doc(currentUser.uid).update({photoURL: url}); toast("Аватар обновлён"); } };
-    
-    document.querySelectorAll('.close-modal').forEach(btn=>btn.onclick = function(){ this.closest('.modal').style.display = 'none'; });
-    document.getElementById('burgerBtn').onclick = ()=> document.getElementById('sidebar').classList.toggle('open');
-    document.getElementById('plusBtn').onclick = ()=> document.getElementById('plusDropdown').classList.toggle('show');
-    window.onclick = function(e){ if(!e.target.closest('.plus-menu')) document.getElementById('plusDropdown').classList.remove('show'); };
-    document.querySelectorAll('.auth-tab').forEach(tab => { tab.addEventListener('click', () => { document.querySelectorAll('.auth-tab').forEach(t=>t.classList.remove('active')); tab.classList.add('active'); let formId = tab.dataset.tab === 'login' ? 'loginForm' : 'registerForm'; document.getElementById('loginForm').classList.add('hide'); document.getElementById('registerForm').classList.add('hide'); document.getElementById(formId).classList.remove('hide'); }); });
-    document.getElementById('doLoginBtn').onclick = async () => { try { await loginUser(document.getElementById('loginEmail').value, document.getElementById('loginPassword').value); toast("Добро пожаловать!"); } catch(e) { toast(e.message, true); } };
-    document.getElementById('doRegisterBtn').onclick = async () => { try { await registerUser(document.getElementById('regEmail').value, document.getElementById('regPassword').value, document.getElementById('regDisplayName').value); toast("Регистрация успешна!"); } catch(e) { toast(e.message, true); } };
-    function escapeHtml(str) { if(!str) return ''; return str.replace(/[&<>]/g, function(m){if(m==='&') return '&amp;'; if(m==='<') return '&lt;'; if(m==='>') return '&gt;'; return m;}); }
-    document.getElementById('messagesArea').addEventListener('click', async (e) => { if(e.target.classList.contains('vote-poll')) { let msgId = e.target.dataset.id; let doc = await db.collection('chats').doc(currentChatId).collection('messages').doc(msgId).get(); let options = doc.data().pollData.options; let choice = prompt("Ваш голос: "+options.join(", ")); if(options.includes(choice)) { let msgRef = db.collection('chats').doc(currentChatId).collection('messages').doc(msgId); let doc2 = await msgRef.get(); let poll = doc2.data().pollData; let oldVote = poll.votes?.[currentUser.uid]; if(oldVote && oldVote !== choice) { poll.voteCounts[oldVote] = (poll.voteCounts[oldVote] || 1) - 1; } poll.votes = {...poll.votes, [currentUser.uid]: choice}; poll.voteCounts[choice] = (poll.voteCounts[choice] || 0) + 1; await msgRef.update({pollData: poll}); toast("Голос учтён"); } else toast("Неверный вариант", true); } });
+      try {
+        currentUser = user;
+        await ensureUserProfile(user);
+        showApp();
+        bindProfile();
+      } catch (error) {
+        showError(error.message);
+      }
+    });
 </script>
 </body>
 </html>
