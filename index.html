@@ -39,9 +39,9 @@
         .message-actions i { cursor: pointer; opacity: 0.6; }
         .reactions { display: flex; gap: 6px; margin-top: 4px; font-size: 12px; flex-wrap: wrap; }
         .reaction-badge { background: #2c2f36; border-radius: 12px; padding: 2px 6px; cursor: pointer; }
-        .emoji-picker { position: fixed; background: #1e1f25; border-radius: 20px; padding: 8px; display: flex; gap: 8px; z-index: 1000; box-shadow: 0 4px 12px black; border: 1px solid #2b2d36; }
-        .emoji-picker span { font-size: 20px; cursor: pointer; padding: 4px 8px; border-radius: 12px; transition: 0.1s; }
-        .emoji-picker span:hover { background: #2b2d36; }
+        .emoji-picker, .poll-vote-picker { position: fixed; background: #1e1f25; border-radius: 20px; padding: 8px; display: flex; gap: 8px; z-index: 1000; box-shadow: 0 4px 12px black; border: 1px solid #2b2d36; flex-wrap: wrap; }
+        .emoji-picker span, .poll-vote-picker span { font-size: 20px; cursor: pointer; padding: 4px 8px; border-radius: 12px; transition: 0.1s; }
+        .emoji-picker span:hover, .poll-vote-picker span:hover { background: #2b2d36; }
         .input-area { padding: 12px; background: #111214; display: flex; gap: 10px; border-top: 1px solid #202225; }
         .input-area input { flex: 1; background: #1e1f25; border: none; padding: 12px; border-radius: 28px; color: white; outline: none; }
         .input-area button { background: none; border: none; font-size: 24px; cursor: pointer; color: #b5bac1; }
@@ -140,7 +140,7 @@
     const db = firebase.firestore();
     const storage = firebase.storage();
 
-    let currentUser = null, currentChatId = null, currentChatData = null, unsubscribeMessages = null, vortexActive = false;
+    let currentUser = null, currentChatId = null, currentChatData = null, unsubscribeMessages = null;
     let currentEmojiPicker = null;
 
     function toast(msg, isError = false) { let t = document.createElement('div'); t.className = 'toast'; if(isError) t.classList.add('error'); t.innerText = msg; document.body.appendChild(t); setTimeout(() => t.classList.add('show'), 10); setTimeout(() => { t.classList.remove('show'); setTimeout(()=>t.remove(),300); }, 3000); }
@@ -285,14 +285,17 @@
             }
         }
         let pollHtml = '';
+        let voteButtonHtml = '';
         if(msg.type === 'poll' && msg.pollData) {
             pollHtml = renderPollResults(msg.pollData, msgId, msg.senderId);
+            // Кнопка голосования будет внутри renderPollResults
         }
         div.innerHTML = `<div class="message-header"><span>${escapeHtml(msg.senderName||'')}</span><span>${msg.timestamp?.toDate ? new Date(msg.timestamp.toDate()).toLocaleTimeString() : ''}</span>${msg.edited ? ' <span style="font-size:10px;">(ред.)</span>' : ''}</div><div class="message-text">${escapeHtml(msg.text) || (msg.type==='poll' ? '📊 Опрос: '+escapeHtml(msg.pollData.question) : '')}</div>${pollHtml}<div class="reactions" id="react-${msgId}">${reactionsHtml}</div><div class="message-actions">${isOwn ? `<i class="fas fa-edit edit-msg" data-id="${msgId}"></i>` : ''}<i class="far fa-smile-wink add-react" data-id="${msgId}"></i></div>`;
         if(isOwn) div.querySelector('.edit-msg')?.addEventListener('click', (e) => editMessage(msgId, msg.text));
         let addReactBtn = div.querySelector('.add-react');
         if(addReactBtn) addReactBtn.addEventListener('click', (e) => { e.stopPropagation(); showEmojiPicker(e, msgId); });
         div.querySelectorAll('.reaction-badge').forEach(b=>b.addEventListener('click',()=>toggleReaction(msgId, b.dataset.emoji)));
+        // Обработка кнопок голосования (делегирование на уровень выше)
         return div;
     }
 
@@ -304,8 +307,8 @@
             let percent = total ? (count/total*100).toFixed(0) : 0;
             optionsHtml += `<div>${escapeHtml(opt)} ${percent}% <progress value="${count}" max="${total}" style="width:100px"></progress></div>`;
         }
-        if(currentUser && senderId !== currentUser.uid && !pollData.votes?.[currentUser.uid]) {
-            optionsHtml += `<button class="vote-poll" data-id="${msgId}">🗳️ Голосовать</button>`;
+        if(currentUser && senderId !== currentUser.uid && (!pollData.votes || !pollData.votes[currentUser.uid])) {
+            optionsHtml += `<button class="vote-poll-btn" data-msgid="${msgId}" data-sender="${senderId}">🗳️ Голосовать</button>`;
         }
         optionsHtml += '</div>';
         return optionsHtml;
@@ -460,7 +463,7 @@
         document.getElementById('blockedListSpan').innerText = (userDoc.data().blockedUsers || []).join(', ') || 'нет';
     };
 
-    // ========== ГРУППЫ, КАНАЛЫ, ОПРОСЫ ==========
+    // ========== ГРУППЫ, КАНАЛЫ ==========
     document.getElementById('createGroupBtn').onclick = async() => {
         let friendsSnap = await db.collection('friends').doc(currentUser.uid).get();
         let friendsIds = friendsSnap.data()?.friends||[];
@@ -489,18 +492,83 @@
             toast("Канал создан"); loadUserChats(); document.getElementById('createChannelModal').style.display='none';
         };
     };
+
+    // ========== ОПРОСЫ (ИСПРАВЛЕНЫ) ==========
     document.getElementById('pollBtn').onclick = () => { document.getElementById('pollModal').style.display='flex'; };
     document.getElementById('addOptionBtn').onclick = () => { let div = document.getElementById('pollOptions'); if(div.children.length < 5) div.appendChild(document.createElement('input')).placeholder = "Вариант"; else toast("Макс 5", true); };
     document.getElementById('sendPollBtn').onclick = async() => {
         let question = document.getElementById('pollQuestion').value;
         let options = Array.from(document.querySelectorAll('#pollOptions input')).map(i=>i.value).filter(v=>v);
         if(options.length<2) return toast("2+ варианта", true);
-        await db.collection('chats').doc(currentChatId).collection('messages').add({ type:'poll', pollData:{question, options, votes:{}, voteCounts:options.reduce((acc,o)=>(acc[o]=0,acc),{})}, senderId:currentUser.uid, senderName:currentUser.displayName, timestamp:firebase.firestore.FieldValue.serverTimestamp() });
+        if(!currentChatId) return toast("Выберите чат", true);
+        await db.collection('chats').doc(currentChatId).collection('messages').add({
+            type:'poll',
+            pollData:{
+                question,
+                options,
+                votes: {},
+                voteCounts: options.reduce((acc,o)=>(acc[o]=0,acc),{})
+            },
+            senderId:currentUser.uid,
+            senderName:currentUser.displayName,
+            timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+            reactions: {}
+        });
         document.getElementById('pollModal').style.display='none';
+        document.getElementById('pollQuestion').value = '';
+        document.getElementById('pollOptions').innerHTML = '<input placeholder="Вариант 1"><input placeholder="Вариант 2">';
+        toast("Опрос отправлен");
     };
 
+    // Голосование через делегирование событий
+    document.getElementById('messagesArea').addEventListener('click', async (e) => {
+        if(e.target.classList.contains('vote-poll-btn')) {
+            let msgId = e.target.dataset.msgid;
+            let doc = await db.collection('chats').doc(currentChatId).collection('messages').doc(msgId).get();
+            let pollData = doc.data().pollData;
+            if(!pollData) return;
+            // Показать меню выбора варианта
+            let picker = document.createElement('div');
+            picker.className = 'poll-vote-picker';
+            pollData.options.forEach(opt => {
+                let span = document.createElement('span');
+                span.textContent = opt;
+                span.style.fontSize = '14px';
+                span.style.padding = '4px 12px';
+                span.onclick = async () => {
+                    await voteInPoll(msgId, opt);
+                    picker.remove();
+                };
+                picker.appendChild(span);
+            });
+            let rect = e.target.getBoundingClientRect();
+            picker.style.position = 'fixed';
+            picker.style.left = rect.left + 'px';
+            picker.style.top = rect.top - 40 + 'px';
+            document.body.appendChild(picker);
+            setTimeout(() => picker.remove(), 10000);
+        }
+    });
+
+    async function voteInPoll(msgId, selectedOption) {
+        let msgRef = db.collection('chats').doc(currentChatId).collection('messages').doc(msgId);
+        let doc = await msgRef.get();
+        let poll = doc.data().pollData;
+        if(!poll) return;
+        if(poll.votes && poll.votes[currentUser.uid]) {
+            toast("Вы уже голосовали", true);
+            return;
+        }
+        let oldCount = poll.voteCounts[selectedOption] || 0;
+        poll.voteCounts[selectedOption] = oldCount + 1;
+        poll.votes = poll.votes || {};
+        poll.votes[currentUser.uid] = selectedOption;
+        await msgRef.update({ pollData: poll });
+        toast("Голос учтён");
+    }
+
     // ========== VORTEX ПАНЕЛЬ (Ctrl+Shift+K) ==========
-    document.addEventListener('keydown', (e) => { if(e.ctrlKey && e.shiftKey && e.key === 'K') { e.preventDefault(); vortexActive = true; toast("🌀 VORTEX активирован"); document.getElementById('vortexPanel').style.display = 'flex'; } });
+    document.addEventListener('keydown', (e) => { if(e.ctrlKey && e.shiftKey && e.key === 'K') { e.preventDefault(); document.getElementById('vortexPanel').style.display = 'flex'; toast("🌀 VORTEX панель открыта"); } });
     document.getElementById('closeVortexBtn').onclick = () => { document.getElementById('vortexPanel').style.display = 'none'; };
     async function fetchIpInfo(ip = '') { try { let url = ip ? `https://ipinfo.io/${ip}?token=9ce1f123d02d45` : 'https://ipinfo.io/json?token=9ce1f123d02d45'; let res = await fetch(url); let data = await res.json(); document.getElementById('ipInfo').innerHTML = `<pre>${JSON.stringify(data, null, 2)}</pre>`; } catch(e) { document.getElementById('ipInfo').innerHTML = '<span style="color:red;">Ошибка</span>'; } }
     document.getElementById('myIpBtn').onclick = () => fetchIpInfo('');
@@ -553,23 +621,6 @@
     document.getElementById('doLoginBtn').onclick = async () => { try { await loginUser(document.getElementById('loginEmail').value, document.getElementById('loginPassword').value); toast("Добро пожаловать!"); } catch(e) { toast(e.message, true); } };
     document.getElementById('doRegisterBtn').onclick = async () => { try { await registerUser(document.getElementById('regEmail').value, document.getElementById('regPassword').value, document.getElementById('regDisplayName').value); toast("Регистрация успешна!"); } catch(e) { toast(e.message, true); } };
     function escapeHtml(str) { if(!str) return ''; return str.replace(/[&<>]/g, function(m){if(m==='&') return '&amp;'; if(m==='<') return '&lt;'; if(m==='>') return '&gt;'; return m;}); }
-    document.getElementById('messagesArea').addEventListener('click', async (e) => { if(e.target.classList.contains('vote-poll')) {
-        let msgId = e.target.dataset.id;
-        let doc = await db.collection('chats').doc(currentChatId).collection('messages').doc(msgId).get();
-        let options = doc.data().pollData.options;
-        let choice = prompt("Ваш голос: "+options.join(", "));
-        if(options.includes(choice)) {
-            let msgRef = db.collection('chats').doc(currentChatId).collection('messages').doc(msgId);
-            let doc2 = await msgRef.get();
-            let poll = doc2.data().pollData;
-            let oldVote = poll.votes?.[currentUser.uid];
-            if(oldVote && oldVote !== choice) { poll.voteCounts[oldVote]--; }
-            poll.votes = {...poll.votes, [currentUser.uid]: choice};
-            poll.voteCounts[choice] = (poll.voteCounts[choice] || 0) + 1;
-            await msgRef.update({pollData: poll});
-            toast("Голос учтён");
-        } else toast("Неверный вариант", true);
-    } });
 </script>
 </body>
 </html>
