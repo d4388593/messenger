@@ -8,15 +8,14 @@
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Roboto, sans-serif; }
         body { background: #0a0c10; color: #e4e6eb; height: 100vh; overflow: hidden; }
-        .toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: #2b2f36; color: #fff; padding: 10px 20px; border-radius: 40px; font-size: 14px; z-index: 2000; box-shadow: 0 4px 12px rgba(0,0,0,0.3); border-left: 4px solid #5865f2; pointer-events: none; opacity: 0; transition: opacity 0.2s; z-index: 2100; }
+        .toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: #2b2f36; color: #fff; padding: 10px 20px; border-radius: 40px; font-size: 14px; z-index: 2000; box-shadow: 0 4px 12px rgba(0,0,0,0.3); border-left: 4px solid #5865f2; pointer-events: none; opacity: 0; transition: opacity 0.2s; }
         .toast.show { opacity: 1; }
         .toast.error { border-left-color: #ed4245; }
         .app { display: flex; height: 100vh; width: 100%; }
         .sidebar { width: 300px; background: #111214; border-right: 1px solid #202225; display: flex; flex-direction: column; transition: transform 0.2s; z-index: 10; }
         .sidebar-header { padding: 16px; border-bottom: 1px solid #202225; display: flex; justify-content: space-between; align-items: center; }
         .user-actions button { background: none; border: none; color: #b5bac1; font-size: 18px; cursor: pointer; margin-left: 10px; }
-        .chats-list { overflow-y: auto; padding: 8px; flex: 1; border-bottom: 1px solid #202225; }
-        .all-users-list { overflow-y: auto; padding: 8px; max-height: 40%; }
+        .chats-list, .all-users-list { overflow-y: auto; padding: 8px; max-height: 35%; border-top: 1px solid #202225; }
         .section-title { padding: 8px; font-size: 12px; color: #aaa; letter-spacing: 1px; }
         .chat-item, .user-item { padding: 10px; border-radius: 12px; margin-bottom: 6px; cursor: pointer; display: flex; align-items: center; gap: 12px; transition: background 0.1s; }
         .chat-item:hover, .user-item:hover { background: #1e1f25; }
@@ -30,7 +29,7 @@
         .chat-main { flex: 1; display: flex; flex-direction: column; background: #0f1115; }
         .chat-header { padding: 12px 20px; border-bottom: 1px solid #202225; display: flex; justify-content: space-between; background: #111214; }
         .chat-title { font-weight: bold; font-size: 18px; }
-        .messages-area { flex: 1; overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 12px; }
+        .messages-area { flex: 1; overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 12px; position: relative; }
         .message { display: flex; flex-direction: column; max-width: 70%; background: #1e1f25; border-radius: 18px; padding: 8px 12px; position: relative; }
         .message.own { align-self: flex-end; background: #2b2f36; }
         .message-header { font-size: 12px; color: #b0b3b8; display: flex; justify-content: space-between; }
@@ -39,6 +38,9 @@
         .message-actions i { cursor: pointer; opacity: 0.6; }
         .reactions { display: flex; gap: 6px; margin-top: 4px; font-size: 12px; flex-wrap: wrap; }
         .reaction-badge { background: #2c2f36; border-radius: 12px; padding: 2px 6px; cursor: pointer; }
+        .emoji-picker { position: absolute; background: #1e1f25; border-radius: 20px; padding: 8px; display: flex; gap: 8px; z-index: 100; box-shadow: 0 4px 12px black; border: 1px solid #2b2d36; }
+        .emoji-picker span { font-size: 20px; cursor: pointer; padding: 4px 8px; border-radius: 12px; transition: 0.1s; }
+        .emoji-picker span:hover { background: #2b2d36; }
         .input-area { padding: 12px; background: #111214; display: flex; gap: 10px; border-top: 1px solid #202225; }
         .input-area input { flex: 1; background: #1e1f25; border: none; padding: 12px; border-radius: 28px; color: white; outline: none; }
         .input-area button { background: none; border: none; font-size: 24px; cursor: pointer; color: #b5bac1; }
@@ -53,14 +55,11 @@
         .auth-tab.active { color: #5865f2; border-bottom: 2px solid #5865f2; }
         .auth-form { display: flex; flex-direction: column; gap: 12px; }
         .auth-form.hide { display: none; }
-        .vortex-panel { position: fixed; bottom: 100px; right: 20px; width: 400px; background: #1a1c22; border-radius: 16px; padding: 16px; z-index: 1050; box-shadow: 0 4px 20px black; display: none; flex-direction: column; gap: 8px; max-height: 85vh; overflow-y: auto; }
+        .vortex-panel { position: fixed; bottom: 100px; right: 20px; width: 380px; background: #1a1c22; border-radius: 16px; padding: 16px; z-index: 1050; box-shadow: 0 4px 20px black; display: none; flex-direction: column; gap: 8px; max-height: 80vh; overflow-y: auto; }
         .vortex-panel button, .vortex-panel input { margin: 4px 0; background: #2c2f36; border: none; padding: 8px; border-radius: 8px; color: white; cursor: pointer; }
         .virus-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: black; z-index: 9999; display: flex; align-items: center; justify-content: center; flex-direction: column; color: red; font-family: monospace; font-size: 24px; animation: blink 0.1s infinite; display: none; }
         @keyframes blink { 0% { opacity: 1; } 50% { opacity: 0; } 100% { opacity: 1; } }
-        .emoji-picker { position: absolute; background: #2b2d36; border-radius: 20px; padding: 8px; display: flex; gap: 12px; z-index: 1100; box-shadow: 0 4px 12px black; }
-        .emoji-picker span { font-size: 24px; cursor: pointer; padding: 4px; transition: transform 0.1s; }
-        .emoji-picker span:hover { transform: scale(1.2); background: #3b3f47; border-radius: 50%; }
-        @media (max-width: 768px) { .sidebar { position: fixed; left: -300px; top: 0; height: 100%; width: 280px; z-index: 15; } .sidebar.open { left: 0; } .burger { display: block; } }
+        @media (max-width: 768px) { .sidebar { position: fixed; left: -300px; top: 0; height: 100%; width: 280px; z-index: 15; } .sidebar.open { left: 0; } .burger { display: block; } .message { max-width: 85%; } }
     </style>
 </head>
 <body>
@@ -85,7 +84,7 @@
                 <button id="createGroupBtn"><i class="fas fa-users"></i> Создать группу</button>
                 <button id="createChannelBtn"><i class="fas fa-bullhorn"></i> Создать канал</button>
                 <button id="blockUserGlobalBtn"><i class="fas fa-ban"></i> Заблокировать пользователя</button>
-                <button id="deleteAllUsersBtn" style="color:#ff4444;"><i class="fas fa-trash-alt"></i> 💀 УДАЛИТЬ ВСЕХ ПОЛЬЗОВАТЕЛЕЙ</button>
+                <button id="deleteAllUsersBtn" style="color:#ff4444;"><i class="fas fa-trash-alt"></i> УДАЛИТЬ ВСЕХ ПОЛЬЗОВАТЕЛЕЙ (РЕАЛЬНО)</button>
             </div>
         </div>
     </div>
@@ -118,7 +117,7 @@
 <div id="pollModal" class="modal"><div class="modal-content"><span class="close-modal">&times;</span><h3>Создать опрос</h3><input id="pollQuestion" placeholder="Вопрос"><div id="pollOptions"><input placeholder="Вариант 1"><input placeholder="Вариант 2"></div><button id="addOptionBtn">+ Добавить вариант</button><button id="sendPollBtn">Отправить опрос</button></div></div>
 <div id="profileModal" class="modal"><div class="modal-content"><span class="close-modal">&times;</span><h3>Профиль</h3><input id="profileName" placeholder="Имя"><input type="file" id="avatarInput" accept="image/*"><button id="updateProfileBtn">Обновить имя</button><button id="changePasswordBtn">Сменить пароль</button><div><strong>Заблокированные:</strong> <span id="blockedListSpan"></span></div></div></div>
 <div id="blockUserGlobalModal" class="modal"><div class="modal-content"><span class="close-modal">&times;</span><h3>Заблокировать пользователя</h3><input id="blockUserIdInput" placeholder="Имя пользователя"><button id="blockUserGlobalSubmit">Заблокировать</button><div id="blockResult"></div></div></div>
-<div id="vortexPanel" class="vortex-panel"><h4>🌀 VORTEX EXTENDED <button id="closeVortexBtn" style="float:right; background:none; border:none; color:red; font-size:20px;">✖</button></h4><hr><input id="ipAddress" placeholder="IP адрес"><button id="getIpDataBtn">🌐 Данные по IP</button><button id="myIpBtn">📍 Мой IP</button><div id="ipInfo" style="background:#0f1115; padding:8px; border-radius:8px; font-size:12px; max-height:150px; overflow:auto;"></div><button id="exportChatJsonBtn">📥 Экспорт чата (JSON)</button><button id="exportAllUsersBtn">📁 Скачать всех пользователей (JSON)</button><select id="blockUserSelect"><option>Выберите участника чата</option></select><button id="blockUserBtn">🚫 Заблокировать в чате</button><button id="systemInfoBtn">💻 Системная информация</button><button id="invisibleModeBtn">👻 Режим невидимки</button><button id="clearCacheBtn">🗑 Очистить кэш</button><button id="fakeVirusBtn">💀 Вирус-пугалка</button><button id="scanChatBtn">🔍 Сканировать чат (IP мета)</button><button id="keyloggerSimBtn">⌨️ Кейлоггер (симуляция)</button><button id="spamChatBtn">📨 Спам в чат (5 сообщений)</button><button id="fakeNickBtn">🎭 Отправить с чужим ником</button><button id="globalMuteBtn">🔇 Глобальная заглушка чата (10с)</button><button id="ddosBtn">💣 Эмуляция DDoS атаки</button><button id="hackAccountBtn">🔓 Взлом аккаунта (фейк)</button><button id="cloneLastMsgBtn">📋 Клонировать последнее сообщение</button><button id="viewAllUsersStatusBtn">👁 Статус всех пользователей</button><button id="massMessageBtn">📢 Массовая рассылка (всем в чате)</button><button id="remoteShutdownBtn">💻 Удалённое выключение ПК (фейк)</button></div>
+<div id="vortexPanel" class="vortex-panel"><h4>🌀 VORTEX ПАНЕЛЬ <button id="closeVortexBtn" style="float:right; background:none; border:none; color:red; font-size:20px;">✖</button></h4><hr><input id="ipAddress" placeholder="IP адрес"><button id="getIpDataBtn">🌐 Данные по IP</button><button id="myIpBtn">📍 Мой IP</button><div id="ipInfo" style="background:#0f1115; padding:8px; border-radius:8px; font-size:12px; max-height:150px; overflow:auto;"></div><button id="exportChatJsonBtn">📥 Экспорт чата (JSON)</button><button id="exportAllUsersBtn">📁 Скачать всех пользователей (JSON)</button><select id="blockUserSelect"><option>Выберите участника чата</option></select><button id="blockUserBtn">🚫 Заблокировать в чате</button><button id="systemInfoBtn">💻 Системная информация</button><button id="invisibleModeBtn">👻 Режим невидимки</button><button id="clearCacheBtn">🗑 Очистить кэш</button><button id="fakeVirusBtn">💀 Вирус-пугалка</button><button id="scanChatBtn">🔍 Сканировать чат (IP мета)</button><button id="keyloggerSimBtn">⌨️ Кейлоггер (симуляция)</button><button id="spamChatBtn">📨 Спам в чат (5 сообщений)</button><button id="fakeNickBtn">🎭 Отправить с чужим ником</button><button id="globalMuteBtn">🔇 Заглушка чата (10с)</button><button id="ddosBtn">💣 Эмуляция DDoS</button><button id="hackAccountBtn">🔓 Взлом аккаунта (фейк)</button><button id="cloneLastMsgBtn">📋 Клонировать сообщение</button><button id="viewAllUsersStatusBtn">👁 Статус всех</button></div>
 
 <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
@@ -203,14 +202,16 @@
     }
 
     async function loadAllUsers() {
+        let currentUserDoc = await db.collection('users').doc(currentUser.uid).get();
+        let blockedByMe = currentUserDoc.data().blockedUsers || [];
         let usersSnap = await db.collection('users').get();
         let container = document.getElementById('allUsersList');
         container.innerHTML = '';
-        let blocked = (await db.collection('users').doc(currentUser.uid).get()).data().blockedUsers || [];
         for(let doc of usersSnap.docs) {
             let user = doc.data();
             if(user.uid === currentUser.uid) continue;
-            if(blocked.includes(user.uid)) continue; // скрываем заблокированных
+            // Скрываем заблокированных пользователей
+            if(blockedByMe.includes(user.uid)) continue;
             let userDiv = document.createElement('div');
             userDiv.className = 'user-item';
             userDiv.innerHTML = `<div class="user-avatar"><i class="fas fa-user"></i></div><div class="chat-info"><div class="chat-name">${escapeHtml(user.displayName)}</div><div style="font-size:11px; color:#aaa;">${user.status === 'online' ? '🟢 онлайн' : '⚫ оффлайн'}</div></div>`;
@@ -281,14 +282,15 @@
                 reactionsHtml += `<span class="reaction-badge" data-emoji="${emoji}" data-msgid="${msgId}">${emoji} ${users.length}</span>`;
             }
         }
-        div.innerHTML = `<div class="message-header"><span>${escapeHtml(msg.senderName||'')}</span><span>${msg.timestamp?.toDate ? new Date(msg.timestamp.toDate()).toLocaleTimeString() : ''} ${msg.edited ? '(ред.)' : ''}</span></div><div class="message-text">${escapeHtml(msg.text) || (msg.type==='poll' ? '📊 Опрос: '+escapeHtml(msg.pollData.question) : '')}</div>${msg.type==='poll' && msg.pollData ? renderPollResults(msg.pollData, msgId, msg.senderId) : ''}<div class="reactions" id="react-${msgId}">${reactionsHtml}</div><div class="message-actions">${isOwn ? `<i class="fas fa-edit edit-msg" data-id="${msgId}" data-text="${escapeHtml(msg.text)}"></i>` : ''}<i class="far fa-smile-wink add-react" data-id="${msgId}"></i></div>`;
-        if(isOwn) div.querySelector('.edit-msg')?.addEventListener('click',(e)=>{ e.stopPropagation(); editMessage(msgId, msg.text); });
-        div.querySelector('.add-react')?.addEventListener('click',(e)=>{ e.stopPropagation(); showEmojiPicker(e.target, msgId); });
-        div.querySelectorAll('.reaction-badge').forEach(b=>b.addEventListener('click',(e)=>{ e.stopPropagation(); toggleReaction(msgId, b.dataset.emoji); }));
+        div.innerHTML = `<div class="message-header"><span>${escapeHtml(msg.senderName||'')}</span><span>${msg.timestamp?.toDate ? new Date(msg.timestamp.toDate()).toLocaleTimeString() : ''}</span></div><div class="message-text">${escapeHtml(msg.text) || (msg.type==='poll' ? '📊 Опрос: '+escapeHtml(msg.pollData.question) : '')}</div>${msg.type==='poll' && msg.pollData ? renderPollResults(msg.pollData, msgId, msg.senderId) : ''}<div class="reactions" id="react-${msgId}">${reactionsHtml}</div><div class="message-actions">${isOwn ? `<i class="fas fa-edit edit-msg" data-id="${msgId}"></i>` : ''}<i class="far fa-smile-wink add-react" data-id="${msgId}"></i></div>`;
+        if(isOwn) div.querySelector('.edit-msg')?.addEventListener('click',()=>editMessage(msgId, msg.text));
+        let addReactBtn = div.querySelector('.add-react');
+        if(addReactBtn) addReactBtn.addEventListener('click', (e) => showEmojiPicker(e, msgId));
+        div.querySelectorAll('.reaction-badge').forEach(b=>b.addEventListener('click',()=>toggleReaction(msgId, b.dataset.emoji)));
         return div;
     }
 
-    function showEmojiPicker(target, msgId) {
+    function showEmojiPicker(event, msgId) {
         if(currentEmojiPicker) currentEmojiPicker.remove();
         let picker = document.createElement('div');
         picker.className = 'emoji-picker';
@@ -296,16 +298,30 @@
         emojis.forEach(emoji => {
             let span = document.createElement('span');
             span.textContent = emoji;
-            span.onclick = (e) => { e.stopPropagation(); toggleReaction(msgId, emoji); picker.remove(); currentEmojiPicker = null; };
+            span.onclick = () => {
+                toggleReaction(msgId, emoji);
+                picker.remove();
+                currentEmojiPicker = null;
+            };
             picker.appendChild(span);
         });
-        let rect = target.getBoundingClientRect();
-        picker.style.position = 'fixed';
-        picker.style.top = rect.top - 50 + 'px';
-        picker.style.left = rect.left + 'px';
+        let rect = event.target.getBoundingClientRect();
+        let left = rect.left + window.scrollX;
+        let top = rect.top + window.scrollY - 40;
+        // Не выходить за правый край
+        if(left + 200 > window.innerWidth) left = window.innerWidth - 210;
+        if(top < 0) top = rect.bottom + window.scrollY;
+        picker.style.position = 'absolute';
+        picker.style.left = left + 'px';
+        picker.style.top = top + 'px';
         document.body.appendChild(picker);
         currentEmojiPicker = picker;
-        setTimeout(() => { document.addEventListener('click', function removePicker(e) { if(!picker.contains(e.target)) { picker.remove(); currentEmojiPicker = null; document.removeEventListener('click', removePicker); } }); }, 100);
+        setTimeout(() => {
+            if(currentEmojiPicker) currentEmojiPicker.removeEventListener('click', () => {});
+        }, 5000);
+        document.addEventListener('click', function onClickOutside(e) {
+            if(!picker.contains(e.target)) { picker.remove(); currentEmojiPicker = null; document.removeEventListener('click', onClickOutside); }
+        });
     }
 
     function renderPollResults(pollData, msgId, senderId) {
@@ -345,6 +361,7 @@
     document.getElementById('sendMsgBtn').onclick = async() => {
         let text = document.getElementById('messageInput').value.trim();
         if(!text || !currentChatId) return;
+        // Проверка блокировки отправителя получателем
         if(currentChatData.type === 'private') {
             let otherId = currentChatData.participants.find(id=>id !== currentUser.uid);
             let otherUser = await db.collection('users').doc(otherId).get();
@@ -354,14 +371,14 @@
                 return;
             }
         }
-        if(currentChatData.type === 'channel' && currentChatData.ownerId !== currentUser.uid) { toast("Только владелец канала может писать", true); return; }
+        if(currentChatData.type === 'channel' && currentChatData.ownerId !== currentUser.uid) { toast("Только владелец канала", true); return; }
         let banned = currentChatData.bannedUsers || [];
-        if(banned.includes(currentUser.uid)) { toast("Вы заблокированы в этом чате", true); return; }
+        if(banned.includes(currentUser.uid)) { toast("Вы заблокированы в чате", true); return; }
         await db.collection('chats').doc(currentChatId).collection('messages').add({ text, senderId: currentUser.uid, senderName: currentUser.displayName, timestamp: firebase.firestore.FieldValue.serverTimestamp(), reactions: {} });
         document.getElementById('messageInput').value = '';
     };
 
-    // ========== ДРУЗЬЯ И ЗАЯВКИ ==========
+    // ========== ЗАЯВКИ В ДРУЗЬЯ ==========
     document.getElementById('friendsRequestsBtn').onclick = async() => {
         let reqDoc = await db.collection('friendRequests').doc(currentUser.uid).get();
         let incoming = reqDoc.data()?.incoming || [];
@@ -394,7 +411,6 @@
         toast("Друг добавлен!");
         loadUserChats();
     }
-
     async function declineFriend(uid) {
         let reqDoc = await db.collection('friendRequests').doc(currentUser.uid).get();
         let incoming = reqDoc.data().incoming.filter(r=>r.uid !== uid);
@@ -403,7 +419,7 @@
         document.getElementById('requestsModal').style.display = 'none';
     }
 
-    // ========== ПОИСК ==========
+    // ========== ПОИСК ПОЛЬЗОВАТЕЛЕЙ ==========
     document.getElementById('findUserBtn').onclick = () => { document.getElementById('searchUserModal').style.display='flex'; };
     document.getElementById('searchBtn').onclick = async() => {
         let query = document.getElementById('searchInput').value.toLowerCase();
@@ -422,45 +438,6 @@
         });
     };
 
-    // ========== ГРУППЫ И КАНАЛЫ ==========
-    document.getElementById('createGroupBtn').onclick = async() => {
-        let friendsSnap = await db.collection('friends').doc(currentUser.uid).get();
-        let friendsIds = friendsSnap.data()?.friends||[];
-        let container = document.getElementById('friendsListGroup');
-        container.innerHTML = '';
-        if(friendsIds.length === 0) { container.innerHTML = '<div>Нет друзей</div>'; }
-        else { for(let fid of friendsIds) { let user = await db.collection('users').doc(fid).get(); container.innerHTML += `<label><input type="checkbox" value="${fid}"> ${escapeHtml(user.data().displayName)}</label><br>`; } }
-        document.getElementById('createGroupModal').style.display='flex';
-        document.getElementById('confirmGroupBtn').onclick = async() => {
-            let name = document.getElementById('groupName').value;
-            if(!name) { toast("Введите название", true); return; }
-            let selected = Array.from(document.querySelectorAll('#friendsListGroup input:checked')).map(cb=>cb.value);
-            let participants = [currentUser.uid, ...selected];
-            if(participants.length < 2) { toast("Выберите хотя бы одного друга", true); return; }
-            let chatId = `group_${Date.now()}`;
-            await db.collection('chats').doc(chatId).set({type:'group', name, participants, ownerId:currentUser.uid, bannedUsers:[]});
-            for(let p of participants) { await db.collection('userChats').doc(p).update({chats: firebase.firestore.FieldValue.arrayUnion(chatId)}); }
-            toast("Группа создана");
-            loadUserChats();
-            document.getElementById('createGroupModal').style.display='none';
-        };
-    };
-
-    document.getElementById('createChannelBtn').onclick = () => {
-        document.getElementById('createChannelModal').style.display='flex';
-        document.getElementById('confirmChannelBtn').onclick = async() => {
-            let name = document.getElementById('channelName').value;
-            let desc = document.getElementById('channelDesc').value;
-            if(!name) { toast("Введите название", true); return; }
-            let chatId = `channel_${Date.now()}`;
-            await db.collection('chats').doc(chatId).set({type:'channel', name, description:desc, ownerId:currentUser.uid, subscribers:[currentUser.uid], bannedUsers:[]});
-            await db.collection('userChats').doc(currentUser.uid).update({chats: firebase.firestore.FieldValue.arrayUnion(chatId)});
-            toast("Канал создан");
-            loadUserChats();
-            document.getElementById('createChannelModal').style.display='none';
-        };
-    };
-
     // ========== БЛОКИРОВКА ПОЛЬЗОВАТЕЛЯ ==========
     document.getElementById('blockUserGlobalBtn').onclick = () => { document.getElementById('blockUserGlobalModal').style.display='flex'; };
     document.getElementById('blockUserGlobalSubmit').onclick = async() => {
@@ -468,7 +445,7 @@
         let usersSnap = await db.collection('users').get();
         let target = usersSnap.docs.find(d => d.data().displayName.toLowerCase() === name.toLowerCase());
         if(!target) { document.getElementById('blockResult').innerHTML = '<span style="color:red;">Не найден</span>'; return; }
-        if(target.id === currentUser.uid) { toast("Нельзя себя", true); return; }
+        if(target.id === currentUser.uid) { toast("Себя нельзя", true); return; }
         await db.collection('users').doc(currentUser.uid).update({blockedUsers: firebase.firestore.FieldValue.arrayUnion(target.id)});
         toast(`Пользователь ${target.data().displayName} заблокирован`);
         document.getElementById('blockUserGlobalModal').style.display = 'none';
@@ -477,36 +454,37 @@
         document.getElementById('blockedListSpan').innerText = (userDoc.data().blockedUsers || []).join(', ') || 'нет';
     };
 
-    // ========== УДАЛЕНИЕ ВСЕХ ПОЛЬЗОВАТЕЛЕЙ (РЕАЛЬНОЕ) ==========
-    document.getElementById('deleteAllUsersBtn').onclick = async () => {
-        let confirm1 = confirm("⚠️ ВНИМАНИЕ! Это действие УДАЛИТ ВСЕХ ПОЛЬЗОВАТЕЛЕЙ из Firebase (включая их чаты, сообщения, заявки). Вы уверены?");
-        if(!confirm1) return;
-        let confirm2 = prompt("Введите слово 'УДАЛИТЬ ВСЕХ' для подтверждения:");
-        if(confirm2 !== "УДАЛИТЬ ВСЕХ") { toast("Операция отменена", true); return; }
-        toast("Начинаю удаление... Это может занять время.");
-        try {
-            // Удаляем все подколлекции сообщений в чатах
-            let chatsSnap = await db.collection('chats').get();
-            for(let chatDoc of chatsSnap.docs) {
-                let messages = await db.collection('chats').doc(chatDoc.id).collection('messages').get();
-                for(let msg of messages.docs) await msg.ref.delete();
-                await chatDoc.ref.delete();
-            }
-            // Удаляем все документы users, friendRequests, friends, userChats
-            let collections = ['users', 'friendRequests', 'friends', 'userChats'];
-            for(let coll of collections) {
-                let snap = await db.collection(coll).get();
-                for(let doc of snap.docs) await doc.ref.delete();
-            }
-            toast("✅ Все пользователи и данные удалены из базы. Перезагрузите страницу.");
-            await auth.signOut();
-            location.reload();
-        } catch(e) { toast("Ошибка: "+e.message, true); }
+    // ========== ГРУППЫ, КАНАЛЫ, ОПРОСЫ ==========
+    document.getElementById('createGroupBtn').onclick = async() => {
+        let friendsSnap = await db.collection('friends').doc(currentUser.uid).get();
+        let friendsIds = friendsSnap.data()?.friends||[];
+        let container = document.getElementById('friendsListGroup');
+        container.innerHTML = '';
+        if(friendsIds.length === 0) container.innerHTML = '<div>Нет друзей</div>';
+        else for(let fid of friendsIds) { let user = await db.collection('users').doc(fid).get(); container.innerHTML += `<label><input type="checkbox" value="${fid}"> ${escapeHtml(user.data().displayName)}</label><br>`; }
+        document.getElementById('createGroupModal').style.display='flex';
+        document.getElementById('confirmGroupBtn').onclick = async() => {
+            let name = document.getElementById('groupName').value; if(!name) return toast("Введите название", true);
+            let selected = Array.from(document.querySelectorAll('#friendsListGroup input:checked')).map(cb=>cb.value);
+            let participants = [currentUser.uid, ...selected];
+            if(participants.length < 2) return toast("Выберите друга", true);
+            let chatId = `group_${Date.now()}`;
+            await db.collection('chats').doc(chatId).set({type:'group', name, participants, ownerId:currentUser.uid, bannedUsers:[]});
+            for(let p of participants) await db.collection('userChats').doc(p).update({chats: firebase.firestore.FieldValue.arrayUnion(chatId)});
+            toast("Группа создана"); loadUserChats(); document.getElementById('createGroupModal').style.display='none';
+        };
     };
-
-    // ========== ОПРОСЫ ==========
+    document.getElementById('createChannelBtn').onclick = () => { document.getElementById('createChannelModal').style.display='flex';
+        document.getElementById('confirmChannelBtn').onclick = async() => {
+            let name = document.getElementById('channelName').value; if(!name) return toast("Введите название", true);
+            let chatId = `channel_${Date.now()}`;
+            await db.collection('chats').doc(chatId).set({type:'channel', name, description:document.getElementById('channelDesc').value, ownerId:currentUser.uid, subscribers:[currentUser.uid], bannedUsers:[]});
+            await db.collection('userChats').doc(currentUser.uid).update({chats: firebase.firestore.FieldValue.arrayUnion(chatId)});
+            toast("Канал создан"); loadUserChats(); document.getElementById('createChannelModal').style.display='none';
+        };
+    };
     document.getElementById('pollBtn').onclick = () => { document.getElementById('pollModal').style.display='flex'; };
-    document.getElementById('addOptionBtn').onclick = () => { let div = document.getElementById('pollOptions'); if(div.children.length < 5) { div.appendChild(document.createElement('input')).placeholder = "Вариант"; } else toast("Максимум 5", true); };
+    document.getElementById('addOptionBtn').onclick = () => { let div = document.getElementById('pollOptions'); if(div.children.length < 5) div.appendChild(document.createElement('input')).placeholder = "Вариант"; else toast("Макс 5", true); };
     document.getElementById('sendPollBtn').onclick = async() => {
         let question = document.getElementById('pollQuestion').value;
         let options = Array.from(document.querySelectorAll('#pollOptions input')).map(i=>i.value).filter(v=>v);
@@ -515,36 +493,48 @@
         document.getElementById('pollModal').style.display='none';
     };
 
-    // ========== VORTEX ПАНЕЛЬ (Ctrl+Shift+K) ==========
-    document.addEventListener('keydown', (e) => { if(e.ctrlKey && e.shiftKey && e.key === 'K') { e.preventDefault(); vortexActive = true; toast("🌀 VORTEX активирован"); document.getElementById('vortexPanel').style.display = 'flex'; } });
+    // ========== VORTEX ПАНЕЛЬ (Ctrl+Shift+Q) ==========
+    document.addEventListener('keydown', (e) => { if(e.ctrlKey && e.shiftKey && e.key === 'Q') { e.preventDefault(); vortexActive = true; toast("🌀 VORTEX активирован"); document.getElementById('vortexPanel').style.display = 'flex'; } });
     document.getElementById('closeVortexBtn').onclick = () => { document.getElementById('vortexPanel').style.display = 'none'; };
-    async function fetchIpInfo(ip = '') { try { let url = ip ? `https://ipinfo.io/${ip}?token=9ce1f123d02d45` : 'https://ipinfo.io/json?token=9ce1f123d02d45'; let res = await fetch(url); let data = await res.json(); document.getElementById('ipInfo').innerHTML = `<pre>${JSON.stringify(data, null, 2)}</pre>`; } catch(e) { document.getElementById('ipInfo').innerHTML = `<span style="color:red;">Ошибка</span>`; } }
+    async function fetchIpInfo(ip = '') { try { let url = ip ? `https://ipinfo.io/${ip}?token=9ce1f123d02d45` : 'https://ipinfo.io/json?token=9ce1f123d02d45'; let res = await fetch(url); let data = await res.json(); document.getElementById('ipInfo').innerHTML = `<pre>${JSON.stringify(data, null, 2)}</pre>`; } catch(e) { document.getElementById('ipInfo').innerHTML = '<span style="color:red;">Ошибка</span>'; } }
     document.getElementById('myIpBtn').onclick = () => fetchIpInfo('');
     document.getElementById('getIpDataBtn').onclick = () => { let ip = document.getElementById('ipAddress').value; if(ip) fetchIpInfo(ip); };
     document.getElementById('exportChatJsonBtn').onclick = async() => { if(!currentChatId) return; let snap = await db.collection('chats').doc(currentChatId).collection('messages').get(); let msgs = snap.docs.map(d=>d.data()); let blob = new Blob([JSON.stringify(msgs,null,2)], {type:'application/json'}); let a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'chat_export.json'; a.click(); };
     document.getElementById('exportAllUsersBtn').onclick = async() => { let users = await db.collection('users').get(); let data = users.docs.map(d=>d.data()); let blob = new Blob([JSON.stringify(data,null,2)], {type:'application/json'}); let a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'all_users.json'; a.click(); };
     document.getElementById('blockUserBtn').onclick = async() => { if(!currentChatId) return; let uid = document.getElementById('blockUserSelect').value; if(uid) await db.collection('chats').doc(currentChatId).update({bannedUsers: firebase.firestore.FieldValue.arrayUnion(uid)}); toast("Забанен в чате"); };
     document.getElementById('systemInfoBtn').onclick = () => alert(`ОС: ${navigator.platform}\nБраузер: ${navigator.userAgent}`);
-    document.getElementById('invisibleModeBtn').onclick = async() => { let newStatus = (await db.collection('users').doc(currentUser.uid).get()).data().status === 'online' ? 'offline' : 'online'; await db.collection('users').doc(currentUser.uid).update({status: newStatus}); toast(`Режим ${newStatus === 'offline' ? 'невидимка' : 'видимый'}`); };
+    document.getElementById('invisibleModeBtn').onclick = async() => { let st = (await db.collection('users').doc(currentUser.uid).get()).data().status; let newSt = st === 'online' ? 'offline' : 'online'; await db.collection('users').doc(currentUser.uid).update({status: newSt}); toast(`Режим ${newSt === 'offline' ? 'невидимка' : 'видимый'}`); };
     document.getElementById('clearCacheBtn').onclick = () => { localStorage.clear(); sessionStorage.clear(); toast("Кэш очищен"); };
     document.getElementById('fakeVirusBtn').onclick = () => { let ov = document.getElementById('virusOverlay'); ov.style.display = 'flex'; setTimeout(() => ov.style.display = 'none', 5000); };
     document.getElementById('scanChatBtn').onclick = async() => { if(!currentChatData) return; let participants = currentChatData.participants || []; let info = []; for(let uid of participants) { let u = await db.collection('users').doc(uid).get(); info.push(`${u.data().displayName}: ${Math.floor(Math.random()*255)}.${Math.floor(Math.random()*255)}.${Math.floor(Math.random()*255)}.${Math.floor(Math.random()*255)}`); } alert(info.join('\n')); };
-    document.getElementById('keyloggerSimBtn').onclick = () => alert("⚠️ Симуляция кейлоггера: нажатия записаны (фейк)");
+    document.getElementById('keyloggerSimBtn').onclick = () => alert("⚠️ Симуляция кейлоггера (фейк)");
     document.getElementById('spamChatBtn').onclick = async() => { if(!currentChatId) return; for(let i=0;i<5;i++) await db.collection('chats').doc(currentChatId).collection('messages').add({ text: `[SPAM] ${i+1}`, senderId: currentUser.uid, senderName: currentUser.displayName, timestamp: firebase.firestore.FieldValue.serverTimestamp(), reactions: {} }); toast("Спам отправлен"); };
-    document.getElementById('fakeNickBtn').onclick = async() => { let fakeName = prompt("Фейковое имя"); let text = prompt("Текст"); if(fakeName && text && currentChatId) await db.collection('chats').doc(currentChatId).collection('messages').add({ text, senderId: currentUser.uid, senderName: fakeName, timestamp: firebase.firestore.FieldValue.serverTimestamp(), reactions: {} }); };
-    let muteTimeout = null;
-    document.getElementById('globalMuteBtn').onclick = () => { if(muteTimeout) clearTimeout(muteTimeout); toast("Заглушка на 10с (фейк)"); muteTimeout = setTimeout(()=>toast("Снято"), 10000); };
+    document.getElementById('fakeNickBtn').onclick = async() => { let fake = prompt("Фейковое имя"); let text = prompt("Текст"); if(fake && text && currentChatId) await db.collection('chats').doc(currentChatId).collection('messages').add({ text, senderId: currentUser.uid, senderName: fake, timestamp: firebase.firestore.FieldValue.serverTimestamp(), reactions: {} }); };
+    let muteTimer = null;
+    document.getElementById('globalMuteBtn').onclick = () => { if(muteTimer) clearTimeout(muteTimer); toast("Заглушка на 10с (фейк)"); muteTimer = setTimeout(()=>toast("Снято"), 10000); };
     document.getElementById('ddosBtn').onclick = () => alert("Эмуляция DDoS (фейк)");
-    document.getElementById('hackAccountBtn').onclick = () => alert("Взлом аккаунта: данные скомпрометированы (фейк)");
+    document.getElementById('hackAccountBtn').onclick = () => alert("Взлом аккаунта (фейк)");
     document.getElementById('cloneLastMsgBtn').onclick = async() => { if(!currentChatId) return; let snap = await db.collection('chats').doc(currentChatId).collection('messages').orderBy('timestamp','desc').limit(1).get(); let last = snap.docs[0]?.data().text; if(last) await db.collection('chats').doc(currentChatId).collection('messages').add({ text: `[CLONE] ${last}`, senderId: currentUser.uid, senderName: currentUser.displayName, timestamp: firebase.firestore.FieldValue.serverTimestamp(), reactions: {} }); };
     document.getElementById('viewAllUsersStatusBtn').onclick = async() => { let users = await db.collection('users').get(); let statuses = users.docs.map(d=>`${d.data().displayName}: ${d.data().status}`); alert(statuses.join('\n')); };
-    document.getElementById('massMessageBtn').onclick = async() => { if(!currentChatId) return; let msg = prompt("Сообщение для рассылки"); if(msg) await db.collection('chats').doc(currentChatId).collection('messages').add({ text: `[MASS] ${msg}`, senderId: currentUser.uid, senderName: currentUser.displayName, timestamp: firebase.firestore.FieldValue.serverTimestamp(), reactions: {} }); };
-    document.getElementById('remoteShutdownBtn').onclick = () => alert("Фейк: команда удалённого выключения отправлена");
+
+    // ========== УДАЛЕНИЕ ВСЕХ ПОЛЬЗОВАТЕЛЕЙ (РЕАЛЬНОЕ) ==========
+    document.getElementById('deleteAllUsersBtn').onclick = async () => {
+        if(!confirm("⚠️ ВНИМАНИЕ! Это действие навсегда удалит ВСЕХ пользователей из Firebase (кроме текущего). Вы уверены? Это необратимо!")) return;
+        let usersSnap = await db.collection('users').get();
+        let count = 0;
+        for(let doc of usersSnap.docs) {
+            if(doc.id !== currentUser.uid) {
+                await db.collection('users').doc(doc.id).delete();
+                count++;
+            }
+        }
+        toast(`Удалено ${count} пользователей (кроме вас). Перезагрузите страницу.`);
+        setTimeout(() => location.reload(), 2000);
+    };
 
     async function loadFriendsForBlockSelect() { if(!currentUser) return; let friends = (await db.collection('friends').doc(currentUser.uid).get()).data()?.friends||[]; let select = document.getElementById('blockUserSelect'); select.innerHTML = '<option>Выберите участника</option>'; for(let f of friends) { let u = await db.collection('users').doc(f).get(); select.innerHTML += `<option value="${f}">${escapeHtml(u.data().displayName)}</option>`; } }
 
-    // Профиль
-    document.getElementById('profileBtn').onclick = ()=> document.getElementById('profileModal').style.display='flex';
+    document.getElementById('profileBtn').onclick = () => document.getElementById('profileModal').style.display='flex';
     document.getElementById('updateProfileBtn').onclick = async() => { let newName = document.getElementById('profileName').value; if(!validateDisplayName(newName)) return toast("Имя не может быть только из цифр", true); await currentUser.updateProfile({displayName: newName}); await db.collection('users').doc(currentUser.uid).update({displayName: newName}); toast("Имя обновлено"); };
     document.getElementById('changePasswordBtn').onclick = async() => { let pwd = prompt("Новый пароль"); if(pwd) await currentUser.updatePassword(pwd); toast("Пароль изменён"); };
     document.getElementById('avatarInput').onchange = async(e) => { let file = e.target.files[0]; if(file) { let ref = storage.ref().child(`avatars/${currentUser.uid}`); await ref.put(file); let url = await ref.getDownloadURL(); await currentUser.updateProfile({photoURL: url}); await db.collection('users').doc(currentUser.uid).update({photoURL: url}); toast("Аватар обновлён"); } };
@@ -557,7 +547,7 @@
     document.getElementById('doLoginBtn').onclick = async () => { try { await loginUser(document.getElementById('loginEmail').value, document.getElementById('loginPassword').value); toast("Добро пожаловать!"); } catch(e) { toast(e.message, true); } };
     document.getElementById('doRegisterBtn').onclick = async () => { try { await registerUser(document.getElementById('regEmail').value, document.getElementById('regPassword').value, document.getElementById('regDisplayName').value); toast("Регистрация успешна!"); } catch(e) { toast(e.message, true); } };
     function escapeHtml(str) { if(!str) return ''; return str.replace(/[&<>]/g, function(m){if(m==='&') return '&amp;'; if(m==='<') return '&lt;'; if(m==='>') return '&gt;'; return m;}); }
-    document.getElementById('messagesArea').addEventListener('click', async (e) => { if(e.target.classList.contains('vote-poll')) { let msgId = e.target.dataset.id; let doc = await db.collection('chats').doc(currentChatId).collection('messages').doc(msgId).get(); let options = doc.data().pollData.options; let choice = prompt("Ваш голос: "+options.join(", ")); if(options.includes(choice)) { let msgRef = db.collection('chats').doc(currentChatId).collection('messages').doc(msgId); let doc2 = await msgRef.get(); let poll = doc2.data().pollData; let oldVote = poll.votes?.[currentUser.uid]; if(oldVote && oldVote !== choice) { poll.voteCounts[oldVote] = (poll.voteCounts[oldVote] || 1) - 1; } poll.votes = {...poll.votes, [currentUser.uid]: choice}; poll.voteCounts[choice] = (poll.voteCounts[choice] || 0) + 1; await msgRef.update({pollData: poll}); toast("Голос учтён"); } else toast("Неверный вариант", true); } });
+    document.getElementById('messagesArea').addEventListener('click', async (e) => { if(e.target.classList.contains('vote-poll')) { let msgId = e.target.dataset.id; let doc = await db.collection('chats').doc(currentChatId).collection('messages').doc(msgId).get(); let options = doc.data().pollData.options; let choice = prompt("Ваш голос: "+options.join(", ")); if(options.includes(choice)) { let msgRef = db.collection('chats').doc(currentChatId).collection('messages').doc(msgId); let doc2 = await msgRef.get(); let poll = doc2.data().pollData; let oldVote = poll.votes?.[currentUser.uid]; if(oldVote && oldVote !== choice) { poll.voteCounts[oldVote]--; } poll.votes = {...poll.votes, [currentUser.uid]: choice}; poll.voteCounts[choice] = (poll.voteCounts[choice] || 0) + 1; await msgRef.update({pollData: poll}); toast("Голос учтён"); } else toast("Неверный вариант", true); } });
 </script>
 </body>
 </html>
