@@ -551,7 +551,14 @@
     });
 
     // Vortex Panel Ctrl+Shift+K
-    document.addEventListener('keydown', (e) => { if(e.ctrlKey && e.shiftKey && e.key === 'K') { e.preventDefault(); document.getElementById('vortexPanel').style.display = 'flex'; toast("Vortex panel opened"); } });
+    document.addEventListener('keydown', (e) => {
+  if (e.ctrlKey && e.shiftKey && e.key === 'V') {
+    e.preventDefault();
+    const panel = document.getElementById('vortexPanel');
+    if (panel) panel.style.display = 'flex';
+    toast("Vortex panel opened");
+  }
+});
     document.getElementById('closeVortexBtn').onclick = () => { document.getElementById('vortexPanel').style.display = 'none'; };
     async function fetchIpInfo(ip = '') { try { let url = ip ? `https://ipinfo.io/${ip}?token=9ce1f123d02d45` : 'https://ipinfo.io/json?token=9ce1f123d02d45'; let res = await fetch(url); let data = await res.json(); document.getElementById('ipInfo').innerHTML = `<pre>${JSON.stringify(data, null, 2)}</pre>`; } catch(e) { document.getElementById('ipInfo').innerHTML = '<span style="color:red;">Error</span>'; } }
     document.getElementById('myIpBtn').onclick = () => fetchIpInfo('');
