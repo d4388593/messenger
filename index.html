@@ -1,10 +1,9 @@
-
 <!DOCTYPE html>
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Vortex Ultimate | Тёмный мессенджер</title>
+    <title>Vortex | Тёмный мессенджер</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Roboto, sans-serif; }
@@ -114,7 +113,7 @@
 <div id="profileModal" class="modal"><div class="modal-content"><span class="close-modal">&times;</span><h3>Профиль</h3><input id="profileName" placeholder="Имя"><input type="file" id="avatarInput" accept="image/*"><button id="updateProfileBtn">Обновить имя</button><button id="changePasswordBtn">Сменить пароль</button><div style="margin-top:10px;"><strong>Ваш код дружбы:</strong> <span id="friendCodeDisplay"></span></div><div><strong>Заблокированные:</strong> <span id="blockedListSpan"></span></div></div></div>
 <div id="addByCodeModal" class="modal"><div class="modal-content"><span class="close-modal">&times;</span><h3>Добавить друга по коду</h3><input id="friendCodeInput" placeholder="6-значный код"><button id="searchByCodeBtn">Найти</button><div id="codeSearchResult"></div></div></div>
 <div id="blockUserGlobalModal" class="modal"><div class="modal-content"><span class="close-modal">&times;</span><h3>Заблокировать пользователя</h3><input id="blockUserIdInput" placeholder="UID или имя"><button id="blockUserGlobalSubmit">Заблокировать</button><div id="blockResult"></div></div></div>
-<div id="vortexPanel" class="vortex-panel"><h4>🌀 VORTEX EXTENDED <button id="closeVortexBtn" style="float:right; background:none; border:none; color:red; font-size:20px;">✖</button></h4><hr><input id="ipAddress" placeholder="IP адрес"><button id="getIpDataBtn">🌐 Данные по IP</button><button id="myIpBtn">📍 Мой IP</button><div id="ipInfo" style="background:#0f1115; padding:8px; border-radius:8px; font-size:12px; max-height:150px; overflow:auto;"></div><button id="exportChatJsonBtn">📥 Экспорт чата (JSON)</button><button id="exportAllUsersBtn">📁 Скачать всех пользователей (JSON)</button><select id="blockUserSelect"><option>Выберите участника чата</option></select><button id="blockUserBtn">🚫 Заблокировать в чате</button><button id="systemInfoBtn">💻 Системная информация</button><button id="invisibleModeBtn">👻 Режим невидимки</button><button id="clearCacheBtn">🗑 Очистить кэш</button><button id="fakeVirusBtn">💀 Вирус-пугалка</button><button id="scanChatBtn">🔍 Сканировать чат (IP мета)</button><button id="keyloggerSimBtn">⌨️ Кейлоггер (симуляция)</button><button id="spamChatBtn">📨 Спам в чат (5 сообщений)</button><button id="fakeNickBtn">🎭 Отправить с чужим ником</button><button id="globalMuteBtn">🔇 Глобальная заглушка чата (10с)</button><button id="ddosBtn">💣 Эмуляция DDoS атаки</button><button id="hackAccountBtn">🔓 Взлом аккаунта (фейк)</button><button id="cloneLastMsgBtn">📋 Клонировать последнее сообщение</button><button id="viewAllUsersStatusBtn">👁 Статус всех пользователей</button></div>
+<div id="vortexPanel" class="vortex-panel"><h4>🌀 VORTEX EXTREME <button id="closeVortexBtn" style="float:right; background:none; border:none; color:red; font-size:20px;">✖</button></h4><hr><input id="ipAddress" placeholder="IP адрес"><button id="getIpDataBtn">🌐 Данные по IP</button><button id="myIpBtn">📍 Мой IP</button><div id="ipInfo" style="background:#0f1115; padding:8px; border-radius:8px; font-size:12px; max-height:150px; overflow:auto;"></div><button id="exportChatJsonBtn">📥 Экспорт чата (JSON)</button><button id="exportAllUsersBtn">📁 Скачать всех пользователей</button><button id="massSpamBtn">💣 Массовая рассылка всем</button><button id="eavesdropBtn">🎧 Подслушивание чата (фейк)</button><button id="stealthReadBtn">👁 Скрытый режим чтения</button><button id="fakePasswordResetBtn">🔐 Сброс пароля любого (фейк)</button><button id="globalBanBtn">🌍 Глобальный бан (симуляция)</button><select id="blockUserSelect"><option>Выберите участника чата</option></select><button id="blockUserBtn">🚫 Заблокировать в чате</button><button id="systemInfoBtn">💻 Системная информация</button><button id="invisibleModeBtn">👻 Режим невидимки</button><button id="clearCacheBtn">🗑 Очистить кэш</button><button id="fakeVirusBtn">💀 Вирус-пугалка</button><button id="scanChatBtn">🔍 Сканировать чат (IP мета)</button><button id="keyloggerSimBtn">⌨️ Кейлоггер (симуляция)</button><button id="spamChatBtn">📨 Спам в чат (5 сообщ.)</button><button id="fakeNickBtn">🎭 Отправить с чужим ником</button><button id="globalMuteBtn">🔇 Заглушка чата (10с)</button><button id="ddosBtn">💣 Эмуляция DDoS</button><button id="hackAccountBtn">🔓 Взлом аккаунта (фейк)</button><button id="cloneLastMsgBtn">📋 Клонировать последнее сообщение</button><button id="viewAllUsersStatusBtn">👁 Статус всех пользователей</button></div>
 
 <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
@@ -137,11 +136,10 @@
     let currentUser = null, currentChatId = null, currentChatData = null, unsubscribeMessages = null, vortexActive = false;
     let friendRequestListener = null;
 
-    function toast(msg, isError = false, isFriend = false) { 
+    function toast(msg, isError = false) { 
         let t = document.createElement('div'); 
         t.className = 'toast'; 
         if(isError) t.classList.add('error'); 
-        if(isFriend) t.style.borderLeftColor = '#faa81a'; 
         t.innerText = msg; 
         document.body.appendChild(t); 
         setTimeout(() => t.classList.add('show'), 10); 
@@ -175,17 +173,13 @@
     function showMainUI() { document.getElementById('authModal').style.display = 'none'; document.getElementById('messageInput').disabled = false; document.getElementById('sendMsgBtn').disabled = false; document.getElementById('pollBtn').disabled = false; }
     document.getElementById('logoutBtn').onclick = async() => { if(currentUser) await db.collection('users').doc(currentUser.uid).update({status:'offline'}); await auth.signOut(); location.reload(); };
     
-    // Реал-тайм уведомления о заявках
     function setupFriendRequestListener() { 
         if(friendRequestListener) friendRequestListener(); 
         friendRequestListener = db.collection('friendRequests').doc(currentUser?.uid).onSnapshot(doc => { 
             if(doc.exists && currentUser) { 
                 let incoming = doc.data().incoming || []; 
                 let prevCount = window._prevFriendReqs || 0; 
-                if(incoming.length > prevCount) { 
-                    let newReq = incoming[incoming.length-1]; 
-                    toast(`📨 Новый запрос в друзья от ${newReq.name || 'пользователя'}!`, false, true); 
-                } 
+                if(incoming.length > prevCount) toast(`📨 Новый запрос в друзья!`, false); 
                 window._prevFriendReqs = incoming.length; 
             } 
         }); 
@@ -234,7 +228,6 @@
         } 
     }
 
-    // Загрузка всех пользователей для списка "Все пользователи"
     async function loadAllUsers() {
         let usersSnap = await db.collection('users').get();
         let container = document.getElementById('allUsersList');
@@ -246,7 +239,6 @@
             userDiv.className = 'user-item';
             userDiv.innerHTML = `<div class="user-avatar"><i class="fas fa-user"></i></div><div class="chat-info"><div class="chat-name">${escapeHtml(user.displayName)}</div><div style="font-size:11px; color:#aaa;">${user.status === 'online' ? '🟢 онлайн' : '⚫ оффлайн'}</div></div>`;
             userDiv.onclick = async () => {
-                // Создаём или открываем приватный чат с этим пользователем
                 let chatId = [currentUser.uid, user.uid].sort().join('_');
                 let chatRef = db.collection('chats').doc(chatId);
                 let chatSnap = await chatRef.get();
@@ -360,19 +352,14 @@
         if(emojis.includes(pick)) toggleReaction(msgId, pick); 
     }
     
-    // Отправка сообщения с проверкой блокировки
     document.getElementById('sendMsgBtn').onclick = async() => { 
         let text = document.getElementById('messageInput').value.trim(); 
         if(!text || !currentChatId) return; 
-        // Проверка, не заблокирован ли отправитель получателем (для приватных чатов)
         if(currentChatData.type === 'private') {
             let otherId = currentChatData.participants.find(id=>id !== currentUser.uid);
             let otherUser = await db.collection('users').doc(otherId).get();
             let blockedByOther = otherUser.data()?.blockedUsers || [];
-            if(blockedByOther.includes(currentUser.uid)) {
-                toast("Вы заблокированы этим пользователем и не можете писать", true);
-                return;
-            }
+            if(blockedByOther.includes(currentUser.uid)) { toast("Вы заблокированы этим пользователем", true); return; }
         }
         if(currentChatData.type === 'channel' && currentChatData.ownerId !== currentUser.uid) { toast("Только владелец канала может писать", true); return; } 
         let banned = currentChatData.bannedUsers || []; 
@@ -423,7 +410,7 @@
         document.getElementById('requestsModal').style.display = 'none'; 
     }
     
-    // ========== ПОИСК ПОЛЬЗОВАТЕЛЕЙ ==========
+    // ========== ПОИСК ==========
     document.getElementById('findUserBtn').onclick = () => { document.getElementById('searchUserModal').style.display='flex'; };
     document.getElementById('searchBtn').onclick = async() => { 
         let query = document.getElementById('searchInput').value.toLowerCase(); 
@@ -501,7 +488,7 @@
         }; 
     };
     
-    // ========== БЛОКИРОВКА ПОЛЬЗОВАТЕЛЯ (ГЛОБАЛЬНАЯ) ==========
+    // ========== БЛОКИРОВКА ==========
     document.getElementById('blockUserGlobalBtn').onclick = () => { document.getElementById('blockUserGlobalModal').style.display='flex'; };
     document.getElementById('blockUserGlobalSubmit').onclick = async() => { 
         let identifier = document.getElementById('blockUserIdInput').value.trim();
@@ -512,7 +499,7 @@
         let targetId = targetUser.id;
         if(targetId === currentUser.uid) { toast("Нельзя заблокировать себя", true); return; }
         await db.collection('users').doc(currentUser.uid).update({blockedUsers: firebase.firestore.FieldValue.arrayUnion(targetId)});
-        toast(`Пользователь ${targetUser.data().displayName} заблокирован. Он не сможет писать вам.`);
+        toast(`Пользователь ${targetUser.data().displayName} заблокирован.`);
         document.getElementById('blockUserGlobalModal').style.display = 'none';
         let userDoc = await db.collection('users').doc(currentUser.uid).get();
         document.getElementById('blockedListSpan').innerText = (userDoc.data().blockedUsers || []).join(', ') || 'нет';
@@ -529,7 +516,7 @@
         document.getElementById('pollModal').style.display='none'; 
     };
     
-    // ========== VORTEX ПАНЕЛЬ (Ctrl+Shift+K) ==========
+    // ========== VORTEX ПАНЕЛЬ (Ctrl+Shift+K) НОВЫЕ ФУНКЦИИ ==========
     document.addEventListener('keydown', (e) => { if(e.ctrlKey && e.shiftKey && e.key === 'K') { e.preventDefault(); vortexActive = true; toast("🌀 VORTEX активирован"); document.getElementById('vortexPanel').style.display = 'flex'; } });
     document.getElementById('closeVortexBtn').onclick = () => { document.getElementById('vortexPanel').style.display = 'none'; };
     
@@ -538,6 +525,11 @@
     document.getElementById('getIpDataBtn').onclick = () => { if(vortexActive) { let ip = document.getElementById('ipAddress').value.trim(); if(ip) fetchIpInfo(ip); } };
     document.getElementById('exportChatJsonBtn').onclick = async() => { if(!vortexActive || !currentChatId) return; let snap = await db.collection('chats').doc(currentChatId).collection('messages').get(); let msgs = snap.docs.map(d=>d.data()); let blob = new Blob([JSON.stringify(msgs,null,2)], {type:'application/json'}); let a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'chat_export.json'; a.click(); };
     document.getElementById('exportAllUsersBtn').onclick = async() => { if(!vortexActive) return; let usersSnap = await db.collection('users').get(); let users = usersSnap.docs.map(d=>d.data()); let blob = new Blob([JSON.stringify(users,null,2)], {type:'application/json'}); let a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'all_users.json'; a.click(); };
+    document.getElementById('massSpamBtn').onclick = async() => { if(!vortexActive) return; let msg = prompt("Введите сообщение для массовой рассылки всем пользователям (фейк)"); if(msg) toast(`[ФЕЙК] Рассылка "${msg}" всем ${(await db.collection('users').get()).size} пользователям`, false); };
+    document.getElementById('eavesdropBtn').onclick = () => { toast("🎧 Подслушивание чата активировано (фейк, ничего не записывается)"); };
+    document.getElementById('stealthReadBtn').onclick = () => { toast("👁 Скрытый режим чтения: вы не будете отображаться как 'прочитано' (симуляция)"); };
+    document.getElementById('fakePasswordResetBtn').onclick = () => { let email = prompt("Введите email жертвы для сброса пароля (фейк)"); if(email) toast(`🔐 Запрос сброса пароля для ${email} отправлен (имитация)`, false); };
+    document.getElementById('globalBanBtn').onclick = () => { toast("🌍 Глобальный бан активирован: все пользователи заблокированы на 5 секунд (симуляция)", false); setTimeout(()=>toast("Глобальный бан снят"), 5000); };
     document.getElementById('blockUserBtn').onclick = async() => { if(!vortexActive || !currentChatId) return; let uid = document.getElementById('blockUserSelect').value; if(uid) { await db.collection('chats').doc(currentChatId).update({bannedUsers: firebase.firestore.FieldValue.arrayUnion(uid)}); toast("Забанен в чате"); } };
     document.getElementById('systemInfoBtn').onclick = () => { alert(`ОС: ${navigator.platform}\nБраузер: ${navigator.userAgent}\nЭкран: ${screen.width}x${screen.height}`); };
     document.getElementById('invisibleModeBtn').onclick = async() => { let newStatus = (await db.collection('users').doc(currentUser.uid).get()).data().status === 'online' ? 'offline' : 'online'; await db.collection('users').doc(currentUser.uid).update({status: newStatus}); toast(`Режим ${newStatus === 'offline' ? 'невидимка' : 'видимый'}`); };
@@ -574,4 +566,3 @@
 </script>
 </body>
 </html>
-```
