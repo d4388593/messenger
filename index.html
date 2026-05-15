@@ -1,182 +1,40 @@
-
 <!DOCTYPE html>
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <title>Тёмный мессенджер | Firebase</title>
-    <!-- Font Awesome 6 -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
-        }
-
-        body {
-            background: #0a0c10;
-            color: #e4e6eb;
-            height: 100vh;
-            overflow: hidden;
-        }
-
-        /* Toast уведомления */
-        .toast {
-            position: fixed;
-            bottom: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: #2b2f36;
-            color: #fff;
-            padding: 10px 20px;
-            border-radius: 40px;
-            font-size: 14px;
-            z-index: 2000;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-            border-left: 4px solid #5865f2;
-            pointer-events: none;
-            opacity: 0;
-            transition: opacity 0.2s;
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Roboto, sans-serif; }
+        body { background: #0a0c10; color: #e4e6eb; height: 100vh; overflow: hidden; }
+        .toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: #2b2f36; color: #fff; padding: 10px 20px; border-radius: 40px; font-size: 14px; z-index: 2000; box-shadow: 0 4px 12px rgba(0,0,0,0.3); border-left: 4px solid #5865f2; pointer-events: none; opacity: 0; transition: opacity 0.2s; }
         .toast.show { opacity: 1; }
         .toast.error { border-left-color: #ed4245; }
-
-        /* Основной контейнер */
-        .app {
-            display: flex;
-            height: 100vh;
-            width: 100%;
-        }
-
-        /* Сайдбар */
-        .sidebar {
-            width: 300px;
-            background: #111214;
-            border-right: 1px solid #202225;
-            display: flex;
-            flex-direction: column;
-            transition: transform 0.2s ease;
-            z-index: 10;
-        }
-        .sidebar-header {
-            padding: 16px;
-            border-bottom: 1px solid #202225;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
+        .app { display: flex; height: 100vh; width: 100%; }
+        .sidebar { width: 300px; background: #111214; border-right: 1px solid #202225; display: flex; flex-direction: column; transition: transform 0.2s; z-index: 10; }
+        .sidebar-header { padding: 16px; border-bottom: 1px solid #202225; display: flex; justify-content: space-between; align-items: center; }
         .sidebar-header h3 { font-size: 18px; }
         .user-actions { display: flex; gap: 10px; }
-        .user-actions button {
-            background: none;
-            border: none;
-            color: #b5bac1;
-            font-size: 18px;
-            cursor: pointer;
-        }
-        .chats-list {
-            flex: 1;
-            overflow-y: auto;
-            padding: 8px;
-        }
-        .chat-item {
-            padding: 12px;
-            border-radius: 12px;
-            margin-bottom: 6px;
-            cursor: pointer;
-            transition: background 0.1s;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
+        .user-actions button { background: none; border: none; color: #b5bac1; font-size: 18px; cursor: pointer; }
+        .chats-list { flex: 1; overflow-y: auto; padding: 8px; }
+        .chat-item { padding: 12px; border-radius: 12px; margin-bottom: 6px; cursor: pointer; transition: background 0.1s; display: flex; align-items: center; gap: 12px; }
         .chat-item.active { background: #2b2d36; }
         .chat-item:hover { background: #1e1f25; }
-        .chat-avatar {
-            width: 40px;
-            height: 40px;
-            background: #2c2f36;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: bold;
-        }
+        .chat-avatar { width: 40px; height: 40px; background: #2c2f36; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; }
         .chat-info { flex: 1; }
         .chat-name { font-weight: 500; }
-        .plus-menu {
-            padding: 12px;
-            border-top: 1px solid #202225;
-            position: relative;
-        }
-        .plus-btn {
-            background: #5865f2;
-            border: none;
-            color: white;
-            width: 42px;
-            height: 42px;
-            border-radius: 50%;
-            font-size: 22px;
-            cursor: pointer;
-        }
-        .dropdown-menu {
-            position: absolute;
-            bottom: 70px;
-            left: 15px;
-            background: #1e1f25;
-            border-radius: 12px;
-            width: 200px;
-            display: none;
-            flex-direction: column;
-            box-shadow: 0 8px 16px rgba(0,0,0,0.4);
-            z-index: 20;
-        }
+        .plus-menu { padding: 12px; border-top: 1px solid #202225; position: relative; }
+        .plus-btn { background: #5865f2; border: none; color: white; width: 42px; height: 42px; border-radius: 50%; font-size: 22px; cursor: pointer; }
+        .dropdown-menu { position: absolute; bottom: 70px; left: 15px; background: #1e1f25; border-radius: 12px; width: 200px; display: none; flex-direction: column; box-shadow: 0 8px 16px rgba(0,0,0,0.4); z-index: 20; }
         .dropdown-menu.show { display: flex; }
-        .dropdown-menu button {
-            background: none;
-            border: none;
-            padding: 12px 16px;
-            text-align: left;
-            color: #ddd;
-            cursor: pointer;
-            font-size: 14px;
-        }
+        .dropdown-menu button { background: none; border: none; padding: 12px 16px; text-align: left; color: #ddd; cursor: pointer; font-size: 14px; }
         .dropdown-menu button:hover { background: #2b2d36; }
-
-        /* Чат */
-        .chat-main {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            background: #0f1115;
-        }
-        .chat-header {
-            padding: 12px 20px;
-            border-bottom: 1px solid #202225;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            background: #111214;
-        }
+        .chat-main { flex: 1; display: flex; flex-direction: column; background: #0f1115; }
+        .chat-header { padding: 12px 20px; border-bottom: 1px solid #202225; display: flex; justify-content: space-between; align-items: center; background: #111214; }
         .chat-title { font-weight: bold; font-size: 18px; }
-        .messages-area {
-            flex: 1;
-            overflow-y: auto;
-            padding: 16px;
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-        }
-        .message {
-            display: flex;
-            flex-direction: column;
-            max-width: 70%;
-            background: #1e1f25;
-            border-radius: 18px;
-            padding: 8px 12px;
-            position: relative;
-        }
+        .messages-area { flex: 1; overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 12px; }
+        .message { display: flex; flex-direction: column; max-width: 70%; background: #1e1f25; border-radius: 18px; padding: 8px 12px; position: relative; }
         .message.own { align-self: flex-end; background: #2b2f36; }
         .message-header { display: flex; justify-content: space-between; font-size: 12px; color: #b0b3b8; }
         .message-text { word-wrap: break-word; margin: 6px 0; }
@@ -184,124 +42,25 @@
         .message-actions i { cursor: pointer; opacity: 0.6; }
         .reactions { display: flex; gap: 6px; margin-top: 4px; font-size: 12px; }
         .reaction-badge { background: #2c2f36; border-radius: 12px; padding: 2px 6px; cursor: pointer; }
-        .input-area {
-            padding: 12px;
-            background: #111214;
-            display: flex;
-            gap: 10px;
-            align-items: center;
-            border-top: 1px solid #202225;
-        }
-        .input-area input {
-            flex: 1;
-            background: #1e1f25;
-            border: none;
-            padding: 12px;
-            border-radius: 28px;
-            color: white;
-            outline: none;
-        }
-        .input-area button {
-            background: none;
-            border: none;
-            font-size: 24px;
-            cursor: pointer;
-            color: #b5bac1;
-        }
-        .burger {
-            display: none;
-            font-size: 24px;
-            cursor: pointer;
-            margin-right: 12px;
-        }
-        /* Модалки общие */
-        .modal {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0,0,0,0.7);
-            display: none;
-            align-items: center;
-            justify-content: center;
-            z-index: 1000;
-        }
-        .modal-content {
-            background: #1e1f25;
-            border-radius: 20px;
-            width: 400px;
-            max-width: 90%;
-            padding: 20px;
-            color: white;
-        }
-        .modal-content input, .modal-content select, .modal-content textarea {
-            width: 100%;
-            margin: 8px 0;
-            padding: 10px;
-            background: #2b2d36;
-            border: none;
-            color: white;
-            border-radius: 12px;
-        }
-        .modal-content button {
-            background: #5865f2;
-            border: none;
-            padding: 8px 16px;
-            border-radius: 20px;
-            color: white;
-            margin-top: 8px;
-            cursor: pointer;
-        }
+        .input-area { padding: 12px; background: #111214; display: flex; gap: 10px; align-items: center; border-top: 1px solid #202225; }
+        .input-area input { flex: 1; background: #1e1f25; border: none; padding: 12px; border-radius: 28px; color: white; outline: none; }
+        .input-area button { background: none; border: none; font-size: 24px; cursor: pointer; color: #b5bac1; }
+        .burger { display: none; font-size: 24px; cursor: pointer; margin-right: 12px; }
+        .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); display: none; align-items: center; justify-content: center; z-index: 1000; }
+        .modal-content { background: #1e1f25; border-radius: 20px; width: 400px; max-width: 90%; padding: 20px; color: white; }
+        .modal-content input, .modal-content select, .modal-content textarea { width: 100%; margin: 8px 0; padding: 10px; background: #2b2d36; border: none; color: white; border-radius: 12px; }
+        .modal-content button { background: #5865f2; border: none; padding: 8px 16px; border-radius: 20px; color: white; margin-top: 8px; cursor: pointer; }
         .close-modal { float: right; cursor: pointer; }
-        /* Табы для авторизации */
-        .auth-tabs {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 20px;
-            border-bottom: 1px solid #2b2d36;
-        }
-        .auth-tab {
-            flex: 1;
-            text-align: center;
-            padding: 8px;
-            cursor: pointer;
-            background: none;
-            border: none;
-            color: #aaa;
-            font-size: 16px;
-        }
+        .auth-tabs { display: flex; gap: 10px; margin-bottom: 20px; border-bottom: 1px solid #2b2d36; }
+        .auth-tab { flex: 1; text-align: center; padding: 8px; cursor: pointer; background: none; border: none; color: #aaa; font-size: 16px; }
         .auth-tab.active { color: #5865f2; border-bottom: 2px solid #5865f2; }
         .auth-form { display: flex; flex-direction: column; gap: 12px; }
         .auth-form.hide { display: none; }
-        /* КГБ панель */
-        .kgb-panel {
-            position: fixed;
-            bottom: 100px;
-            right: 20px;
-            width: 320px;
-            background: #1a1c22;
-            border-radius: 16px;
-            padding: 16px;
-            z-index: 1050;
-            box-shadow: 0 4px 20px black;
-            display: none;
-            flex-direction: column;
-            gap: 8px;
-        }
+        .kgb-panel { position: fixed; bottom: 100px; right: 20px; width: 340px; background: #1a1c22; border-radius: 16px; padding: 16px; z-index: 1050; box-shadow: 0 4px 20px black; display: none; flex-direction: column; gap: 8px; max-height: 80vh; overflow-y: auto; }
         .kgb-panel button, .kgb-panel input { margin: 4px 0; }
-        @media (max-width: 768px) {
-            .sidebar {
-                position: fixed;
-                left: -300px;
-                top: 0;
-                height: 100%;
-                width: 280px;
-                z-index: 15;
-            }
-            .sidebar.open { left: 0; }
-            .burger { display: block; }
-        }
+        .kgb-panel button { background: #2c2f36; border: none; padding: 8px; border-radius: 8px; color: white; cursor: pointer; }
+        .kgb-panel button:hover { background: #3b3f47; }
+        @media (max-width: 768px) { .sidebar { position: fixed; left: -300px; top: 0; height: 100%; width: 280px; z-index: 15; } .sidebar.open { left: 0; } .burger { display: block; } }
     </style>
 </head>
 <body>
@@ -310,7 +69,7 @@
         <div class="sidebar-header">
             <h3>Чаты</h3>
             <div class="user-actions">
-                <button id="friendsRequestsBtn" title="Заявки в друзья"><i class="fas fa-user-friends"></i></button>
+                <button id="friendsRequestsBtn" title="Заявки"><i class="fas fa-user-friends"></i></button>
                 <button id="profileBtn"><i class="fas fa-user-circle"></i></button>
                 <button id="logoutBtn"><i class="fas fa-sign-out-alt"></i></button>
             </div>
@@ -327,15 +86,10 @@
     </div>
     <div class="chat-main">
         <div class="chat-header">
-            <div style="display:flex; align-items:center;">
-                <div class="burger" id="burgerBtn"><i class="fas fa-bars"></i></div>
-                <div class="chat-title" id="chatTitle">Выберите чат</div>
-            </div>
+            <div style="display:flex; align-items:center;"><div class="burger" id="burgerBtn"><i class="fas fa-bars"></i></div><div class="chat-title" id="chatTitle">Выберите чат</div></div>
             <button id="subscribeChannelBtn" style="background:none; border:none; color:#5865f2; display:none;"><i class="fas fa-bell"></i> Подписаться</button>
         </div>
-        <div class="messages-area" id="messagesArea">
-            <div style="text-align:center;">👈 Начните общение с другом</div>
-        </div>
+        <div class="messages-area" id="messagesArea"><div style="text-align:center;">👈 Начните общение</div></div>
         <div class="input-area" id="inputArea">
             <input type="text" id="messageInput" placeholder="Сообщение..." disabled>
             <button id="pollBtn" disabled><i class="fas fa-chart-bar"></i></button>
@@ -344,42 +98,21 @@
     </div>
 </div>
 
-<!-- Модалка входа/регистрации -->
-<div id="authModal" class="modal" style="display: flex;">
-    <div class="modal-content">
-        <div class="auth-tabs">
-            <button class="auth-tab active" data-tab="login">Вход</button>
-            <button class="auth-tab" data-tab="register">Регистрация</button>
-        </div>
-        <div id="loginForm" class="auth-form">
-            <input type="email" id="loginEmail" placeholder="Email">
-            <input type="password" id="loginPassword" placeholder="Пароль">
-            <button id="doLoginBtn">Войти</button>
-        </div>
-        <div id="registerForm" class="auth-form hide">
-            <input type="email" id="regEmail" placeholder="Email">
-            <input type="password" id="regPassword" placeholder="Пароль">
-            <input type="text" id="regDisplayName" placeholder="Отображаемое имя (не только цифры)">
-            <button id="doRegisterBtn">Зарегистрироваться</button>
-        </div>
-    </div>
-</div>
-
-<!-- Остальные модалки -->
+<!-- Модалки -->
+<div id="authModal" class="modal" style="display: flex;"><div class="modal-content"><div class="auth-tabs"><button class="auth-tab active" data-tab="login">Вход</button><button class="auth-tab" data-tab="register">Регистрация</button></div><div id="loginForm" class="auth-form"><input type="email" id="loginEmail" placeholder="Email"><input type="password" id="loginPassword" placeholder="Пароль"><button id="doLoginBtn">Войти</button></div><div id="registerForm" class="auth-form hide"><input type="email" id="regEmail" placeholder="Email"><input type="password" id="regPassword" placeholder="Пароль"><input type="text" id="regDisplayName" placeholder="Имя (не только цифры)"><button id="doRegisterBtn">Зарегистрироваться</button></div></div></div>
 <div id="requestsModal" class="modal"><div class="modal-content"><span class="close-modal">&times;</span><h3>Заявки в друзья</h3><div id="requestsList"></div></div></div>
 <div id="searchUserModal" class="modal"><div class="modal-content"><span class="close-modal">&times;</span><h3>Поиск пользователей</h3><input type="text" id="searchInput" placeholder="Имя или email"><button id="searchBtn">Найти</button><div id="searchResults"></div></div></div>
 <div id="createGroupModal" class="modal"><div class="modal-content"><span class="close-modal">&times;</span><h3>Создать группу</h3><input id="groupName" placeholder="Название"><div id="friendsListGroup"></div><button id="confirmGroupBtn">Создать</button></div></div>
 <div id="createChannelModal" class="modal"><div class="modal-content"><span class="close-modal">&times;</span><h3>Создать канал</h3><input id="channelName" placeholder="Название"><textarea id="channelDesc" placeholder="Описание"></textarea><button id="confirmChannelBtn">Создать</button></div></div>
 <div id="pollModal" class="modal"><div class="modal-content"><span class="close-modal">&times;</span><h3>Создать опрос</h3><input id="pollQuestion" placeholder="Вопрос"><div id="pollOptions"><input placeholder="Вариант 1"><input placeholder="Вариант 2"></div><button id="addOptionBtn">+ Добавить вариант</button><button id="sendPollBtn">Отправить опрос</button></div></div>
-<div id="profileModal" class="modal"><div class="modal-content"><span class="close-modal">&times;</span><h3>Профиль</h3><input id="profileName" placeholder="Имя"><input type="file" id="avatarInput" accept="image/*"><button id="updateProfileBtn">Обновить имя</button><button id="changePasswordBtn">Сменить пароль</button><div id="avatarPreview"></div></div></div>
-<div id="kgbPanel" class="kgb-panel"><h4>КГБ Панель</h4><input id="ipAddress" placeholder="IP адрес"><button id="getIpDataBtn">Получить по IP</button><button id="myIpBtn">Мой IP</button><div id="ipInfo" style="font-size:12px;"></div><button id="exportChatJsonBtn">Экспорт чата (JSON)</button><select id="blockUserSelect"><option>Выберите участника</option></select><button id="blockUserBtn">Заблокировать</button></div>
+<div id="profileModal" class="modal"><div class="modal-content"><span class="close-modal">&times;</span><h3>Профиль</h3><input id="profileName" placeholder="Имя"><input type="file" id="avatarInput" accept="image/*"><button id="updateProfileBtn">Обновить имя</button><button id="changePasswordBtn">Сменить пароль</button></div></div>
+<div id="kgbPanel" class="kgb-panel"><h4>🕵️ КГБ Панель <button id="closeKgbBtn" style="float:right; background:none; border:none; color:red; font-size:20px;">✖</button></h4><hr><input id="ipAddress" placeholder="IP адрес (например 8.8.8.8)"><button id="getIpDataBtn">🌐 Получить данные по IP</button><button id="myIpBtn">📍 Мой IP</button><div id="ipInfo" style="background:#0f1115; padding:8px; border-radius:8px; font-size:12px; max-height:150px; overflow:auto;"></div><button id="exportChatJsonBtn">📥 Экспорт чата (JSON)</button><select id="blockUserSelect"><option>Выберите участника</option></select><button id="blockUserBtn">🚫 Заблокировать в чате</button><button id="systemInfoBtn">💻 Информация о системе</button><button id="invisibleModeBtn">👻 Режим невидимки</button><button id="clearCacheBtn">🗑 Очистить локальный кэш</button></div>
 
 <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-storage-compat.js"></script>
 <script>
-    // Firebase конфиг от пользователя
     const firebaseConfig = {
         apiKey: "AIzaSyCtPt1M2ej6B91yBx5VepU8SnrfO9MQAlk",
         authDomain: "my-messenger-d1622.firebaseapp.com",
@@ -393,496 +126,73 @@
     const db = firebase.firestore();
     const storage = firebase.storage();
 
-    let currentUser = null;
-    let currentChatId = null;
-    let currentChatData = null;
-    let unsubscribeMessages = null;
-    let kgbActive = false;
+    let currentUser = null, currentChatId = null, currentChatData = null, unsubscribeMessages = null, kgbActive = false;
 
-    function toast(msg, isError = false) {
-        let t = document.createElement('div');
-        t.className = 'toast';
-        if(isError) t.classList.add('error');
-        t.innerText = msg;
-        document.body.appendChild(t);
-        setTimeout(() => t.classList.add('show'), 10);
-        setTimeout(() => { t.classList.remove('show'); setTimeout(()=>t.remove(),300); }, 3000);
-    }
+    function toast(msg, isError = false) { let t = document.createElement('div'); t.className = 'toast'; if(isError) t.classList.add('error'); t.innerText = msg; document.body.appendChild(t); setTimeout(() => t.classList.add('show'), 10); setTimeout(() => { t.classList.remove('show'); setTimeout(()=>t.remove(),300); }, 3000); }
+    function validateDisplayName(name) { if(!name.trim()) return false; return !/^\d+$/.test(name.trim()); }
+    async function registerUser(email, password, displayName) { if(!validateDisplayName(displayName)) throw new Error("Имя не может состоять только из цифр"); const cred = await auth.createUserWithEmailAndPassword(email, password); await cred.user.updateProfile({displayName}); await db.collection('users').doc(cred.user.uid).set({ uid: cred.user.uid, email, displayName, status: "online", photoURL: null, createdAt: firebase.firestore.FieldValue.serverTimestamp() }); await db.collection('friendRequests').doc(cred.user.uid).set({incoming: [], outgoing: []}); await db.collection('friends').doc(cred.user.uid).set({friends: []}); await db.collection('userChats').doc(cred.user.uid).set({chats: []}); return cred.user; }
+    async function loginUser(email, password) { await auth.signInWithEmailAndPassword(email, password); }
+    function showMainUI() { document.getElementById('authModal').style.display = 'none'; document.getElementById('messageInput').disabled = false; document.getElementById('sendMsgBtn').disabled = false; document.getElementById('pollBtn').disabled = false; }
+    document.getElementById('logoutBtn').onclick = async() => { if(currentUser) await db.collection('users').doc(currentUser.uid).update({status:'offline'}); await auth.signOut(); document.getElementById('authModal').style.display = 'flex'; document.getElementById('chatsList').innerHTML = ''; if(unsubscribeMessages) unsubscribeMessages(); currentChatId = null; currentChatData = null; };
+    
+    auth.onAuthStateChanged(async(user) => { if(!user) { currentUser = null; document.getElementById('authModal').style.display = 'flex'; return; } currentUser = user; await db.collection('users').doc(user.uid).set({status:'online', displayName: user.displayName}, {merge:true}); await db.collection('users').doc(user.uid).update({status:'online'}); showMainUI(); loadUserChats(); document.getElementById('profileName').value = user.displayName; loadFriendsForBlockSelect(); });
 
-    function validateDisplayName(name) {
-        if(!name.trim()) return false;
-        return !/^\d+$/.test(name.trim());
-    }
+    async function loadUserChats() { if(!currentUser) return; const userChatsSnap = await db.collection('userChats').doc(currentUser.uid).get(); let chatIds = userChatsSnap.exists ? userChatsSnap.data().chats || [] : []; let container = document.getElementById('chatsList'); container.innerHTML = ''; if(chatIds.length === 0) { container.innerHTML = '<div style="padding:20px; text-align:center;">Нет чатов. Добавьте друзей!</div>'; return; } for(let chatId of chatIds) { let chatDoc = await db.collection('chats').doc(chatId).get(); if(!chatDoc.exists) continue; let data = chatDoc.data(); let title = ''; if(data.type === 'private') { let otherId = data.participants.find(id=>id !== currentUser.uid); let otherUser = await db.collection('users').doc(otherId).get(); title = otherUser.exists ? otherUser.data().displayName : otherId; } else title = data.name; let div = document.createElement('div'); div.className = 'chat-item'; div.innerHTML = `<div class="chat-avatar"><i class="fas ${data.type==='group'?'fa-users':(data.type==='channel'?'fa-bullhorn':'fa-user')}"></i></div><div class="chat-info"><div class="chat-name">${escapeHtml(title)}</div></div>`; div.onclick = ()=>openChat(chatId, data); container.appendChild(div); } }
 
-    // Регистрация
-    async function registerUser(email, password, displayName) {
-        if(!validateDisplayName(displayName)) throw new Error("Имя не может состоять только из цифр");
-        const cred = await auth.createUserWithEmailAndPassword(email, password);
-        await cred.user.updateProfile({displayName});
-        await db.collection('users').doc(cred.user.uid).set({
-            uid: cred.user.uid, email, displayName, status: "online", photoURL: null, createdAt: firebase.firestore.FieldValue.serverTimestamp()
-        });
-        await db.collection('friendRequests').doc(cred.user.uid).set({incoming: [], outgoing: []});
-        await db.collection('friends').doc(cred.user.uid).set({friends: []});
-        await db.collection('userChats').doc(cred.user.uid).set({chats: []});
-        return cred.user;
-    }
+    async function openChat(chatId, chatData) { if(unsubscribeMessages) unsubscribeMessages(); currentChatId = chatId; currentChatData = chatData; let title = chatData.type === 'private' ? await getOtherUserName(chatData) : chatData.name; document.getElementById('chatTitle').innerHTML = escapeHtml(title); document.getElementById('messagesArea').innerHTML = ''; const subBtn = document.getElementById('subscribeChannelBtn'); if(chatData.type === 'channel') { subBtn.style.display = 'inline-block'; let isSub = chatData.subscribers && chatData.subscribers.includes(currentUser.uid); subBtn.innerHTML = isSub ? '<i class="fas fa-check"></i> Подписан' : '<i class="fas fa-bell"></i> Подписаться'; subBtn.onclick = async () => { if(!chatData.subscribers) chatData.subscribers = []; if(chatData.subscribers.includes(currentUser.uid)) { await db.collection('chats').doc(chatId).update({subscribers: firebase.firestore.FieldValue.arrayRemove(currentUser.uid)}); toast("Вы отписались"); } else { await db.collection('chats').doc(chatId).update({subscribers: firebase.firestore.FieldValue.arrayUnion(currentUser.uid)}); toast("Подписка оформлена"); } openChat(chatId, (await db.collection('chats').doc(chatId).get()).data()); }; } else subBtn.style.display = 'none'; unsubscribeMessages = db.collection('chats').doc(chatId).collection('messages').orderBy('timestamp','asc').onSnapshot(snapshot => { let msgsDiv = document.getElementById('messagesArea'); msgsDiv.innerHTML = ''; snapshot.forEach(doc => { let msg = doc.data(); let isOwn = msg.senderId === currentUser.uid; let msgEl = createMessageElement(doc.id, msg, isOwn); msgsDiv.appendChild(msgEl); }); msgsDiv.scrollTop = msgsDiv.scrollHeight; }); }
 
-    // Вход
-    async function loginUser(email, password) {
-        await auth.signInWithEmailAndPassword(email, password);
-    }
-
-    function showMainUI() {
-        document.getElementById('authModal').style.display = 'none';
-        document.getElementById('messageInput').disabled = false;
-        document.getElementById('sendMsgBtn').disabled = false;
-        document.getElementById('pollBtn').disabled = false;
-    }
-
-    // Выход
-    document.getElementById('logoutBtn').onclick = async() => {
-        if(currentUser) await db.collection('users').doc(currentUser.uid).update({status:'offline'});
-        await auth.signOut();
-        document.getElementById('authModal').style.display = 'flex';
-        document.getElementById('chatsList').innerHTML = '';
-        if(unsubscribeMessages) unsubscribeMessages();
-        currentChatId = null;
-        currentChatData = null;
-    };
-
-    auth.onAuthStateChanged(async(user) => {
-        if(!user) {
-            currentUser = null;
-            document.getElementById('authModal').style.display = 'flex';
-            return;
-        }
-        currentUser = user;
-        await db.collection('users').doc(user.uid).set({status:'online', displayName: user.displayName}, {merge:true});
-        await db.collection('users').doc(user.uid).update({status:'online'});
-        showMainUI();
-        loadUserChats();
-        document.getElementById('profileName').value = user.displayName;
-        loadFriendsForBlockSelect();
-    });
-
-    async function loadUserChats() {
-        if(!currentUser) return;
-        const userChatsSnap = await db.collection('userChats').doc(currentUser.uid).get();
-        let chatIds = userChatsSnap.exists ? userChatsSnap.data().chats || [] : [];
-        let container = document.getElementById('chatsList');
-        container.innerHTML = '';
-        if(chatIds.length === 0) {
-            container.innerHTML = '<div style="padding:20px; text-align:center;">Нет чатов. Добавьте друзей!</div>';
-            return;
-        }
-        for(let chatId of chatIds) {
-            let chatDoc = await db.collection('chats').doc(chatId).get();
-            if(!chatDoc.exists) continue;
-            let data = chatDoc.data();
-            let title = '';
-            if(data.type === 'private') {
-                let otherId = data.participants.find(id=>id !== currentUser.uid);
-                let otherUser = await db.collection('users').doc(otherId).get();
-                title = otherUser.exists ? otherUser.data().displayName : otherId;
-            } else title = data.name;
-            let div = document.createElement('div');
-            div.className = 'chat-item';
-            div.innerHTML = `<div class="chat-avatar"><i class="fas ${data.type==='group'?'fa-users':(data.type==='channel'?'fa-bullhorn':'fa-user')}"></i></div><div class="chat-info"><div class="chat-name">${escapeHtml(title)}</div></div>`;
-            div.onclick = ()=>openChat(chatId, data);
-            container.appendChild(div);
-        }
-    }
-
-    async function openChat(chatId, chatData) {
-        if(unsubscribeMessages) unsubscribeMessages();
-        currentChatId = chatId;
-        currentChatData = chatData;
-        let title = chatData.type === 'private' ? await getOtherUserName(chatData) : chatData.name;
-        document.getElementById('chatTitle').innerHTML = escapeHtml(title);
-        document.getElementById('messagesArea').innerHTML = '';
-        // Показать кнопку подписки для каналов
-        const subBtn = document.getElementById('subscribeChannelBtn');
-        if(chatData.type === 'channel') {
-            subBtn.style.display = 'inline-block';
-            let isSub = chatData.subscribers && chatData.subscribers.includes(currentUser.uid);
-            subBtn.innerHTML = isSub ? '<i class="fas fa-check"></i> Подписан' : '<i class="fas fa-bell"></i> Подписаться';
-            subBtn.onclick = async () => {
-                if(!chatData.subscribers) chatData.subscribers = [];
-                if(chatData.subscribers.includes(currentUser.uid)) {
-                    await db.collection('chats').doc(chatId).update({subscribers: firebase.firestore.FieldValue.arrayRemove(currentUser.uid)});
-                    toast("Вы отписались");
-                } else {
-                    await db.collection('chats').doc(chatId).update({subscribers: firebase.firestore.FieldValue.arrayUnion(currentUser.uid)});
-                    toast("Подписка оформлена");
-                }
-                openChat(chatId, (await db.collection('chats').doc(chatId).get()).data());
-            };
-        } else subBtn.style.display = 'none';
-
-        unsubscribeMessages = db.collection('chats').doc(chatId).collection('messages').orderBy('timestamp','asc').onSnapshot(snapshot => {
-            let msgsDiv = document.getElementById('messagesArea');
-            msgsDiv.innerHTML = '';
-            snapshot.forEach(doc => {
-                let msg = doc.data();
-                let isOwn = msg.senderId === currentUser.uid;
-                let msgEl = createMessageElement(doc.id, msg, isOwn);
-                msgsDiv.appendChild(msgEl);
-            });
-            msgsDiv.scrollTop = msgsDiv.scrollHeight;
-        });
-    }
-
-    async function getOtherUserName(chatData) {
-        let other = chatData.participants.find(uid=>uid !== currentUser.uid);
-        let userDoc = await db.collection('users').doc(other).get();
-        return userDoc.exists ? userDoc.data().displayName : other;
-    }
-
-    function createMessageElement(msgId, msg, isOwn) {
-        let div = document.createElement('div');
-        div.className = `message ${isOwn ? 'own' : ''}`;
-        let reactionsHtml = '';
-        if(msg.reactions) {
-            for(let [emoji, users] of Object.entries(msg.reactions)) {
-                reactionsHtml += `<span class="reaction-badge" data-emoji="${emoji}">${emoji} ${users.length}</span>`;
-            }
-        }
-        div.innerHTML = `
-            <div class="message-header"><span>${escapeHtml(msg.senderName||'')}</span><span>${msg.timestamp?.toDate ? new Date(msg.timestamp.toDate()).toLocaleTimeString() : ''}</span></div>
-            <div class="message-text">${escapeHtml(msg.text) || (msg.type==='poll' ? '📊 Опрос: '+escapeHtml(msg.pollData.question) : '')}</div>
-            ${msg.type==='poll' && msg.pollData ? renderPollResults(msg.pollData, msgId, msg.senderId) : ''}
-            <div class="reactions" id="react-${msgId}">${reactionsHtml}</div>
-            <div class="message-actions">
-                ${isOwn ? `<i class="fas fa-edit edit-msg" data-id="${msgId}"></i>` : ''}
-                <i class="far fa-smile-wink add-react" data-id="${msgId}"></i>
-            </div>
-        `;
-        if(isOwn) div.querySelector('.edit-msg')?.addEventListener('click',()=>editMessage(msgId, msg.text));
-        div.querySelector('.add-react')?.addEventListener('click',()=>showReactionPicker(msgId));
-        div.querySelectorAll('.reaction-badge').forEach(b=>b.addEventListener('click',()=>toggleReaction(msgId, b.dataset.emoji)));
-        return div;
-    }
-
-    function renderPollResults(pollData, msgId, senderId) {
-        let total = Object.keys(pollData.votes || {}).length;
-        let optionsHtml = '<div style="margin-top:6px;">';
-        for(let opt of pollData.options) {
-            let count = pollData.voteCounts?.[opt] || 0;
-            let percent = total ? (count/total*100).toFixed(0) : 0;
-            optionsHtml += `<div>${escapeHtml(opt)} ${percent}% <progress value="${count}" max="${total}" style="width:100px"></progress></div>`;
-        }
-        if(currentUser && senderId !== currentUser.uid && !pollData.votes?.[currentUser.uid]) {
-            optionsHtml += `<button class="vote-poll" data-id="${msgId}">Голосовать</button>`;
-        }
-        optionsHtml += '</div>';
-        return optionsHtml;
-    }
-
-    async function toggleReaction(msgId, emoji) {
-        let msgRef = db.collection('chats').doc(currentChatId).collection('messages').doc(msgId);
-        let doc = await msgRef.get();
-        let reactions = doc.data().reactions || {};
-        let list = reactions[emoji] || [];
-        if(list.includes(currentUser.uid)) list = list.filter(u=>u!==currentUser.uid);
-        else list.push(currentUser.uid);
-        if(list.length===0) delete reactions[emoji];
-        else reactions[emoji] = list;
-        await msgRef.update({reactions});
-    }
-
-    async function editMessage(msgId, oldText) {
-        let newText = prompt("Новый текст", oldText);
-        if(newText && newText.trim()) {
-            await db.collection('chats').doc(currentChatId).collection('messages').doc(msgId).update({text: newText, edited:true});
-        }
-    }
-
-    function showReactionPicker(msgId) {
-        let emojis = ['👍','❤️','😂','😮','😢','👎'];
-        let pick = prompt("Выберите реакцию: "+emojis.join(" "));
-        if(emojis.includes(pick)) toggleReaction(msgId, pick);
-    }
-
-    // Отправка текста
-    document.getElementById('sendMsgBtn').onclick = async() => {
-        let text = document.getElementById('messageInput').value.trim();
-        if(!text || !currentChatId) return;
-        if(currentChatData.type === 'channel' && currentChatData.ownerId !== currentUser.uid) {
-            toast("Только владелец канала может писать", true);
-            return;
-        }
-        let banned = currentChatData.bannedUsers || [];
-        if(banned.includes(currentUser.uid)) { toast("Вы заблокированы в этом чате", true); return; }
-        await db.collection('chats').doc(currentChatId).collection('messages').add({
-            text, senderId: currentUser.uid, senderName: currentUser.displayName,
-            timestamp: firebase.firestore.FieldValue.serverTimestamp(), reactions: {}
-        });
-        document.getElementById('messageInput').value = '';
-    };
-
+    async function getOtherUserName(chatData) { let other = chatData.participants.find(uid=>uid !== currentUser.uid); let userDoc = await db.collection('users').doc(other).get(); return userDoc.exists ? userDoc.data().displayName : other; }
+    function createMessageElement(msgId, msg, isOwn) { let div = document.createElement('div'); div.className = `message ${isOwn ? 'own' : ''}`; let reactionsHtml = ''; if(msg.reactions) { for(let [emoji, users] of Object.entries(msg.reactions)) { reactionsHtml += `<span class="reaction-badge" data-emoji="${emoji}">${emoji} ${users.length}</span>`; } } div.innerHTML = `<div class="message-header"><span>${escapeHtml(msg.senderName||'')}</span><span>${msg.timestamp?.toDate ? new Date(msg.timestamp.toDate()).toLocaleTimeString() : ''}</span></div><div class="message-text">${escapeHtml(msg.text) || (msg.type==='poll' ? '📊 Опрос: '+escapeHtml(msg.pollData.question) : '')}</div>${msg.type==='poll' && msg.pollData ? renderPollResults(msg.pollData, msgId, msg.senderId) : ''}<div class="reactions" id="react-${msgId}">${reactionsHtml}</div><div class="message-actions">${isOwn ? `<i class="fas fa-edit edit-msg" data-id="${msgId}"></i>` : ''}<i class="far fa-smile-wink add-react" data-id="${msgId}"></i></div>`; if(isOwn) div.querySelector('.edit-msg')?.addEventListener('click',()=>editMessage(msgId, msg.text)); div.querySelector('.add-react')?.addEventListener('click',()=>showReactionPicker(msgId)); div.querySelectorAll('.reaction-badge').forEach(b=>b.addEventListener('click',()=>toggleReaction(msgId, b.dataset.emoji))); return div; }
+    function renderPollResults(pollData, msgId, senderId) { let total = Object.keys(pollData.votes || {}).length; let optionsHtml = '<div style="margin-top:6px;">'; for(let opt of pollData.options) { let count = pollData.voteCounts?.[opt] || 0; let percent = total ? (count/total*100).toFixed(0) : 0; optionsHtml += `<div>${escapeHtml(opt)} ${percent}% <progress value="${count}" max="${total}" style="width:100px"></progress></div>`; } if(currentUser && senderId !== currentUser.uid && !pollData.votes?.[currentUser.uid]) { optionsHtml += `<button class="vote-poll" data-id="${msgId}">Голосовать</button>`; } optionsHtml += '</div>'; return optionsHtml; }
+    async function toggleReaction(msgId, emoji) { let msgRef = db.collection('chats').doc(currentChatId).collection('messages').doc(msgId); let doc = await msgRef.get(); let reactions = doc.data().reactions || {}; let list = reactions[emoji] || []; if(list.includes(currentUser.uid)) list = list.filter(u=>u!==currentUser.uid); else list.push(currentUser.uid); if(list.length===0) delete reactions[emoji]; else reactions[emoji] = list; await msgRef.update({reactions}); }
+    async function editMessage(msgId, oldText) { let newText = prompt("Новый текст", oldText); if(newText && newText.trim()) { await db.collection('chats').doc(currentChatId).collection('messages').doc(msgId).update({text: newText, edited:true}); } }
+    function showReactionPicker(msgId) { let emojis = ['👍','❤️','😂','😮','😢','👎']; let pick = prompt("Реакция: "+emojis.join(" ")); if(emojis.includes(pick)) toggleReaction(msgId, pick); }
+    document.getElementById('sendMsgBtn').onclick = async() => { let text = document.getElementById('messageInput').value.trim(); if(!text || !currentChatId) return; if(currentChatData.type === 'channel' && currentChatData.ownerId !== currentUser.uid) { toast("Только владелец канала может писать", true); return; } let banned = currentChatData.bannedUsers || []; if(banned.includes(currentUser.uid)) { toast("Вы заблокированы", true); return; } await db.collection('chats').doc(currentChatId).collection('messages').add({ text, senderId: currentUser.uid, senderName: currentUser.displayName, timestamp: firebase.firestore.FieldValue.serverTimestamp(), reactions: {} }); document.getElementById('messageInput').value = ''; };
+    
     // Друзья и заявки
-    document.getElementById('friendsRequestsBtn').onclick = async() => {
-        let reqDoc = await db.collection('friendRequests').doc(currentUser.uid).get();
-        let incoming = reqDoc.data()?.incoming || [];
-        let container = document.getElementById('requestsList');
-        container.innerHTML = '';
-        for(let req of incoming) {
-            let userDoc = await db.collection('users').doc(req.uid).get();
-            let name = userDoc.exists ? userDoc.data().displayName : req.uid;
-            let div = document.createElement('div');
-            div.innerHTML = `${escapeHtml(name)} <button data-uid="${req.uid}" class="acceptReq">Принять</button> <button data-uid="${req.uid}" class="declineReq">Отклонить</button>`;
-            container.appendChild(div);
-        }
-        document.querySelectorAll('.acceptReq').forEach(btn=>btn.onclick = ()=>acceptFriend(btn.dataset.uid));
-        document.querySelectorAll('.declineReq').forEach(btn=>btn.onclick = ()=>declineFriend(btn.dataset.uid));
-        document.getElementById('requestsModal').style.display = 'flex';
-    };
-
-    async function acceptFriend(friendUid) {
-        await db.collection('friends').doc(currentUser.uid).update({friends: firebase.firestore.FieldValue.arrayUnion(friendUid)});
-        await db.collection('friends').doc(friendUid).update({friends: firebase.firestore.FieldValue.arrayUnion(currentUser.uid)});
-        let chatId = [currentUser.uid, friendUid].sort().join('_');
-        let chatRef = db.collection('chats').doc(chatId);
-        let chatSnap = await chatRef.get();
-        if(!chatSnap.exists) {
-            await chatRef.set({type:'private', participants:[currentUser.uid, friendUid], createdAt: new Date()});
-        }
-        await db.collection('userChats').doc(currentUser.uid).update({chats: firebase.firestore.FieldValue.arrayUnion(chatId)});
-        await db.collection('userChats').doc(friendUid).update({chats: firebase.firestore.FieldValue.arrayUnion(chatId)});
-        let reqDoc = await db.collection('friendRequests').doc(currentUser.uid).get();
-        let incoming = reqDoc.data().incoming.filter(r=>r.uid !== friendUid);
-        await db.collection('friendRequests').doc(currentUser.uid).update({incoming});
-        let outDoc = await db.collection('friendRequests').doc(friendUid).get();
-        let outgoing = outDoc.data().outgoing.filter(r=>r.uid !== currentUser.uid);
-        await db.collection('friendRequests').doc(friendUid).update({outgoing});
-        toast("Друг добавлен!");
-        loadUserChats();
-    }
-    async function declineFriend(uid) {
-        let reqDoc = await db.collection('friendRequests').doc(currentUser.uid).get();
-        let incoming = reqDoc.data().incoming.filter(r=>r.uid !== uid);
-        await db.collection('friendRequests').doc(currentUser.uid).update({incoming});
-        toast("Заявка отклонена");
-        document.getElementById('requestsModal').style.display = 'none';
-    }
-
+    document.getElementById('friendsRequestsBtn').onclick = async() => { let reqDoc = await db.collection('friendRequests').doc(currentUser.uid).get(); let incoming = reqDoc.data()?.incoming || []; let container = document.getElementById('requestsList'); container.innerHTML = ''; for(let req of incoming) { let userDoc = await db.collection('users').doc(req.uid).get(); let name = userDoc.exists ? userDoc.data().displayName : req.uid; let div = document.createElement('div'); div.innerHTML = `${escapeHtml(name)} <button data-uid="${req.uid}" class="acceptReq">Принять</button> <button data-uid="${req.uid}" class="declineReq">Отклонить</button>`; container.appendChild(div); } document.querySelectorAll('.acceptReq').forEach(btn=>btn.onclick = ()=>acceptFriend(btn.dataset.uid)); document.querySelectorAll('.declineReq').forEach(btn=>btn.onclick = ()=>declineFriend(btn.dataset.uid)); document.getElementById('requestsModal').style.display = 'flex'; };
+    async function acceptFriend(friendUid) { await db.collection('friends').doc(currentUser.uid).update({friends: firebase.firestore.FieldValue.arrayUnion(friendUid)}); await db.collection('friends').doc(friendUid).update({friends: firebase.firestore.FieldValue.arrayUnion(currentUser.uid)}); let chatId = [currentUser.uid, friendUid].sort().join('_'); let chatRef = db.collection('chats').doc(chatId); if(!(await chatRef.get()).exists) { await chatRef.set({type:'private', participants:[currentUser.uid, friendUid], createdAt: new Date()}); } await db.collection('userChats').doc(currentUser.uid).update({chats: firebase.firestore.FieldValue.arrayUnion(chatId)}); await db.collection('userChats').doc(friendUid).update({chats: firebase.firestore.FieldValue.arrayUnion(chatId)}); let reqDoc = await db.collection('friendRequests').doc(currentUser.uid).get(); let incoming = reqDoc.data().incoming.filter(r=>r.uid !== friendUid); await db.collection('friendRequests').doc(currentUser.uid).update({incoming}); await db.collection('friendRequests').doc(friendUid).update({outgoing: firebase.firestore.FieldValue.arrayRemove({uid:currentUser.uid})}); toast("Друг добавлен!"); loadUserChats(); }
+    async function declineFriend(uid) { let reqDoc = await db.collection('friendRequests').doc(currentUser.uid).get(); let incoming = reqDoc.data().incoming.filter(r=>r.uid !== uid); await db.collection('friendRequests').doc(currentUser.uid).update({incoming}); toast("Заявка отклонена"); document.getElementById('requestsModal').style.display = 'none'; }
+    
     // Поиск пользователя
-    document.getElementById('findUserBtn').onclick = () => {
-        document.getElementById('searchUserModal').style.display='flex';
-        document.getElementById('searchBtn').onclick = async() => {
-            let query = document.getElementById('searchInput').value.toLowerCase();
-            let usersSnap = await db.collection('users').get();
-            let results = usersSnap.docs.filter(d=>d.id !== currentUser.uid && (d.data().displayName.toLowerCase().includes(query) || d.data().email.includes(query)));
-            let html = '';
-            for(let u of results) {
-                html += `<div>${escapeHtml(u.data().displayName)} <button data-id="${u.id}" class="sendFriendReq">➕ Добавить</button></div>`;
-            }
-            document.getElementById('searchResults').innerHTML = html;
-            document.querySelectorAll('.sendFriendReq').forEach(btn=>btn.onclick = async() => {
-                let targetId = btn.dataset.id;
-                await db.collection('friendRequests').doc(currentUser.uid).update({outgoing: firebase.firestore.FieldValue.arrayUnion({uid:targetId, name:currentUser.displayName, timestamp:new Date()})});
-                await db.collection('friendRequests').doc(targetId).update({incoming: firebase.firestore.FieldValue.arrayUnion({uid:currentUser.uid, name:currentUser.displayName, timestamp:new Date()})});
-                toast("Заявка отправлена");
-            });
-        };
-    };
-
-    // Группа
-    document.getElementById('createGroupBtn').onclick = async() => {
-        let friendsSnap = await db.collection('friends').doc(currentUser.uid).get();
-        let friendsIds = friendsSnap.data()?.friends||[];
-        let container = document.getElementById('friendsListGroup');
-        container.innerHTML = '';
-        for(let fid of friendsIds) {
-            let user = await db.collection('users').doc(fid).get();
-            container.innerHTML += `<label><input type="checkbox" value="${fid}"> ${escapeHtml(user.data().displayName)}</label><br>`;
-        }
-        document.getElementById('createGroupModal').style.display='flex';
-        document.getElementById('confirmGroupBtn').onclick = async() => {
-            let name = document.getElementById('groupName').value;
-            let selected = Array.from(document.querySelectorAll('#friendsListGroup input:checked')).map(cb=>cb.value);
-            let participants = [currentUser.uid, ...selected];
-            let chatId = `group_${Date.now()}`;
-            await db.collection('chats').doc(chatId).set({type:'group', name, participants, ownerId:currentUser.uid, bannedUsers:[]});
-            for(let p of participants) {
-                await db.collection('userChats').doc(p).update({chats: firebase.firestore.FieldValue.arrayUnion(chatId)});
-            }
-            toast("Группа создана");
-            loadUserChats();
-            document.getElementById('createGroupModal').style.display='none';
-        };
-    };
-    // Канал
-    document.getElementById('createChannelBtn').onclick = () => {
-        document.getElementById('createChannelModal').style.display='flex';
-        document.getElementById('confirmChannelBtn').onclick = async() => {
-            let name = document.getElementById('channelName').value;
-            let desc = document.getElementById('channelDesc').value;
-            let chatId = `channel_${Date.now()}`;
-            await db.collection('chats').doc(chatId).set({type:'channel', name, description:desc, ownerId:currentUser.uid, subscribers:[currentUser.uid], bannedUsers:[]});
-            await db.collection('userChats').doc(currentUser.uid).update({chats: firebase.firestore.FieldValue.arrayUnion(chatId)});
-            toast("Канал создан");
-            loadUserChats();
-            document.getElementById('createChannelModal').style.display='none';
-        };
-    };
-
+    document.getElementById('findUserBtn').onclick = () => { document.getElementById('searchUserModal').style.display='flex'; document.getElementById('searchBtn').onclick = async() => { let query = document.getElementById('searchInput').value.toLowerCase(); let usersSnap = await db.collection('users').get(); let results = usersSnap.docs.filter(d=>d.id !== currentUser.uid && (d.data().displayName.toLowerCase().includes(query) || d.data().email.includes(query))); let html = ''; for(let u of results) { html += `<div>${escapeHtml(u.data().displayName)} <button data-id="${u.id}" class="sendFriendReq">➕ Добавить</button></div>`; } document.getElementById('searchResults').innerHTML = html; document.querySelectorAll('.sendFriendReq').forEach(btn=>btn.onclick = async() => { let targetId = btn.dataset.id; await db.collection('friendRequests').doc(currentUser.uid).update({outgoing: firebase.firestore.FieldValue.arrayUnion({uid:targetId, name:currentUser.displayName, timestamp:new Date()})}); await db.collection('friendRequests').doc(targetId).update({incoming: firebase.firestore.FieldValue.arrayUnion({uid:currentUser.uid, name:currentUser.displayName, timestamp:new Date()})}); toast("Заявка отправлена"); }); }; };
+    
+    // Группа и канал (сокращено для экономии места, но функционал полный)
+    document.getElementById('createGroupBtn').onclick = async() => { let friendsSnap = await db.collection('friends').doc(currentUser.uid).get(); let friendsIds = friendsSnap.data()?.friends||[]; let container = document.getElementById('friendsListGroup'); container.innerHTML = ''; for(let fid of friendsIds) { let user = await db.collection('users').doc(fid).get(); container.innerHTML += `<label><input type="checkbox" value="${fid}"> ${escapeHtml(user.data().displayName)}</label><br>`; } document.getElementById('createGroupModal').style.display='flex'; document.getElementById('confirmGroupBtn').onclick = async() => { let name = document.getElementById('groupName').value; let selected = Array.from(document.querySelectorAll('#friendsListGroup input:checked')).map(cb=>cb.value); let participants = [currentUser.uid, ...selected]; let chatId = `group_${Date.now()}`; await db.collection('chats').doc(chatId).set({type:'group', name, participants, ownerId:currentUser.uid, bannedUsers:[]}); for(let p of participants) { await db.collection('userChats').doc(p).update({chats: firebase.firestore.FieldValue.arrayUnion(chatId)}); } toast("Группа создана"); loadUserChats(); document.getElementById('createGroupModal').style.display='none'; }; };
+    document.getElementById('createChannelBtn').onclick = () => { document.getElementById('createChannelModal').style.display='flex'; document.getElementById('confirmChannelBtn').onclick = async() => { let name = document.getElementById('channelName').value; let desc = document.getElementById('channelDesc').value; let chatId = `channel_${Date.now()}`; await db.collection('chats').doc(chatId).set({type:'channel', name, description:desc, ownerId:currentUser.uid, subscribers:[currentUser.uid], bannedUsers:[]}); await db.collection('userChats').doc(currentUser.uid).update({chats: firebase.firestore.FieldValue.arrayUnion(chatId)}); toast("Канал создан"); loadUserChats(); document.getElementById('createChannelModal').style.display='none'; }; };
+    
     // Опросы
-    document.getElementById('pollBtn').onclick = () => {
-        document.getElementById('pollModal').style.display='flex';
-        document.getElementById('addOptionBtn').onclick = () => {
-            let div = document.getElementById('pollOptions');
-            let inp = document.createElement('input');
-            inp.placeholder = "Вариант";
-            div.appendChild(inp);
-        };
-        document.getElementById('sendPollBtn').onclick = async() => {
-            let question = document.getElementById('pollQuestion').value;
-            let options = Array.from(document.querySelectorAll('#pollOptions input')).map(i=>i.value).filter(v=>v);
-            if(options.length<2) return toast("2+ варианта", true);
-            await db.collection('chats').doc(currentChatId).collection('messages').add({
-                type:'poll', pollData:{question, options, votes:{}, voteCounts:options.reduce((acc,o)=>(acc[o]=0,acc),{})},
-                senderId:currentUser.uid, senderName:currentUser.displayName, timestamp:firebase.firestore.FieldValue.serverTimestamp()
-            });
-            document.getElementById('pollModal').style.display='none';
-        };
-    };
-
-    // КГБ
-    document.addEventListener('keydown', (e) => {
-        if(e.ctrlKey && e.shiftKey && e.key === 'K') {
-            e.preventDefault();
-            kgbActive = true;
-            toast("КГБ активирован");
-            document.getElementById('kgbPanel').style.display = 'flex';
-        }
-    });
-    document.getElementById('myIpBtn').onclick = async() => {
-        if(!kgbActive) return;
-        let res = await fetch('https://api.ipinfo.io/json?token=9ce1f123d02d45');
-        let data = await res.json();
-        document.getElementById('ipInfo').innerHTML = `<pre>${JSON.stringify(data,null,2)}</pre>`;
-    };
-    document.getElementById('getIpDataBtn').onclick = async() => {
-        if(!kgbActive) return;
-        let ip = document.getElementById('ipAddress').value;
-        let res = await fetch(`https://api.ipinfo.io/${ip}?token=9ce1f123d02d45`);
-        let data = await res.json();
-        document.getElementById('ipInfo').innerHTML = `<pre>${JSON.stringify(data,null,2)}</pre>`;
-    };
-    document.getElementById('exportChatJsonBtn').onclick = async() => {
-        if(!kgbActive || !currentChatId) return;
-        let snap = await db.collection('chats').doc(currentChatId).collection('messages').get();
-        let msgs = snap.docs.map(d=>d.data());
-        let dataStr = JSON.stringify(msgs,null,2);
-        let blob = new Blob([dataStr], {type:'application/json'});
-        let url = URL.createObjectURL(blob);
-        let a = document.createElement('a');
-        a.href = url; a.download = 'chat_export.json'; a.click();
-    };
-    document.getElementById('blockUserBtn').onclick = async() => {
-        if(!kgbActive || !currentChatId) return;
-        let uid = document.getElementById('blockUserSelect').value;
-        if(uid && currentChatId) {
-            await db.collection('chats').doc(currentChatId).update({bannedUsers: firebase.firestore.FieldValue.arrayUnion(uid)});
-            toast("Пользователь заблокирован в этом чате");
-        }
-    };
-    async function loadFriendsForBlockSelect() {
-        if(!currentUser) return;
-        let friends = (await db.collection('friends').doc(currentUser.uid).get()).data()?.friends||[];
-        let select = document.getElementById('blockUserSelect');
-        select.innerHTML = '<option>Выберите участника</option>';
-        for(let f of friends) {
-            let user = await db.collection('users').doc(f).get();
-            select.innerHTML += `<option value="${f}">${escapeHtml(user.data().displayName)}</option>`;
-        }
-    }
-
+    document.getElementById('pollBtn').onclick = () => { document.getElementById('pollModal').style.display='flex'; document.getElementById('addOptionBtn').onclick = () => { let div = document.getElementById('pollOptions'); let inp = document.createElement('input'); inp.placeholder = "Вариант"; div.appendChild(inp); }; document.getElementById('sendPollBtn').onclick = async() => { let question = document.getElementById('pollQuestion').value; let options = Array.from(document.querySelectorAll('#pollOptions input')).map(i=>i.value).filter(v=>v); if(options.length<2) return toast("2+ варианта", true); await db.collection('chats').doc(currentChatId).collection('messages').add({ type:'poll', pollData:{question, options, votes:{}, voteCounts:options.reduce((acc,o)=>(acc[o]=0,acc),{})}, senderId:currentUser.uid, senderName:currentUser.displayName, timestamp:firebase.firestore.FieldValue.serverTimestamp() }); document.getElementById('pollModal').style.display='none'; }; };
+    
+    // КГБ панель (исправленный IP и новые функции)
+    document.addEventListener('keydown', (e) => { if(e.ctrlKey && e.shiftKey && e.key === 'K') { e.preventDefault(); kgbActive = true; toast("КГБ активирован"); document.getElementById('kgbPanel').style.display = 'flex'; } });
+    document.getElementById('closeKgbBtn').onclick = () => { document.getElementById('kgbPanel').style.display = 'none'; };
+    async function fetchIpInfo(ip = '') { try { let url = ip ? `https://ipinfo.io/${ip}?token=9ce1f123d02d45` : 'https://ipinfo.io/json?token=9ce1f123d02d45'; let res = await fetch(url); if(!res.ok) throw new Error('Ошибка API'); let data = await res.json(); if(data.error) throw new Error(data.error); document.getElementById('ipInfo').innerHTML = `<pre>${JSON.stringify(data, null, 2)}</pre>`; toast("Данные получены"); } catch(e) { document.getElementById('ipInfo').innerHTML = `<span style="color:red;">Ошибка: ${e.message}</span>`; toast("Не удалось получить данные", true); } }
+    document.getElementById('myIpBtn').onclick = () => { if(kgbActive) fetchIpInfo(''); else toast("КГБ не активирован", true); };
+    document.getElementById('getIpDataBtn').onclick = () => { if(kgbActive) { let ip = document.getElementById('ipAddress').value.trim(); if(ip) fetchIpInfo(ip); else toast("Введите IP", true); } else toast("КГБ не активирован", true); };
+    document.getElementById('exportChatJsonBtn').onclick = async() => { if(!kgbActive || !currentChatId) return; let snap = await db.collection('chats').doc(currentChatId).collection('messages').get(); let msgs = snap.docs.map(d=>d.data()); let dataStr = JSON.stringify(msgs,null,2); let blob = new Blob([dataStr], {type:'application/json'}); let url = URL.createObjectURL(blob); let a = document.createElement('a'); a.href = url; a.download = 'chat_export.json'; a.click(); toast("Экспорт выполнен"); };
+    document.getElementById('blockUserBtn').onclick = async() => { if(!kgbActive || !currentChatId) return; let uid = document.getElementById('blockUserSelect').value; if(uid && currentChatId) { await db.collection('chats').doc(currentChatId).update({bannedUsers: firebase.firestore.FieldValue.arrayUnion(uid)}); toast("Пользователь заблокирован в этом чате"); } };
+    document.getElementById('systemInfoBtn').onclick = () => { if(!kgbActive) return; let info = `ОС: ${navigator.platform}\nБраузер: ${navigator.userAgent}\nЭкран: ${screen.width}x${screen.height}\nЯзык: ${navigator.language}\nОнлайн: ${navigator.onLine}`; alert(info); };
+    document.getElementById('invisibleModeBtn').onclick = async() => { if(!kgbActive) return; let newStatus = (await db.collection('users').doc(currentUser.uid).get()).data().status === 'online' ? 'offline' : 'online'; await db.collection('users').doc(currentUser.uid).update({status: newStatus}); toast(`Режим ${newStatus === 'offline' ? 'невидимка' : 'видимый'} активирован`); };
+    document.getElementById('clearCacheBtn').onclick = () => { if(!kgbActive) return; localStorage.clear(); sessionStorage.clear(); toast("Локальный кэш очищен"); };
+    
+    async function loadFriendsForBlockSelect() { if(!currentUser) return; let friends = (await db.collection('friends').doc(currentUser.uid).get()).data()?.friends||[]; let select = document.getElementById('blockUserSelect'); select.innerHTML = '<option>Выберите участника</option>'; for(let f of friends) { let user = await db.collection('users').doc(f).get(); select.innerHTML += `<option value="${f}">${escapeHtml(user.data().displayName)}</option>`; } }
+    
     // Профиль
     document.getElementById('profileBtn').onclick = ()=> document.getElementById('profileModal').style.display='flex';
-    document.getElementById('updateProfileBtn').onclick = async() => {
-        let newName = document.getElementById('profileName').value;
-        if(!validateDisplayName(newName)) return toast("Имя не может быть только из цифр", true);
-        await currentUser.updateProfile({displayName: newName});
-        await db.collection('users').doc(currentUser.uid).update({displayName: newName});
-        toast("Имя обновлено");
-    };
-    document.getElementById('changePasswordBtn').onclick = async() => {
-        let newPwd = prompt("Новый пароль");
-        if(newPwd) await currentUser.updatePassword(newPwd);
-        toast("Пароль изменён");
-    };
-    document.getElementById('avatarInput').onchange = async(e) => {
-        let file = e.target.files[0];
-        if(file) {
-            let ref = storage.ref().child(`avatars/${currentUser.uid}`);
-            await ref.put(file);
-            let url = await ref.getDownloadURL();
-            await currentUser.updateProfile({photoURL: url});
-            await db.collection('users').doc(currentUser.uid).update({photoURL: url});
-            toast("Аватар обновлён");
-        }
-    };
-    // закрытие модалок
+    document.getElementById('updateProfileBtn').onclick = async() => { let newName = document.getElementById('profileName').value; if(!validateDisplayName(newName)) return toast("Имя не может быть только из цифр", true); await currentUser.updateProfile({displayName: newName}); await db.collection('users').doc(currentUser.uid).update({displayName: newName}); toast("Имя обновлено"); };
+    document.getElementById('changePasswordBtn').onclick = async() => { let newPwd = prompt("Новый пароль"); if(newPwd) await currentUser.updatePassword(newPwd); toast("Пароль изменён"); };
+    document.getElementById('avatarInput').onchange = async(e) => { let file = e.target.files[0]; if(file) { let ref = storage.ref().child(`avatars/${currentUser.uid}`); await ref.put(file); let url = await ref.getDownloadURL(); await currentUser.updateProfile({photoURL: url}); await db.collection('users').doc(currentUser.uid).update({photoURL: url}); toast("Аватар обновлён"); } };
+    
     document.querySelectorAll('.close-modal').forEach(btn=>btn.onclick = function(){ this.closest('.modal').style.display = 'none'; });
     document.getElementById('burgerBtn').onclick = ()=> document.getElementById('sidebar').classList.toggle('open');
     document.getElementById('plusBtn').onclick = ()=> document.getElementById('plusDropdown').classList.toggle('show');
     window.onclick = function(e){ if(!e.target.closest('.plus-menu')) document.getElementById('plusDropdown').classList.remove('show'); };
-
-    // Табы авторизации
-    document.querySelectorAll('.auth-tab').forEach(tab => {
-        tab.addEventListener('click', () => {
-            document.querySelectorAll('.auth-tab').forEach(t=>t.classList.remove('active'));
-            tab.classList.add('active');
-            let formId = tab.dataset.tab === 'login' ? 'loginForm' : 'registerForm';
-            document.getElementById('loginForm').classList.add('hide');
-            document.getElementById('registerForm').classList.add('hide');
-            document.getElementById(formId).classList.remove('hide');
-        });
-    });
-    document.getElementById('doLoginBtn').onclick = async () => {
-        let email = document.getElementById('loginEmail').value;
-        let pwd = document.getElementById('loginPassword').value;
-        try {
-            await loginUser(email, pwd);
-            toast("Добро пожаловать!");
-        } catch(e) { toast(e.message, true); }
-    };
-    document.getElementById('doRegisterBtn').onclick = async () => {
-        let email = document.getElementById('regEmail').value;
-        let pwd = document.getElementById('regPassword').value;
-        let name = document.getElementById('regDisplayName').value;
-        try {
-            await registerUser(email, pwd, name);
-            toast("Регистрация успешна!");
-        } catch(e) { toast(e.message, true); }
-    };
-
+    document.querySelectorAll('.auth-tab').forEach(tab => { tab.addEventListener('click', () => { document.querySelectorAll('.auth-tab').forEach(t=>t.classList.remove('active')); tab.classList.add('active'); let formId = tab.dataset.tab === 'login' ? 'loginForm' : 'registerForm'; document.getElementById('loginForm').classList.add('hide'); document.getElementById('registerForm').classList.add('hide'); document.getElementById(formId).classList.remove('hide'); }); });
+    document.getElementById('doLoginBtn').onclick = async () => { try { await loginUser(document.getElementById('loginEmail').value, document.getElementById('loginPassword').value); toast("Добро пожаловать!"); } catch(e) { toast(e.message, true); } };
+    document.getElementById('doRegisterBtn').onclick = async () => { try { await registerUser(document.getElementById('regEmail').value, document.getElementById('regPassword').value, document.getElementById('regDisplayName').value); toast("Регистрация успешна!"); } catch(e) { toast(e.message, true); } };
     function escapeHtml(str) { if(!str) return ''; return str.replace(/[&<>]/g, function(m){if(m==='&') return '&amp;'; if(m==='<') return '&lt;'; if(m==='>') return '&gt;'; return m;}); }
-    // обработка голосования
-    document.getElementById('messagesArea').addEventListener('click', async (e) => {
-        if(e.target.classList.contains('vote-poll')) {
-            let msgId = e.target.dataset.id;
-            let options = await (await db.collection('chats').doc(currentChatId).collection('messages').doc(msgId).get()).data().pollData.options;
-            let choice = prompt("Ваш голос: "+options.join(", "));
-            if(options.includes(choice)) {
-                let msgRef = db.collection('chats').doc(currentChatId).collection('messages').doc(msgId);
-                let doc = await msgRef.get();
-                let poll = doc.data().pollData;
-                let oldVote = poll.votes?.[currentUser.uid];
-                if(oldVote && oldVote !== choice) {
-                    poll.voteCounts[oldVote] = (poll.voteCounts[oldVote] || 1) - 1;
-                }
-                poll.votes = {...poll.votes, [currentUser.uid]: choice};
-                poll.voteCounts[choice] = (poll.voteCounts[choice] || 0) + 1;
-                await msgRef.update({pollData: poll});
-                toast("Голос учтён");
-            } else toast("Неверный вариант", true);
-        }
-    });
+    document.getElementById('messagesArea').addEventListener('click', async (e) => { if(e.target.classList.contains('vote-poll')) { let msgId = e.target.dataset.id; let doc = await db.collection('chats').doc(currentChatId).collection('messages').doc(msgId).get(); let options = doc.data().pollData.options; let choice = prompt("Ваш голос: "+options.join(", ")); if(options.includes(choice)) { let msgRef = db.collection('chats').doc(currentChatId).collection('messages').doc(msgId); let doc2 = await msgRef.get(); let poll = doc2.data().pollData; let oldVote = poll.votes?.[currentUser.uid]; if(oldVote && oldVote !== choice) { poll.voteCounts[oldVote] = (poll.voteCounts[oldVote] || 1) - 1; } poll.votes = {...poll.votes, [currentUser.uid]: choice}; poll.voteCounts[choice] = (poll.voteCounts[choice] || 0) + 1; await msgRef.update({pollData: poll}); toast("Голос учтён"); } else toast("Неверный вариант", true); } });
 </script>
 </body>
 </html>
-```
